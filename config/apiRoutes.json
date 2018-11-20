@@ -1,0 +1,10 @@
+[
+    { "key": "userApiRoute", "value": "/v1/users" },
+    { "key": "authApiRoute", "value": "/v1/auth" },
+    { "key": "meApiRoute", "value": "/v1/me" },
+    { "key": "roleTypeApiRoute", "value": "/v1/roletypes" },
+    { "key": "roleApiRoute", "value": "/v1/roles" },
+    { "key": "physicalPersonApiRoute", "value": "/v1/physicalpeople" },
+    { "key": "register", "value": "/v1/register" }
+
+]
