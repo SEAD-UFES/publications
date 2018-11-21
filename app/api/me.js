@@ -1,13 +1,18 @@
 module.exports = app => {
   const api = {};
+  const models = require('../models');
 
   api.me = (req, res) => {
-    res.send({
-      "user": {
-        "id": req.user.id, 
-        "login": req.user.login
-      } 
-    })
+    models.Person.findOne(
+      {
+        where: {user_id: req.user.id}
+      }
+    ).then(person =>{
+      res.send({
+        "user": req.user,
+        person
+      });
+    });
   }
 
   return api;
