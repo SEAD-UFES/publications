@@ -17,9 +17,12 @@ module.exports = app => {
                         }],
                         transaction: t
                     }).then(function(person){
-                        console.log(person);
+                        res.sendStatus(201);
                     }).catch(e => {
                         t.rollback();
+                        if(e.name === 'SequelizeUniqueConstraintError') res.status(400).json(error.parse('register-02', e));
+                        if(e.name === 'SequelizeValidationError') res.status(400).json(error.parse('register-03', e));
+                        else res.status(500).json(error.parse('register-04', e));
                     })
             });
         }
