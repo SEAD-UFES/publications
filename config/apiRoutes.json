@@ -4,7 +4,7 @@
     { "key": "meApiRoute", "value": "/v1/me" },
     { "key": "roleTypeApiRoute", "value": "/v1/roletypes" },
     { "key": "roleApiRoute", "value": "/v1/roles" },
-    { "key": "physicalPersonApiRoute", "value": "/v1/physicalpeople" },
+    { "key": "personApiRoute", "value": "/v1/people" },
     { "key": "register", "value": "/v1/register" }
 
 ]

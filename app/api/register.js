@@ -13,11 +13,7 @@ module.exports = app => {
                 return models.Person
                     .create(req.body, {
                         include: [{
-                            model: models.physicalPerson,
-                            include: [{
-                                model: models.User
-                            }],
-                            transaction: t
+                            model: models.User
                         }],
                         transaction: t
                     }).then(function(person){
@@ -26,7 +22,6 @@ module.exports = app => {
                         t.rollback();
                     })
             });
-            
         }
     }
   
