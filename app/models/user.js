@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     login: {
       type: DataTypes.STRING,
       validate: {
-        len: [4, 20]
+        len: [4, 80]
       },
       unique: true,
       allowNull: false
