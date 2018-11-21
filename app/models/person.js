@@ -1,5 +1,6 @@
 const uuid = require('uuid/v4');
 'use strict';
+const apiRoutes = require('../../config/apiRoutes.json');
 module.exports = (sequelize, DataTypes) => {
   const Person = sequelize.define('Person', {
     id: {
@@ -72,6 +73,18 @@ module.exports = (sequelize, DataTypes) => {
   Person.beforeCreate((p, _ ) => {
     return p.id = uuid();
   });
+
+  Person.prototype.toJSON = function() {
+    let values = Object.assign({}, this.get());
+
+    values.link = {
+      rel: 'person',
+      href: apiRoutes.find(r => r.key === "personApiRoute").value + '/' + values.id
+    };
+
+    delete values.password;
+    return values;
+  }
 
   return Person;
 };
