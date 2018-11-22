@@ -20,5 +20,22 @@ module.exports = app => {
         }
     };
 
+    api.update = (req, res) => {
+        if (!(Object.prototype.toString.call(req.body) === '[object Object]')) {
+            res.status(400).json(error.parse('people-01', {}));
+        } else {
+            models.Person
+                .findOne({where:{user_id:req.params.id}})
+                .then(person => {
+                    if(!person) res.status(400).json(error.parse('people-05', {}));
+                    else person
+                            .update(req.body)
+                            .then(updatedPerson => {
+                                res.json(updatedPerson);
+                            }, e => res.status(500).json(error.parse('people-04', e))); 
+                }, e => res.status(500).json(error.parse('people-04', e)));
+        }
+    };
+
     return api;
 }

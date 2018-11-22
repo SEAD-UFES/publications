@@ -33,6 +33,13 @@ module.exports = app => {
                     devMessage: e
                 };
                 break;
+            case 'people-05': 
+                message = {
+                    code,
+                    userMessage: 'Requisição inválida: Usuário não encontrado com o id informado.',
+                    devMessage: e
+                };
+                break;
             
         }
 
