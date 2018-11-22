@@ -33,6 +33,13 @@ module.exports = app => {
                     devMessage: e
                 };
                 break;
+            case 'register-05':
+                message = {
+                    code,
+                    userMessage: 'Erro na requisição. Dados já registrados no sistema.',
+                    devMessage: e
+                };
+                break;
         }
 
         return message;
