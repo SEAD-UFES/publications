@@ -50,18 +50,13 @@ module.exports = app => {
 
     api.update = (req, res) => {
         models.User
-            .update(req.body, {where: {id: req.params.id}})
-            .then( _ => {
-                models.User
-                    .findById(req.params.id)
-                    .then(user => {
-                        res.json(user);
-                    }, e => {
-                        res.status(500).json(error.parse('users-04', e));        
-                    });
-            }, e => {
-                res.status(500).json(error.parse('users-04', e));
-            });
+            .findById(req.params.id)
+            .then(user => {
+                user.update(req.body)
+                .then(updatedUser => {
+                    res.json(updatedUser);
+                }, e => res.status(500).json(error.parse('users-04', e)));
+            }, e => res.status(500).json(error.parse('users-04', e)));
     }
 
     api.delete = (req, res) => {
