@@ -20,11 +20,27 @@ module.exports = app => {
         }
     };
 
-    api.list = (_, res) => {
+    api.list = (req, res) => {
+        req.query = {
+            page: req.query.page * 1 || 1,
+            limit: (req.query.limit * 1 <= 100 ? req.query.limit * 1 : 100) || 5
+        };
         models.User
-            .findAll({})
+            .findAll({offset:((req.query.page - 1) * req.query.limit), limit: req.query.limit})
             .then(users => {
-                res.json(users);
+                Promise.all(users.map(u => {
+                    return models.Person
+                        .findOne({where: {user_id:u.id}})
+                        .then(p => {
+                            if(!p) return u;
+                            else{
+                                u = u.toJSON();
+                                u.Person = p.toJSON();
+                                return u;
+                            }
+                        });
+                    })
+                ).then(result => res.json(result));
             }, e => {
                 res.status(500).json(error.parse('users-04', e));
             });
