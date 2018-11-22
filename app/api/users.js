@@ -58,7 +58,18 @@ module.exports = app => {
                   }]
             })
             .then(user => {
-                res.json(user);
+                if(!user) res.status(400).json(error.parse('users-05', {}))
+                else{
+                    models.Person
+                        .findOne({where:{user_id:user.id}})
+                        .then(person => {
+                            if(person){
+                                user = user.toJSON();
+                                user.Person = person.toJSON();
+                            }
+                            res.json(user);
+                        });
+                }
             }, e => {
                 res.status(500).json(error.parse('users-04', e));
             });

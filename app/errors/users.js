@@ -33,6 +33,13 @@ module.exports = app => {
                     devMessage: e
                 };
                 break;
+            case 'users-05':
+                message = {
+                    code,
+                    userMessage: 'O usuário requisitado não pode ser encontrado.',
+                    devMessage: 'O usuário requisitado não foi encontrado no banco. Verifique o id solicitado.'
+                };
+                break;
             
         }
 
