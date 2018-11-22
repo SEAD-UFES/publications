@@ -6,6 +6,7 @@
     { "key": "roleApiRoute", "value": "/v1/roles" },
     { "key": "personApiRoute", "value": "/v1/people" },
     { "key": "register", "value": "/v1/register" },
-    { "key": "stateApiRoute", "value": "/v1/states" }
+    { "key": "stateApiRoute", "value": "/v1/states" },
+    { "key": "cityApiRoute", "value": "/v1/cities" }
 ]
 
