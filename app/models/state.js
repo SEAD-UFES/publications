@@ -33,5 +33,16 @@ module.exports = (sequelize, DataTypes) => {
     return State;
   };
 
+  State.prototype.toJSON = function() {
+    let values = Object.assign({}, this.get());
+
+    values.link = {
+      rel: 'state',
+      href: apiRoutes.find(r => r.key === "stateApiRoute").value + '/' + values.id
+    };
+
+    return values;
+  }
+
   return State;
 };
