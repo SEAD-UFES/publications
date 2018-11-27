@@ -76,7 +76,7 @@ module.exports = app => {
     }
 
     api.update = (req, res) => {
-        console.log(req.body);
+
         models.User
             .findById(req.params.id)
             .then(user => {
@@ -99,3 +99,4 @@ module.exports = app => {
 
     return api;
 }
+
