@@ -1,5 +1,9 @@
 'use strict';
+
 const uuid = require('uuid/v4');
+const models = require('../models');
+const apiRoutes = require('../../config/apiRoutes.json');
+
 
 module.exports = (sequelize, DataTypes) => {
   const City = sequelize.define('City', {
@@ -33,6 +37,16 @@ module.exports = (sequelize, DataTypes) => {
     return city.id = uuid()
   });  
 
+  City.prototype.toJSON = function() {
+    let values = Object.assign({}, this.get());
+
+    values.link = {
+      rel: 'city',
+      href: apiRoutes.find(r => r.key === "cityApiRoute").value + '/' + values.id
+    };
+
+    return values;
+  };
 
   return City;
 };
