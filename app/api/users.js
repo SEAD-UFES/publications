@@ -76,10 +76,11 @@ module.exports = app => {
     }
 
     api.update = (req, res) => {
+        console.log(req.body);
         models.User
             .findById(req.params.id)
             .then(user => {
-                user.update(req.body)
+                user.update(req.body, {fields: Object.keys(req.body)})
                 .then(updatedUser => {
                     res.json(updatedUser);
                 }, e => res.status(500).json(error.parse('users-04', e)));
