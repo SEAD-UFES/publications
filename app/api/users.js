@@ -83,7 +83,10 @@ module.exports = app => {
                 user.update(req.body, {fields: Object.keys(req.body)})
                 .then(updatedUser => {
                     res.json(updatedUser);
-                }, e => res.status(500).json(error.parse('users-04', e)));
+                }, e => {
+                    if(e.name === "SequelizeUniqueConstraintError") res.status(400).json(error.parse('users-06', e));
+                    else res.status(500).json(error.parse('users-04', e));
+                });
             }, e => res.status(500).json(error.parse('users-04', e)));
     }
 

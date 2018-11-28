@@ -40,6 +40,13 @@ module.exports = app => {
                     devMessage: 'O usuário requisitado não foi encontrado no banco. Verifique o id solicitado.'
                 };
                 break;
+            case 'users-06':
+                message = {
+                    code,
+                    userMessage: 'Login já existe na base de dados.',
+                    devMessage: e.errors[0].message
+                };
+                break;
             
         }
 
