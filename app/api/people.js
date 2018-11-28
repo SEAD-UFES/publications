@@ -20,6 +20,17 @@ module.exports = app => {
         }
     };
 
+    api.specific = (req, res) => {
+      models.Person
+        .findById(req.params.id)
+        .then(person => {
+          if(!person) res.status(400).json(error.person('people-05', {}))
+          else res.json(person);
+        }, e => {
+          res.status(500).json(error.parse('people-05', e));
+        });
+    }
+
     api.update = (req, res) => {
         if (!(Object.prototype.toString.call(req.body) === '[object Object]')) {
             res.status(400).json(error.parse('people-01', {}));
@@ -39,3 +50,4 @@ module.exports = app => {
 
     return api;
 }
+

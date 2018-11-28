@@ -6,5 +6,7 @@ module.exports = app => {
         .post(authApi.authenticationRequired, authApi.adminRequired, api.create);
     
     app.route(app.get('personApiRoute')+"/:id")
+        .get(authApi.authenticationRequired, api.specific)
         .put(authApi.authenticationRequired, api.update);
+
 }
