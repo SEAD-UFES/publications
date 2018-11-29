@@ -23,7 +23,7 @@ module.exports = {
       birthdate: {
         type: Sequelize.DATE
       },
-      nacionality: {
+      nationality: {
         type: Sequelize.STRING
       },
       rgNumber: {
@@ -75,3 +75,4 @@ module.exports = {
     return queryInterface.dropTable('People');
   }
 };
+

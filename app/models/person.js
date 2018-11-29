@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     birthdate: DataTypes.DATE,
-    nacionality: DataTypes.STRING,
+    nationality: DataTypes.STRING,
     rgNumber: DataTypes.STRING,
     rgDispatcher: DataTypes.STRING,
     ethnicity: {
@@ -88,3 +88,4 @@ module.exports = (sequelize, DataTypes) => {
 
   return Person;
 };
+
