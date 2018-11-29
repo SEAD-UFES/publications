@@ -29,7 +29,7 @@ module.exports = app => {
         }, e => {
           res.status(500).json(error.parse('people-05', e));
         });
-    }
+    };
 
     api.update = (req, res) => {
         if (!(Object.prototype.toString.call(req.body) === '[object Object]')) {
@@ -46,6 +46,15 @@ module.exports = app => {
                             }, e => res.status(500).json(error.parse('people-04', e))); 
                 }, e => res.status(500).json(error.parse('people-04', e)));
         }
+    };
+
+
+    api.options = (req, res) => {
+      res.json({ 
+        "ethnicity":    models.Person.rawAttributes.ethnicity.type.options,
+        "civilStatus":  models.Person.rawAttributes.civilStatus.type.options,
+        "gender":       models.Person.rawAttributes.gender.type.options
+      });
     };
 
     return api;
