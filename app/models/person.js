@@ -59,9 +59,9 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     gender: {
-      type: DataTypes.ENUM('masculino', 'feminino'),
+      type: DataTypes.ENUM('masculino', 'feminino', 'outro'),
       validate: {
-        isIn: [['masculino', 'feminino']]
+        isIn: [['masculino', 'feminino', 'outro']]
       }
     }
   }, {

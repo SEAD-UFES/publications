@@ -45,9 +45,9 @@ module.exports = {
         }
       },
       gender: {
-        type: Sequelize.ENUM('masculino', 'feminino'),
+        type: Sequelize.ENUM('masculino', 'feminino', 'outro'),
         validate: {
-          isIn: [['masculino', 'feminino']]
+          isIn: [['masculino', 'feminino', 'outro']]
         }
       },
       createdAt: {
