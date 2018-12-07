@@ -8,6 +8,7 @@
     { "key": "register", "value": "/v1/register" },
     { "key": "stateApiRoute", "value": "/v1/states" },
     { "key": "cityApiRoute", "value": "/v1/cities" },
-    { "key": "publicationTypeApiRoute", "value": "/v1/publicationtypes" }
+    { "key": "publicationTypeApiRoute", "value": "/v1/publicationtypes" },
+    { "key": "selectiveProcessApiRoute", "value": "/v1/selectiveprocesses" }
 ]
 
