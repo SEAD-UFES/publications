@@ -36,7 +36,7 @@ module.exports = app => {
                   transaction: t
                 }).then(person => {
                   res.status(201).json({
-                    "id": person.id
+                    "id": person.User.id
                   });
                 }).catch(e => {
                   t.rollback();
