@@ -54,7 +54,7 @@ module.exports = app => {
                 "info": {
                   "count": count,
                   "currentPage": req.query.page,
-                  "numberOfPages": Math.round(count / req.query.limit) + 1
+                  "numberOfPages": Math.ceil(count / req.query.limit)
                 },
                 "users": result
               }),
