@@ -5,15 +5,24 @@ module.exports = app => {
   const error = app.errors.selectiveProcesses;
 
   api.list = (req, res) => {
-    req.query = {
-      page: req.query.page * 1 || 1,
-      limit: (req.query.limit * 1 <= 100 ? req.query.limit * 1 : 100) || 5
-    };
+    const today = new Date();
+    const thisYear = today.getFullYear();
+
+    let query = {};
+
+    query.offset = req.query.page * 1 || 1;
+    query.limit = (req.query.limit <= 100 ? req.query.limit * 1 : 100) || 10;
+
+    if (req.query.year &&
+        req.query.year.length === 4 &&
+        Number.parseInt(req.query.year) >= 1990 &&
+        Number.parseInt(req.query.year) <= (thisYear + 1)
+    ) {
+      query.where = { "year": req.query.year }
+    }
+
     models.SelectiveProcess
-      .findAll({
-        offset: ((req.query.page - 1) * req.query.limit),
-        limit: req.query.limit
-      })
+      .findAll( query )
       .then(selectiveProcesses => {
         models.SelectiveProcess
           .count()
@@ -30,6 +39,7 @@ module.exports = app => {
       }, e => {
         res.status(500).json(error.parse('selectiveProcesses-01', {}));
       });
+  
   }
 
   api.create = (req, res) => {
@@ -100,4 +110,3 @@ module.exports = app => {
 
   return api;
 }
-
