@@ -30,7 +30,7 @@ module.exports = app => {
             res.json({
               "info": {
                 "count": count,
-                "currentPage": req.query.page,
+                "currentPage": req.query.page * 1,
                 "numberOfPages": Math.ceil(count / req.query.limit)
               },
               "selectiveProcesses": selectiveProcesses
