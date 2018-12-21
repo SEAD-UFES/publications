@@ -48,8 +48,9 @@ module.exports = app => {
     } else {
       models.SelectiveProcess
         .create(req.body)
-        .then(_ => {
-          res.sendStatus(201)
+        .then(selectiveProcess => {
+          res.status(201)
+            .json({"id": selectiveProcess.id});
         }, e => {
           if (e.number === 'SequelizeUniqueConstraintError') res.status(400).json(error.parse('selectiveProcesses-02', e));
           else if (e.number === 'SequelizeValidationError') res.status(400).json(error.parse('selectiveProcesses-03', e));
