@@ -5,42 +5,31 @@ module.exports = app => {
   const error = app.errors.selectiveProcesses;
 
   api.list = (req, res) => {
-    const today = new Date();
-    const thisYear = today.getFullYear();
 
-    let query = {};
+    req.query.limit = (req.query.limit > 100) ? 100 : req.query.limit * 1 || 10;
+    req.query.page = req.query.page * 1 || 1;
+    req.query.offset = ((req.query.page - 1) * req.query.limit);
 
-    query.offset = req.query.page * 1 || 1;
-    query.limit = (req.query.limit <= 100 ? req.query.limit * 1 : 100) || 10;
-
-    if (req.query.year &&
-        req.query.year.length === 4 &&
-        Number.parseInt(req.query.year) >= 1990 &&
-        Number.parseInt(req.query.year) <= (thisYear + 1)
-    ) {
-      query.where = { "year": req.query.year }
+    if (req.query.year && req.query.year.length === 4) {
+      req.query.where = {
+        "year": req.query.year
+      }
     }
 
     models.SelectiveProcess
-      .findAll( query )
-      .then(selectiveProcesses => {
-        models.SelectiveProcess
-          .count()
-          .then(count => {
-            res.json({
-              "info": {
-                "count": count,
-                "currentPage": req.query.page * 1,
-                "numberOfPages": Math.ceil(count / req.query.limit)
-              },
-              "selectiveProcesses": selectiveProcesses
-            });
-          });
-      }, e => {
-        res.status(500).json(error.parse('selectiveProcesses-01', {}));
-      });
-  
-  }
+      .findAndCountAll(req.query)
+      .then(selectiveProcesses => res.json({
+          "info": {
+            "count": selectiveProcesses.count,
+            "currentPage": req.query.page ? req.query.page * 1 : 1,
+            "numberOfPages": Math.ceil(selectiveProcesses.count / req.query.limit)
+          },
+          "selectiveProcesses": selectiveProcesses.rows
+        }),
+        e => {
+          res.status(500).json(error.parse('selectiveProcesses-01', e));
+        });
+  };
 
   api.create = (req, res) => {
     if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !(req.body.number) || !(req.body.year)) {
@@ -50,7 +39,9 @@ module.exports = app => {
         .create(req.body)
         .then(selectiveProcess => {
           res.status(201)
-            .json({"id": selectiveProcess.id});
+            .json({
+              "id": selectiveProcess.id
+            });
         }, e => {
           if (e.number === 'SequelizeUniqueConstraintError') res.status(400).json(error.parse('selectiveProcesses-02', e));
           else if (e.number === 'SequelizeValidationError') res.status(400).json(error.parse('selectiveProcesses-03', e));

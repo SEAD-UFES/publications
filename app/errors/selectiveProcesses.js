@@ -8,8 +8,8 @@ module.exports = app => {
       case 'selectiveProcesses-01' :
         message = {
           code,
-          userMessage: 'Requisição inválido. Você deve infomar o cpf e o sobrenome',
-          devMessage: 'Essa requisição um espera um objeto contendo cpf e sobrenome'
+          userMessage: 'Requisição inválida.',
+          devMessage: 'Há parametros inválidos na requisição.'
         };
         break;
 
