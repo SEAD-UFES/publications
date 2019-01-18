@@ -17,7 +17,19 @@ module.exports = app => {
     }
 
     models.SelectiveProcess
-      .findAndCountAll(req.query)
+      .findAndCountAll({
+        include: [
+          {
+            model: models.Call,
+            required: true
+          }
+        ],
+        distinct: true,
+        limit: req.query.limit,
+        offset: req.query.offset,
+        page: req.query.page,
+        where: req.query.where
+      })
       .then(selectiveProcesses => res.json({
           "info": {
             "count": selectiveProcesses.count,

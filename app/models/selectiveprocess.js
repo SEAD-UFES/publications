@@ -44,7 +44,7 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   SelectiveProcess.associate = function(models) {
-    SelectiveProcess.belongsTo(models.Call, { foreignKey: 'user_id' });
+    SelectiveProcess.hasMany(models.Call, { foreignKey: 'selectiveProcess_id' });
   };
 
   SelectiveProcess.prototype.toJSON = function() {
