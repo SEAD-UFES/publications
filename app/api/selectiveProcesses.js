@@ -21,7 +21,7 @@ module.exports = app => {
         include: [
           {
             model: models.Call,
-            required: true
+            required: false
           }
         ],
         distinct: true,
