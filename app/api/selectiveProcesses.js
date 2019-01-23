@@ -64,7 +64,13 @@ module.exports = app => {
 
   api.specific = (req, res) => {
     models.SelectiveProcess
-      .findById(req.params.id)
+      .findById(req.params.id, {
+        include: [
+          {
+            model: models.Call,
+            required: false
+          }
+        ]})
       .then(selectiveProcess => {
         if (!selectiveProcess) {
           res.status(400).json(error.parse('selectiveProcesses-05', {}))
