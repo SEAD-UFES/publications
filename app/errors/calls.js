@@ -34,6 +34,13 @@ module.exports = app => {
           devMessage: e
         };
         break;
+      case 'calls-05':
+        message = {
+          code,
+          userMessage: 'Não é possível criar uma nova chamada enquanto houver uma chamada ativa.',
+          devMessage: e
+        };
+        break;
     }
 
     return message;

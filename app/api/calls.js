@@ -1,4 +1,5 @@
 module.exports = app => {
+  const Sequelize = require('sequelize');
   const models = require('../models');
   const api = {};
   const error = app.errors.calls;
@@ -7,16 +8,29 @@ module.exports = app => {
     if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !(req.body.number)) {
       res.status(400).json(error.parse('calls-01', {}));
     } else {
+      let options = {where: {
+        endingDate: {
+          [Sequelize.Op.gte]:Date.now()
+        },
+        selectiveProcess_id: req.body.selectiveProcess_id
+      }};
       models.Call
-        .create(req.body)
-        .then(call => {
-          res.status(201)
-            .json({
-              "id": call.id
+        .findOne(options).then(result => {
+          if(result){
+            res.status(400).json(error.parse('calls-05', {}))
+          }else{
+            models.Call
+              .create(req.body)
+              .then(call => {
+                res.status(201)
+                  .json({
+                    "id": call.id
+                  });
+              }, e => {
+                if(e.name === 'SequelizeUniqueConstraintError') res.status(400).json(error.parse('calls-03', e));
+                else res.status(500).json(error.parse('calls-02', {}));
             });
-        }, e => {
-          if(e.name === 'SequelizeUniqueConstraintError') res.status(400).json(error.parse('calls-03', e));
-          else res.status(500).json(error.parse('calls-02', {}));
+          }
         });
     }
   };
