@@ -10,6 +10,7 @@
     { "key": "cityApiRoute",              "value": "/v1/cities" },
     { "key": "publicationTypeApiRoute",   "value": "/v1/publicationtypes" },
     { "key": "selectiveProcessApiRoute",  "value": "/v1/selectiveprocesses" },
-    { "key": "callApiRoute",              "value": "/v1/calls" }
+    { "key": "callApiRoute",              "value": "/v1/calls" },
+    { "key": "stepTypeApiRoute",              "value": "/v1/steptypes" }
 ]
 
