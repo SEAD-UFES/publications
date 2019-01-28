@@ -26,6 +26,45 @@ module.exports = app => {
                 res.status(500).json(error.parse('steps-02', e));
             });
     }
-  
+
+    api.specific = (req, res) => {
+        models.Step
+            .findById(req.params.id)
+            .then(step => {
+            res.json(step)
+            }, e => {
+                res.status(500).json(error.parse('steps-02', e));
+            });
+    };
+
+    api.update = (req, res) => {
+        models.Step
+            .findById(req.params.id)
+            .then(step => {
+                step.update(req.body, {fields: Object.keys(req.body)})
+            .then(updatedStep => {
+                res.json(updatedStep);
+            }, e => {
+                if(e.name === "SequelizeUniqueConstraintError") {
+                    res.status(400).json(error.parse('steps-02', e));
+                } else {
+                    res.status(500).json(error.parse('steps-02', e));
+                }
+            })
+            }, e => {
+                res.status(500).json(error.parse('steps-02', e))
+            })
+    };
+
+    api.delete = (req, res) => {
+        models.Step
+            .destroy({where: {id: req.params.id}})
+            .then( _ => {
+                res.sendStatus(204);
+            }, e => {
+                res.status(500).json(error.parse('steps-02'));
+            });
+    }
+
     return api;
   }
