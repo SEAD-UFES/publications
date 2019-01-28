@@ -11,6 +11,7 @@
     { "key": "publicationTypeApiRoute",   "value": "/v1/publicationtypes" },
     { "key": "selectiveProcessApiRoute",  "value": "/v1/selectiveprocesses" },
     { "key": "callApiRoute",              "value": "/v1/calls" },
-    { "key": "stepTypeApiRoute",              "value": "/v1/steptypes" }
+    { "key": "stepTypeApiRoute",              "value": "/v1/steptypes" },
+    { "key": "stepApiRoute",              "value": "/v1/steps" }
 ]
 
