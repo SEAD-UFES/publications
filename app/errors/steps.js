@@ -12,10 +12,17 @@ module.exports = app => {
                     devMessage: 'Informe os dados corretamente.'
                 };
                 break;
-            case 'stepTypes-02': 
+            case 'steps-02': 
                 message = {
                     code,
                     userMessage: 'Erro interno do servidor. Contate o administrador.',
+                    devMessage: e
+                };
+                break;
+            case 'steps-03': 
+                message = {
+                    code,
+                    userMessage: 'Sua requisição não pode ser processada com as datas informadas.',
                     devMessage: e
                 };
                 break;

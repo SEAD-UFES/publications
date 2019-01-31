@@ -7,11 +7,27 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
       primaryKey: true
     },
-    resultDate: DataTypes.DATE,
+    resultDate:DataTypes.DATE,
     openAppealDate: DataTypes.DATE,
     limitAppealDate: DataTypes.DATE,
     resultAfterAppealDate: DataTypes.DATE
-  }, {});
+  }, {
+    validate: {
+      validateDates(next){
+        sequelize.models.Call
+          .findById(this.call_id)
+          .then(call => {
+            if(this.resultDate >= call.endingDate || 
+              this.openAppealDate >= call.endingDate || 
+              this.limitAppealDate >= call.endingDate || 
+              this.resultAfterAppealDate >= call.endingDate
+            ) {
+              next('As datas das etapas não podem ser após a data de finalização da chamada!');
+            }else next();
+          });
+      }
+    }
+  });
   Step.associate = function(models) {
     Step.belongsTo(models.Call, {foreignKey: 'call_id', targetKey: 'id'});
     Step.belongsTo(models.StepType, {foreignKey: 'stepType_id', targetKey: 'id'});

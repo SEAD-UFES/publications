@@ -12,7 +12,8 @@ module.exports = app => {
                 .then(_ => {
                     res.sendStatus(201)
                 }, e => {
-                    res.status(500).json(error.parse('steps-02', e));
+                    if(e.name == "SequelizeValidationError") res.status(400).json(error.parse('steps-03', e));
+                    else res.status(500).json(error.parse('steps-02', e));
                 });
         }
     };
