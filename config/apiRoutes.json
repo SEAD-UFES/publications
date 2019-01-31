@@ -12,6 +12,7 @@
     { "key": "selectiveProcessApiRoute",  "value": "/v1/selectiveprocesses" },
     { "key": "callApiRoute",              "value": "/v1/calls" },
     { "key": "stepTypeApiRoute",              "value": "/v1/steptypes" },
-    { "key": "stepApiRoute",              "value": "/v1/steps" }
+    { "key": "stepApiRoute",              "value": "/v1/steps" },
+    { "key": "assignmentApiRoute",              "value": "/v1/assignments" }
 ]
 
