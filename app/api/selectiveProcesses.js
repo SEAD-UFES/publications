@@ -21,13 +21,7 @@ module.exports = app => {
         include: [
           {
             model: models.Call,
-            required: false,
-            include: [
-              {
-                model: models.Step,
-                required: false
-              }
-            ]
+            required: false
           }
         ],
         distinct: true,
@@ -78,7 +72,13 @@ module.exports = app => {
             include: [
               {
                 model: models.Step,
-                required: false
+                required: false,
+                include: [
+                  {
+                    model: models.StepType,
+                    required: false
+                  }
+                ]
               }
             ]
           }
