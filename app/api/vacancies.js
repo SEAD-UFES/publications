@@ -1,0 +1,42 @@
+module.exports = app => {
+    const models = require('../models');
+    const api = {};
+    const error = app.errors.vacancies;
+  
+    api.create = (req, res) => {
+        if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !(req.body.qtd) || !(req.body.reserve)) {
+            res.status(400).json(error.parse('vacancies-01', {}));
+        } else {
+            models.Vacancy
+                .create(req.body)
+                .then(_ => {
+                    res.sendStatus(201)
+                }, e => {
+                    res.status(500).json(error.parse('vacancies-02', e));
+                });
+        }
+    };
+
+    api.list = (req, res) => {
+        models.Vacancy
+            .findAll({
+                include: [
+                    {
+                        model: models.Restriction,
+                        required: false
+                    },
+                    {
+                        model: models.Assignment,
+                        required: false
+                    }
+                ]
+            })
+            .then(vacancy => {
+                res.json(vacancy);
+            }, e => {
+                res.status(500).json(error.parse('vacancies-02', e));
+            });
+    }
+  
+    return api;
+  }

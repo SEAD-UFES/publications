@@ -14,6 +14,7 @@
     { "key": "stepTypeApiRoute",              "value": "/v1/steptypes" },
     { "key": "stepApiRoute",              "value": "/v1/steps" },
     { "key": "assignmentApiRoute",              "value": "/v1/assignments" },
-    { "key": "restrictionApiRoute",              "value": "/v1/restrictions" }
+    { "key": "restrictionApiRoute",              "value": "/v1/restrictions" },
+    { "key": "vacancyApiRoute",              "value": "/v1/vacancies" }
 ]
 
