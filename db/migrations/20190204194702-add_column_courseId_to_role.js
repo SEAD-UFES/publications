@@ -9,7 +9,7 @@ module.exports = {
                 type:Sequelize.UUID,
                 allowNull:true,
                 references: {
-                    model: 'RoleTypes',
+                    model: 'Courses',
                     key: 'id'
                 }
             } 

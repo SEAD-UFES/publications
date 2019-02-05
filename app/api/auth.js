@@ -37,11 +37,15 @@ module.exports = app => {
                         model: models.Role,
                         required: false,
                         attributes: {
-                            exclude: ['roleType_id', 'user_id']
+                            exclude: ['roleType_id', 'user_id', 'course_id']
                         },
                         include: [
                             {
                                 model: models.RoleType,
+                                required: false,
+                            },
+                            {
+                                model: models.Course,
                                 required: false,
                             }
                         ]

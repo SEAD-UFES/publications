@@ -5,13 +5,12 @@ module.exports = (sequelize, DataTypes) => {
     id: {
       type: DataTypes.UUID,
       primaryKey: true
-    },
-    roleType_id: DataTypes.UUID,
-    user_id: DataTypes.UUID
+    }
   }, {});
   Role.associate = function(models) {
     Role.belongsTo(models.User, { foreignKey: 'user_id'});
     Role.belongsTo(models.RoleType, { foreignKey: 'roleType_id' });
+    Role.belongsTo(models.Course, { foreignKey: 'course_id' });
     return Role;
   };
   Role.beforeCreate((role, _ ) => {
