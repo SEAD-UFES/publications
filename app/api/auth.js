@@ -34,18 +34,24 @@ module.exports = app => {
                 decoded.data, 
                 {
                     include: [{
-                        model: models.RoleType,
-                        as: 'roles',
+                        model: models.Role,
                         required: false,
-                        attributes: ['id', 'name'],
-                        through: { attributes: [] }
+                        attributes: {
+                            exclude: ['roleType_id', 'user_id']
+                        },
+                        include: [
+                            {
+                                model: models.RoleType,
+                                required: false,
+                            }
+                        ]
                     }]
                 })
                 .then(user => {
                     req.user = user;
                     next();
-                }, error => {
-                    res.status(500).json(error.parse('auth-03', {}));
+                }, e => {
+                    res.status(500).json(error.parse('auth-03', e));
                 });
         }catch(e){
             switch(e.name){
@@ -62,7 +68,7 @@ module.exports = app => {
     }
 
     api.adminRequired = (req, res, next) => {
-        if(req.user.roles.some(o => o.name == 'Administrador')) next();
+        if(req.user.Roles.some(o => o.RoleType.name == 'Administrador')) next();
         else res.status(401).json(error.parse('auth-08', new Error("Administrator level required")));
     }
 

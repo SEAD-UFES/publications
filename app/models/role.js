@@ -10,6 +10,9 @@ module.exports = (sequelize, DataTypes) => {
     user_id: DataTypes.UUID
   }, {});
   Role.associate = function(models) {
+    Role.belongsTo(models.User, { foreignKey: 'user_id'});
+    Role.belongsTo(models.RoleType, { foreignKey: 'roleType_id' });
+    return Role;
   };
   Role.beforeCreate((role, _ ) => {
     role.id = uuid();
