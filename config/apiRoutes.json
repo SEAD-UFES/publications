@@ -17,6 +17,7 @@
     { "key": "restrictionApiRoute",              "value": "/v1/restrictions" },
     { "key": "vacancyApiRoute",              "value": "/v1/vacancies" },
     { "key": "courseApiRoute",              "value": "/v1/courses" },
-    { "key": "regionApiRoute",              "value": "/v1/regions" }
+    { "key": "regionApiRoute",              "value": "/v1/regions" },
+    { "key": "targetApiRoute",              "value": "/v1/targets" }
 ]
 
