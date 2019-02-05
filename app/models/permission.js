@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
   Permission.associate = function(models) {
     Permission.hasOne(models.Target, { foreignKey: 'target_id' });
     Permission.hasOne(models.Action, { foreignKey: 'action_id' });
+    Permission.belongsToMany(models.RoleType, { through: models.RolePermission, foreignKey: 'permission_id' });
     return Permission;
   };
 
