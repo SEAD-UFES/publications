@@ -7,7 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     description: DataTypes.STRING
   }, {});
   Region.associate = function(models) {
-    // associations can be defined here
+    Region.hasMany(models.Vacancy, { foreignKey: 'region_id' });
   };
   Region.beforeCreate((region, _) => {
     region.id = uuid();

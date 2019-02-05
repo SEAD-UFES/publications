@@ -79,6 +79,24 @@ module.exports = app => {
                     required: false
                   }
                 ]
+              },
+              {
+                model: models.Vacancy,
+                required: false,
+                include: [
+                  {
+                    model: models.Assignment,
+                    required: false
+                  },
+                  {
+                    model: models.Restriction,
+                    required: false
+                  },
+                  {
+                    model: models.Region,
+                    required: false
+                  }
+                ]
               }
             ]
           }

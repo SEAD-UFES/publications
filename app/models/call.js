@@ -37,6 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'selectiveProcess_id'
     });
     Call.hasMany(models.Step, { foreignKey: 'call_id' });
+    Call.hasMany(models.Vacancy, { foreignKey: 'call_id' });
   };
 
   Call.prototype.toJSON = function() {

@@ -19,6 +19,8 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey: 'id',
       foreignKey: 'restriction_id'
     });
+    Vacancy.belongsTo(models.Call, {foreignKey: 'call_id', targetKey: 'id'});
+    Vacancy.belongsTo(models.Region, {foreignKey: 'region_id', targetKey: 'id'});
   };
 
   Vacancy.beforeCreate((vacancy, _ ) => {
