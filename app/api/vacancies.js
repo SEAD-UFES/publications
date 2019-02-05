@@ -37,6 +37,34 @@ module.exports = app => {
                 res.status(500).json(error.parse('vacancies-02', e));
             });
     }
+
+    api.specif = (req, res) => {
+        models.Vacancy
+            .findById(req.params.id, {
+                attributes: {
+                    include: []
+                }
+            })
+            .then(vacancy => {
+                res.json(vacancy);
+            }, e => {
+                res.status(500).json(error.parse('vacancies-02', e));
+            })
+    }
+
+    api.update = (req, res) => {
+        models.Vacancy
+            .findById(req.params.id)
+            .then(vacancy => {
+                if(!vacancy) res.status(400).json(error.parse('vacancies-03', {}));
+                else
+                    vacancy
+                        .update(req.body)
+                        .then(updatedVacancy => {
+                            res.json(updatedVacancy);
+                        }, e => res.status(500).json(error.parse('vacancies-02', e)));
+            });
+    }
   
     return api;
   }

@@ -19,6 +19,13 @@ module.exports = app => {
                     devMessage: e
                 };
                 break;
+            case 'vacancies-03': 
+                message = {
+                    code,
+                    userMessage: 'Não foi possível localizar a vaga.',
+                    devMessage: e
+                };
+                break;
         }
 
         return message;
