@@ -42,11 +42,11 @@ module.exports = app => {
                         include: [
                             {
                                 model: models.RoleType,
-                                required: false,
+                                required: false
                             },
                             {
                                 model: models.Course,
-                                required: false,
+                                required: false
                             }
                         ]
                     }]
@@ -74,6 +74,53 @@ module.exports = app => {
     api.adminRequired = (req, res, next) => {
         if(req.user.Roles.some(o => o.RoleType.name == 'Administrador')) next();
         else res.status(401).json(error.parse('auth-08', new Error("Administrator level required")));
+    }
+
+    api.checkAccessLevel = (req, res, next) => {
+        function callBack(finded){
+            if(finded) next();
+            else res.sendStatus(401);
+        }
+
+        let processed = 0;
+        let finded = false;
+
+        req.user.Roles.forEach((role, i, arr) => {
+            models.RolePermission.findAll({
+                where: {
+                    roleType_id: role.RoleType.id
+                },
+                include: [
+                    {
+                        model: models.Permission,
+                        required: false,
+                        include: [
+                            {
+                                model: models.Action,
+                                required: false,
+                                attributes: ['name']
+                            },
+                            {
+                                model: models.Target,
+                                required: false,
+                                attributes: ['name', 'urn']
+                            }
+                        ],
+                        attributes: ['action_id', 'target_id']
+                    }
+                ],
+                attributes: ['permission_id']
+                }).then(rolePermissions => {
+                    processed++;
+                    if(rolePermissions.some(rp => rp.Permission.Action.name == req.method && rp.Permission.Target.urn == req.originalUrl)) {
+                        finded = true;
+                    }
+                    if(processed === arr.length)
+                        if(finded) callBack(true);
+                        else callBack(false);
+                    else if(finded) callBack(true);
+                });
+        });
     }
 
     return api;

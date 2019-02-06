@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
     permission_id: DataTypes.UUID
   }, {});
   RolePermission.associate = function(models) {
-    // associations can be defined here
+    RolePermission.belongsTo(models.Permission, { foreignKey: 'permission_id' });
   };
   return RolePermission;
 };
