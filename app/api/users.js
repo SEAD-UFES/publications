@@ -68,17 +68,7 @@ module.exports = app => {
 
   api.specific = (req, res) => {
     models.User
-      .findById(req.params.id, {
-        include: [{
-          model: models.RoleType,
-          as: 'roles',
-          required: false,
-          attributes: ['id', 'name'],
-          through: {
-            attributes: []
-          }
-        }]
-      })
+      .findById(req.params.id)
       .then(user => {
         if (!user) res.status(400).json(error.parse('users-05', {}))
         else {
