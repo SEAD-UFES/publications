@@ -84,9 +84,10 @@ module.exports = app => {
 
         let processed = 0;
         let finded = false;
-
-        req.user.Roles.forEach((role, i, arr) => {
-            models.RolePermission.findAll({
+        if(req.user.Roles.length === 0) callBack(false);
+        else if(req.user.Roles.some(o => o.RoleType.name == 'Administrador')) next();
+        else req.user.Roles.forEach((role, i, arr) => {
+               models.RolePermission.findAll({
                 where: {
                     roleType_id: role.RoleType.id
                 },
