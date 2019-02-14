@@ -31,9 +31,8 @@ module.exports = (sequelize, DataTypes) => {
     paranoid:true
   });
   User.associate = function(models) {
-    User.hasMany(models.Role, {
-      foreignKey: 'user_id'
-    });
+    User.hasMany(models.Role, {foreignKey: 'user_id'});
+    User.hasOne(models.Person, {foreignKey: 'user_id'});
 
     return User;
   };

@@ -3,5 +3,6 @@ module.exports = app => {
   const authApi = app.api.auth;
 
   app.route(app.get('meApiRoute'))
-    .get(authApi.authenticationRequired, api.me);
+    .get(authApi.authenticationRequired, api.me)
+    .put(authApi.authenticationRequired, api.update);
 }
