@@ -19,6 +19,13 @@ module.exports = app => {
                     devMessage: e
                 };
                 break;
+            case 'assignments-03': 
+                message = {
+                    code,
+                    userMessage: 'Não foi localizado com o id informado.',
+                    devMessage: e
+                };
+                break;
         }
 
         return message;

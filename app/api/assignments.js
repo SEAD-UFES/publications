@@ -26,6 +26,16 @@ module.exports = app => {
                 res.status(500).json(error.parse('assignments-02', e));
             });
     }
+
+    api.update = (req, res) => {
+        models.Assignment
+            .findById(req.params.id)
+            .then(assignment => {
+                if(!assignment) res.status(500).json(error.parse('assignments-02', {}));
+                else assignment.update(req.body, {fields: Object.keys(req.body)})
+                        .then((updated) => res.json(updated), e => res.status(500).json(error.parse('assignments-02', e)))
+            });
+    }
   
     return api;
   }
