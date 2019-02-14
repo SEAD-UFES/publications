@@ -4,7 +4,7 @@ module.exports = app => {
 
     app.route(app.get('userApiRoute'))
         .post(api.create)
-        .get(authApi.authenticationRequired, api.list);
+        .get(authApi.authenticationRequired, authApi.checkAccessLevel, api.list);
     
     app.route(app.get('userApiRoute')+"/:id")
         .get(authApi.authenticationRequired, api.specific)
