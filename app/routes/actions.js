@@ -3,7 +3,7 @@ module.exports = app => {
     const authApi = app.api.auth;
 
     app.route(app.get('actionApiRoute'))
-        .post(authApi.authenticationRequired, api.create)
-        .get(authApi.authenticationRequired, api.list)
+        .post(authApi.authenticationRequired, authApi.adminRequired, api.create)
+        .get(authApi.authenticationRequired, authApi.adminRequired, api.list)
 }
   
