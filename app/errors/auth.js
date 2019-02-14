@@ -68,6 +68,20 @@ module.exports = app => {
                     devMessage: e.message
                 };
                 break;
+            case 'auth-10': 
+                message = {
+                    code,
+                    userMessage: 'Este recurso requer elevação de privilégios.',
+                    devMessage: e.message
+                };
+                break;
+            case 'auth-11': 
+                message = {
+                    code,
+                    userMessage: 'Você não possui permissões neste curso.',
+                    devMessage: e.message
+                };
+                break;
         }
 
         return message;
