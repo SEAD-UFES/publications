@@ -113,7 +113,8 @@ module.exports = app => {
                 attributes: ['permission_id']
                 }).then(rolePermissions => {
                     processed++;
-                    if(rolePermissions.some(rp => rp.Permission.Action.name == req.method && rp.Permission.Target.urn == req.originalUrl)) {
+                    console.log(req.route.path);
+                    if(rolePermissions.some(rp => rp.Permission.Action.name == req.method && (rp.Permission.Target.urn == req.originalUrl || rp.Permission.Target.urn == req.route.path)) ) {
                         finded = true;
                     }
                     if(processed === arr.length)
