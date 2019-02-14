@@ -36,6 +36,12 @@ module.exports = app => {
                         .then((updated) => res.json(updated), e => res.status(500).json(error.parse('assignments-02', e)))
             });
     }
+
+    api.delete = (req, res) => {
+        models.Assignment
+            .destroy({ where: { id: req.params.id } })
+            .then(_ => res.sendStatus(204), e => res.status(500).json(error.parse('assignments-02', e)));
+    }
   
     return api;
   }
