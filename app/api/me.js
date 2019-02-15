@@ -16,8 +16,12 @@ module.exports = app => {
   }
 
   api.update = (req, res) => {
-    let User = req.body.User;
     let hasPerson = false;
+    let hasUser = false;
+    if(req.body.User) {
+      let User = req.body.User;
+      hasUser = true;
+    }
     if(req.body.Person) {
       let Person = req.body.Person;
       Person.user_id = req.user.id;
@@ -28,7 +32,7 @@ module.exports = app => {
         [
           models.User.findById(req.user.id, {transaction: t})
             .then(user => {
-              return user.update(User, {fields: Object.keys(User), transaction: t})
+              if(hasUser) return user.update(User, {fields: Object.keys(User), transaction: t})
             }),
           models.Person.findOne({where:{user_id:req.user.id}, transaction: t})
             .then(person => {
