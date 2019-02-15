@@ -127,7 +127,7 @@ module.exports = app => {
 
     api.checkCourseStaff = (req, res, next) => {
         if(req.user.Roles.length === 0) res.status(401).json(error.parse('auth-10', new Error("You're not member of this course staff.")));
-        else if(req.user.Roles.some(o => (o.RoleType.name == 'Administrador' || o.Course.id == req.body.course_id))) next();
+        else if(req.user.Roles.some(o => (o.RoleType.name == 'Administrador' || o.Course.id == req.body.course_id || o.Course.id == req.query.course_id))) next();
         else res.status(401).json(error.parse('auth-11', new Error("You're not member of this course staff.")));
     }
 
