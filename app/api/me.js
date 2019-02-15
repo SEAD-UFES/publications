@@ -18,14 +18,16 @@ module.exports = app => {
   api.update = (req, res) => {
     let hasPerson = false;
     let hasUser = false;
+    let User = {};
+    let Person = {};
     if(req.body.User) {
-      let User = req.body.User;
+      User = req.body.User;
       hasUser = true;
     }
     if(req.body.Person) {
-      let Person = req.body.Person;
+      Person = req.body.Person;
       Person.user_id = req.user.id;
-      hasPerson == true;
+      hasPerson = true;
     }
     db.sequelize.transaction().then(t => {
       return Promise.all(
