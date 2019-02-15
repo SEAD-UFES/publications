@@ -35,16 +35,6 @@ module.exports = app => {
     }
   };
 
-  api.list = (req, res) => {    
-    models.Call
-      .findAll({})
-      .then(calls => {
-        res.json(calls);
-      }, e => {
-        res.status(500).json(error.parse('calls-01', e));
-      });
-  };
-
   api.specific = (req, res) => {
     models.Call
       .findById(req.params.id)
