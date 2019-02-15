@@ -17,8 +17,12 @@ module.exports = app => {
 
   api.update = (req, res) => {
     let User = req.body.User;
-    let Person = req.body.Person;
-    Person.user_id = req.user.id;
+    let hasPerson = false;
+    if(req.body.Person) {
+      let Person = req.body.Person;
+      Person.user_id = req.user.id;
+      hasPerson == true;
+    }
     db.sequelize.transaction().then(t => {
       return Promise.all(
         [
@@ -28,8 +32,9 @@ module.exports = app => {
             }),
           models.Person.findOne({where:{user_id:req.user.id}, transaction: t})
             .then(person => {
-              if(person) return person.update(Person, {fields: Object.keys(Person), transaction: t})
-              else return models.Person.create(Person, {transaction:t})
+              if(hasPerson)
+                if(person) return person.update(Person, {fields: Object.keys(Person), transaction: t});
+                else return models.Person.create(Person, {transaction:t});
             })
         ]
       ).then(() => {
