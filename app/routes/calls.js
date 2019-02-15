@@ -6,9 +6,9 @@ module.exports = app => {
     .post(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.create);
 
   app.route(app.get('callApiRoute') + "/:id")
-    .get(authApi.authenticationRequired, api.specific)
-    .put(authApi.authenticationRequired, api.update)
-    .delete(authApi.authenticationRequired, api.delete);
+    .get(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.specific)
+    .put(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.update)
+    .delete(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.delete);
 
 }
 
