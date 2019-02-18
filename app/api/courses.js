@@ -26,6 +26,19 @@ module.exports = app => {
                 res.status(500).json(error.parse('courses-02', e));
             });
     }
+
+    api.update = (req, res) => {
+        models.Course
+         .findById(req.params.id)
+         .then(course => {
+            course.update(req.body, {
+                fields: Object.keys(req.body)
+            })
+         .then(updatedCourse => {
+            res.json(updatedCourse);
+          }, e => res.status(500).json(error.parse('courses-02', e)));
+         }, e => res.status(500).json(error.parse('courses-02', e)));
+    }
   
     return api;
   }
