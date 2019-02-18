@@ -22,6 +22,10 @@ module.exports = app => {
           {
             model: models.Call,
             required: false
+          },
+          {
+            model: models.Course,
+            required: false
           }
         ],
         distinct: true,
@@ -99,6 +103,10 @@ module.exports = app => {
                 ]
               }
             ]
+          },
+          {
+            model: models.Course,
+            required: false
           }
         ]})
       .then(selectiveProcess => {
