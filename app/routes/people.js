@@ -10,7 +10,7 @@ module.exports = app => {
         .get(authApi.authenticationRequired, api.options);
     
     app.route(app.get('personApiRoute')+"/:id")
-        .get(authApi.authenticationRequired, api.specific)
-        .put(authApi.authenticationRequired, api.update);
+        .get(authApi.authenticationRequired, authApi.checkAccessLevel, api.specific)
+        .put(authApi.authenticationRequired,  authApi.checkAccessLevel, api.update);
 
 }
