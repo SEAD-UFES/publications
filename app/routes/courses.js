@@ -7,5 +7,6 @@ module.exports = app => {
         .get(authApi.authenticationRequired, api.list);
     
     app.route(app.get('courseApiRoute')+"/:id")
-        .put(authApi.authenticationRequired, authApi.adminRequired, api.update);
+        .put(authApi.authenticationRequired, authApi.adminRequired, api.update)
+        .get(authApi.authenticationRequired, api.specif);
 }

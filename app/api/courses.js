@@ -31,10 +31,18 @@ module.exports = app => {
         models.Course
          .findById(req.params.id)
          .then(course => {
-            if(!course) res.status(400).json(error.parse('courses-02', {}));
+            if(!course) res.status(400).json(error.parse('courses-03', {}));
             else course.update(req.body, {fields: Object.keys(req.body)})
                        .then(updatedCourse => res.json(updatedCourse), e => res.status(500).json(error.parse('courses-02', e)));
          }, e => res.status(500).json(error.parse('courses-02', e)));
+    }
+
+    api.specif = (req, res) => {
+        models.Course.findById(req.params.id)
+            .then(course => {
+                if(!course) res.status(400).json(error.parse('courses-03', {}));
+                else res.json(course);
+            }, e => res.status(500).json(error.parse('courses-02', e)));
     }
   
     return api;
