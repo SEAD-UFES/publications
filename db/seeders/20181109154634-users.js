@@ -3,17 +3,15 @@
 const uuid = require('uuid/v4');
 const bcrypt = require('bcrypt');
 
-
-let passwordHash = bcrypt.hashSync("senhausuarioteste2018", 10);
+let passwordHash = bcrypt.hashSync("senhafraca123", 10);
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.bulkInsert('Users', [
-      { id: uuid(), login: "admin@mail.com", password: passwordHash, userType: 'ufes', authorized: true },  
-      { id: uuid(), login: "usuario.sead.nao.autorizado@mail.com", password: passwordHash, userType: 'sead', authorized: false },   
-      { id: uuid(), login: "usuario.ufes.nao.autorizado@mail.com", password: passwordHash, userType: 'ufes', authorized: false },  
-      { id: uuid(), login: "usuario.sead.autorizado@mail.com", password: passwordHash, userType: 'sead', authorized: true },  
-      { id: uuid(), login: "usuario.ufes.autorizado@mail.com", password: passwordHash, userType: 'ufes', authorized: true },  
+      { id: uuid(), login: "admin@ufes.br", password: passwordHash, userType: 'sead', authorized: true },  
+      { id: uuid(), login: "gerente@ufes.br", password: passwordHash, userType: 'ufes', authorized: true },  
+      { id: uuid(), login: "coordenador@ufes.br", password: passwordHash, userType: 'ufes', authorized: true },  
+      { id: uuid(), login: "comum@ufes.br", password: passwordHash, userType: 'ufes', authorized: true }
     ], {});
   },
 
