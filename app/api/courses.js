@@ -31,12 +31,9 @@ module.exports = app => {
         models.Course
          .findById(req.params.id)
          .then(course => {
-            course.update(req.body, {
-                fields: Object.keys(req.body)
-            })
-         .then(updatedCourse => {
-            res.json(updatedCourse);
-          }, e => res.status(500).json(error.parse('courses-02', e)));
+            if(!course) res.status(400).json(error.parse('courses-02', {}));
+            else course.update(req.body, {fields: Object.keys(req.body)})
+                       .then(updatedCourse => res.json(updatedCourse), e => res.status(500).json(error.parse('courses-02', e)));
          }, e => res.status(500).json(error.parse('courses-02', e)));
     }
   

@@ -19,6 +19,13 @@ module.exports = app => {
                     devMessage: e
                 };
                 break;
+            case 'courses-03':
+                message = {
+                    code,
+                    userMessage: 'Curso não encontrado. Verifique o ID informado.',
+                    devMessage: e
+                };
+                break;
         }
 
         return message;
