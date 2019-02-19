@@ -18,16 +18,6 @@ module.exports = app => {
         }
     };
 
-    api.list = (req, res) => {
-        models.Step
-            .findAll({})
-            .then(steps => {
-                res.json(steps);
-            }, e => {
-                res.status(500).json(error.parse('steps-02', e));
-            });
-    }
-
     api.specific = (req, res) => {
         models.Step
             .findById(req.params.id)
