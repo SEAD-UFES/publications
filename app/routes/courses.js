@@ -8,5 +8,6 @@ module.exports = app => {
     
     app.route(app.get('courseApiRoute')+"/:id")
         .put(authApi.authenticationRequired, authApi.adminRequired, api.update)
-        .get(authApi.authenticationRequired, api.specif);
+        .get(authApi.authenticationRequired, api.specif)
+        .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete);
 }

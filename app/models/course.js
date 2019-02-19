@@ -3,7 +3,10 @@ const apiRoutes = require('../../config/apiRoutes.json');
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const Course = sequelize.define('Course', {
-    name: DataTypes.STRING,
+    name: {
+      type: DataTypes.STRING,
+      unique: true
+    },
     description: DataTypes.STRING
   }, {});
   Course.associate = function(models) {
