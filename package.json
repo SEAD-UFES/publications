@@ -20,23 +20,23 @@
   },
   "homepage": "https://github.com/SEAD-UFES/publications#readme",
   "dependencies": {
-    "bcrypt": "^3.0.0",
+    "bcrypt": "^3.0.4",
     "body-parser": "^1.18.3",
     "consign": "^0.1.6",
-    "express": "^4.16.3",
-    "jsonwebtoken": "^8.3.0",
-    "mysql2": "^1.6.1",
-    "npm": "^6.4.1",
-    "sequelize": "^4.38.0",
+    "express": "^4.16.4",
+    "jsonwebtoken": "^8.4.0",
+    "mysql2": "^1.6.5",
+    "npm": "^6.8.0",
+    "sequelize": "^4.42.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
     "cross-env": "^5.2.0",
-    "expect": "^23.5.0",
+    "expect": "^24.1.0",
     "mocha": "^5.2.0",
-    "nodemon": "^1.18.3",
-    "nyc": "^13.0.1",
+    "nodemon": "^1.18.10",
+    "nyc": "^13.3.0",
     "sequelize-cli": "^4.1.1",
-    "supertest": "^3.1.0"
+    "supertest": "^3.4.2"
   }
 }
