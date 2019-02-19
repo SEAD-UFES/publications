@@ -3,5 +3,5 @@ module.exports = app => {
     const authApi = app.api.auth;
 
     app.route(app.get('roleApiRoute'))
-        .post(authApi.authenticationRequired, api.create);
+        .post(authApi.authenticationRequired, authApi.adminRequired, api.create);
 }
