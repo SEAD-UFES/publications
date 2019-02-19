@@ -3,9 +3,10 @@ module.exports = app => {
     const authApi = app.api.auth;
 
     app.route(app.get('vacancyApiRoute'))
-        .post(authApi.authenticationRequired, api.create);
+        .post(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.create);
     
     app.route(app.get('vacancyApiRoute')+"/:id")
-        .put(authApi.authenticationRequired, api.update)
-        .get(authApi.authenticationRequired, api.specif)
+        .put(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.update)
+        .get(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.specif)
+        .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete)
 }

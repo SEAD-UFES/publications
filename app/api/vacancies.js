@@ -44,6 +44,12 @@ module.exports = app => {
                         }, e => res.status(500).json(error.parse('vacancies-02', e)));
             });
     }
+
+    api.delete = (req, res) => {
+        models.Vacancy
+            .destroy({ where: { id: req.params.id } })
+            .then(_ => res.sendStatus(204), e => res.status(500).json(error.parse('vacancies-02', e)));
+    }
   
     return api;
   }
