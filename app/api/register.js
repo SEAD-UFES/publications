@@ -8,6 +8,7 @@ module.exports = app => {
     if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !(req.body.cpf) || !(req.body.User.login)) {
       res.status(400).json(error.parse('register-01', {}));
     } else {
+      req.body.User.authorized = 0;
       models.Person.findOne({
         where: {
           cpf: req.body.cpf
