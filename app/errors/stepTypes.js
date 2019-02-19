@@ -19,6 +19,13 @@ module.exports = app => {
                     devMessage: e
                 };
                 break;
+            case 'stepTypes-03': 
+                message = {
+                    code,
+                    userMessage: 'Não foi localizado o tipo de etapa com o ID informado.',
+                    devMessage: e
+                };
+                break;
         }
 
         return message;

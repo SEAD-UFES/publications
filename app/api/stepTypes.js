@@ -26,6 +26,23 @@ module.exports = app => {
                 res.status(500).json(error.parse('stepTypes-02', e));
             });
     }
+
+    api.update = (req, res) => {
+        models.StepType
+            .findById(req.params.id)
+            .then(stepType => {
+                if(!stepType) res.status(400).json(error.parse('stepTypes-03', {}));
+                else stepType.update(req.body, {fields: Object.keys(req.body)})
+                                .then(updated => res.json(updated), e => res.status(500).json(error.parse('stepTypes-02', e)));
+
+            });
+    }
+
+    api.delete = (req, res) => {
+        models.StepType
+            .destroy({ where: { id: req.params.id } })
+            .then(_ => res.sendStatus(204), e => res.status(500).json(error.parse('stepTypes-02', e)));
+    }
   
     return api;
   }
