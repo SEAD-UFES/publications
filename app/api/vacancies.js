@@ -17,27 +17,6 @@ module.exports = app => {
         }
     };
 
-    api.list = (req, res) => {
-        models.Vacancy
-            .findAll({
-                include: [
-                    {
-                        model: models.Restriction,
-                        required: false
-                    },
-                    {
-                        model: models.Assignment,
-                        required: false
-                    }
-                ]
-            })
-            .then(vacancy => {
-                res.json(vacancy);
-            }, e => {
-                res.status(500).json(error.parse('vacancies-02', e));
-            });
-    }
-
     api.specif = (req, res) => {
         models.Vacancy
             .findById(req.params.id, {
