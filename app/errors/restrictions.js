@@ -19,6 +19,13 @@ module.exports = app => {
                     devMessage: e
                 };
                 break;
+            case 'restrictions-03': 
+                message = {
+                    code,
+                    userMessage: 'Não foi possível localizar a restrição com o ID informado.',
+                    devMessage: e
+                };
+                break;
         }
 
         return message;
