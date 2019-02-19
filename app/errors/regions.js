@@ -19,6 +19,13 @@ module.exports = app => {
                     devMessage: e
                 };
                 break;
+            case 'regions-03': 
+                message = {
+                    code,
+                    userMessage: 'Náo foi localizado o polo com o ID informado.',
+                    devMessage: e
+                };
+                break;
         }
 
         return message;

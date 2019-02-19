@@ -26,6 +26,22 @@ module.exports = app => {
                 res.status(500).json(error.parse('regions-02', e));
             });
     }
+
+    api.update = (req, res) => {
+        models.Region
+         .findById(req.params.id)
+         .then(region => {
+            if(!region) res.status(400).json(error.parse('regions-03', {}));
+            else course.update(req.body, {fields: Object.keys(req.body)})
+                       .then(updated => res.json(updated), e => res.status(500).json(error.parse('regions-02', e)));
+         }, e => res.status(500).json(error.parse('regions-02', e)));
+    }
+
+    api.delete = (req, res) => {
+        models.Region
+            .destroy({ where: { id: req.params.id } })
+            .then(_ => res.sendStatus(204), e => res.status(500).json(error.parse('regions-02', e)));
+    }
   
     return api;
   }
