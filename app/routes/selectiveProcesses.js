@@ -5,11 +5,11 @@ module.exports = app => {
 
   app.route(app.get('selectiveProcessApiRoute'))
     .post(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.create)
-    .get(authApi.authenticationRequired, api.list);
+    .get(api.list);
 
   app.route(app.get('selectiveProcessApiRoute')+"/:id")
-    .get(authApi.authenticationRequired, api.specific)
-    .put(authApi.authenticationRequired, api.update)
-    .delete(authApi.authenticationRequired, api.delete);
+    .get(api.specific)
+    .put(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.update)
+    .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete);
 }
 
