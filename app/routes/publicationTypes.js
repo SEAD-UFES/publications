@@ -3,13 +3,13 @@ module.exports = app => {
   const authApi = app.api.auth;
 
   app.route(app.get('publicationTypeApiRoute'))
-    .post(authApi.authenticationRequired, api.create)
+    .post(authApi.authenticationRequired, authApi.adminRequired, api.create)
     .get(authApi.authenticationRequired, api.list);
 
   app.route(app.get('publicationTypeApiRoute') + "/:id")
     .get(authApi.authenticationRequired, api.specific)
-    .put(authApi.authenticationRequired, api.update)
-    .delete(authApi.authenticationRequired, api.delete);
+    .put(authApi.authenticationRequired, authApi.adminRequired, api.update)
+    .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete);
 
 }
 
