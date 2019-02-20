@@ -19,7 +19,7 @@ module.exports = {
       { id: uuid(), name: 'step api (general)', urn: '/v1/steps' },
       { id: uuid(), name: 'step api (specific)', urn: '/v1/steps/:id' },
 
-      { id: uuid(), name: 'vacancy api (general)', urn: '/v1/vacancies/' },
+      { id: uuid(), name: 'vacancy api (general)', urn: '/v1/vacancies' },
       { id: uuid(), name: 'vacancy api (specific)', urn: '/v1/vacancies/:id' },
 
       { id: uuid(), name: 'selective process api (general)', urn: '/v1/selectiveprocesses' },
