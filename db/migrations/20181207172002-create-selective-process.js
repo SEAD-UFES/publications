@@ -53,3 +53,4 @@ module.exports = {
     return queryInterface.dropTable('SelectiveProcesses');
   }
 };
+

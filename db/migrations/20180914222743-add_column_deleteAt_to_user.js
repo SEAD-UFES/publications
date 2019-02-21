@@ -17,3 +17,4 @@ module.exports = {
     queryInterface.removeColumn('Users','deletedAt');
   }
 };
+

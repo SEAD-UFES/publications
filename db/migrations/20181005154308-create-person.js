@@ -6,6 +6,14 @@ module.exports = {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.UUID
+      }, 
+      user_id: {
+        type: Sequelize.UUID,
+        references: {
+          model: 'Users',
+          key: 'id'
+        },
+        allowNull: false
       },
       cpf: {
         type: Sequelize.STRING,
@@ -48,27 +56,23 @@ module.exports = {
         type: Sequelize.ENUM('masculino', 'feminino', 'outro'),
         validate: {
           isIn: [['masculino', 'feminino', 'outro']]
-        }
+        },
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('now')
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('now')
       },
       deletedAt:{
         type:Sequelize.DATE,
-        allowNull:true
+        allowNull: true
       },
-      user_id: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'Users',
-          key: 'id'
-        }
-      }
     });
   },
   down: (queryInterface, Sequelize) => {

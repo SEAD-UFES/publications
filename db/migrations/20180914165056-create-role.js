@@ -12,22 +12,26 @@ module.exports = {
         references: {
           model: 'RoleTypes',
           key: 'id'
-        }
+        },
+        allowNull: false
       },
       user_id: {
         type: Sequelize.UUID,
         references: {
           model: 'Users',
           key: 'id'
-        }
+        },
+        allowNull: false 
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('now')
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('now')
       }
     });
   },
@@ -35,3 +39,4 @@ module.exports = {
     return queryInterface.dropTable('Roles');
   }
 };
+

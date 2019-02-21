@@ -5,15 +5,15 @@ module.exports = {
       id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4
+        type: Sequelize.UUID
       },
       selectiveProcess_id: {
         type: Sequelize.UUID,
         references: {
           model: 'SelectiveProcesses',
           key: 'id'
-        }
+        },
+        allowNull: false
       },
       number: {
         type: Sequelize.STRING(45),
@@ -33,11 +33,13 @@ module.exports = {
       },
       createdAt: { 
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: Sequelize.fn('now')
       },
       updatedAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: Sequelize.fn('now')
       },
       deletedAt: {
         type: Sequelize.DATE,
@@ -49,3 +51,4 @@ module.exports = {
     return queryInterface.dropTable('Calls');
   }
 };
+

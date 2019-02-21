@@ -5,8 +5,7 @@ module.exports = {
       id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4
+        type: Sequelize.UUID
       },
       name: {
         allowNull: false,
@@ -29,3 +28,4 @@ module.exports = {
     return queryInterface.dropTable('PublicationTypes');
   }
 };
+
