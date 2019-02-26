@@ -31,6 +31,7 @@ module.exports = (sequelize, DataTypes) => {
   Step.associate = function(models) {
     Step.belongsTo(models.Call, {foreignKey: 'call_id', targetKey: 'id'});
     Step.belongsTo(models.StepType, {foreignKey: 'stepType_id', targetKey: 'id'});
+    Step.hasMany(models.Publication, {foreignKey: 'step_id'});
   };
   Step.beforeCreate((step, _ ) => {
     step.id = uuid();
@@ -50,3 +51,4 @@ module.exports = (sequelize, DataTypes) => {
 
   return Step;
 };
+
