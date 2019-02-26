@@ -2,7 +2,7 @@ const app = require('../config/express');
 const request = require('supertest')(app);
 const {users, populateUsers} = require('../seeders/users.seed');
 
-beforeEach(populateUsers);
+//beforeEach(populateUsers);
 
 describe('GET /v1/me', () => {
     it('#Get user list - 200 status code', (done) => {

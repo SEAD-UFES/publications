@@ -2,7 +2,7 @@ const app = require('../config/express');
 const request = require('supertest')(app);
 const {users, populateUsers} = require('../seeders/users.seed');
 
-beforeEach(populateUsers);
+//beforeEach(populateUsers);
 
 describe('POST /v1/users', () => {
     it('#Post a new user - 201 status code', (done) => {
