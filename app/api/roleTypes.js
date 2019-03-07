@@ -26,6 +26,16 @@ module.exports = app => {
                 res.status(500).json(error.parse('roleTypes-02', e));
             });
     }
+
+    api.specific = (req, res) => {
+        models.RoleType
+          .findById(req.params.id)
+          .then(roleType => {
+            res.json(roleType)
+          }, e => {
+            res.status(500).json(error.parse('roleTypes-02', e));
+          });
+      };
   
     return api;
   }

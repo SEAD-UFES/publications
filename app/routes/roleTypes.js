@@ -4,6 +4,10 @@ module.exports = app => {
 
     app.route(app.get('roleTypeApiRoute'))
         .post(authApi.authenticationRequired, authApi.adminRequired, api.create)
-        .get(authApi.authenticationRequired, api.list)
+        .get(authApi.authenticationRequired, api.list);
+    
+    app.route(app.get('roleTypeApiRoute')+"/:id")
+        .get(authApi.authenticationRequired, api.specific)
+
 }
   
