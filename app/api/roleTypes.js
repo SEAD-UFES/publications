@@ -9,8 +9,8 @@ module.exports = app => {
         } else {
             models.RoleType
                 .create(req.body)
-                .then(_ => {
-                    res.sendStatus(201)
+                .then(roleType => {
+                    res.sendStatus(201).json({"id":roleType.id});
                 }, e => {
                     res.status(500).json(error.parse('roleTypes-02', e));
                 });
