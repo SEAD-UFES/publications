@@ -43,5 +43,22 @@ module.exports = app => {
             });
     };
 
+    api.update = (req, res) => {
+        models.RoleType
+            .findById(req.params.id)
+            .then(roleType => {
+                if(!roleType) res.status(400).json(error.parse('roleTypes-03', {}));
+                else roleType.update(req.body, {fields: Object.keys(req.body)})
+                                .then(updated => res.json(updated), e => res.status(500).json(error.parse('roleTypes-02', e)));
+
+            });
+    }
+
+    api.delete = (req, res) => {
+        models.RoleType
+            .destroy({ where: { id: req.params.id } })
+            .then(_ => res.sendStatus(204), e => res.status(500).json(error.parse('roleTypes-02', e)));
+    }
+
     return api;
 };
