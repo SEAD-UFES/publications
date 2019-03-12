@@ -17,5 +17,29 @@ module.exports = app => {
         }
     };
   
+    api.list = (req, res) => {
+      models.Role
+        .findAll({
+          include: [
+            { model: models.User, attributes: { exclude: ['password'] } },
+            { model: models.RoleType },
+            { model: models.Course, required: false }
+          ],
+          attributes: { exclude: ['User.password'] }
+        })
+        .then(roles => {
+          res.json(roles)
+        }, e => {
+          res.status(500).json(error.parse('roles-02', e));
+        });
+    };
+
+    api.delete = (req, res) => {
+      models.Role
+        .destroy({ where: { id: req.params.id }})
+        .then(_ => res.sendStatus(204),
+          e => res.status(500).json(error.parse('role-02', e)));
+    };
+  
     return api;
   }
