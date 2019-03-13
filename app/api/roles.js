@@ -34,6 +34,22 @@ module.exports = app => {
         });
     };
 
+  api.specific = (req, res) => {
+    models.Role
+      .findOne({
+        where: {id: req.params.id}, 
+        include: [
+          { model: models.User, attributes: { exclude: ['password'] } },
+          { model: models.RoleType },
+          { model: models.Course, required: false }
+        ]})
+      .then(role => {
+        res.json(role)
+      }, e => {
+        res.status(500).json(error.parse('roles-02', e));
+      })
+  }
+
     api.delete = (req, res) => {
       models.Role
         .destroy({ where: { id: req.params.id }})

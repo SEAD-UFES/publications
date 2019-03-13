@@ -7,5 +7,6 @@ module.exports = app => {
       .get(authApi.authenticationRequired, authApi.adminRequired, api.list);
 
     app.route(app.get('roleApiRoute')+'/:id')
-      .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete);
+      .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete)
+      .get(authApi.authenticationRequired, authApi.adminRequired, api.specific);
 }
