@@ -21,6 +21,7 @@ module.exports = app => {
   });
 
   const multerFilter = function(req, file, cb) {
+
     if (!file.originalname.toLowerCase().match(/\.pdf$/)) cb(new Error('File must be a PDF'), false);
     else cb(undefined, true);
   }
@@ -48,5 +49,6 @@ module.exports = app => {
   };
 
   return api;
+
 }
 
