@@ -8,5 +8,6 @@ module.exports = app => {
     
     app.route(app.get('rolePermissionApiRoute') + "/:id")
         .get(authApi.authenticationRequired, authApi.adminRequired, api.specific)
+        .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete)
 }
   

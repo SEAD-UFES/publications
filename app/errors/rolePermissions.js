@@ -19,6 +19,13 @@ module.exports = app => {
                     devMessage: e
                 };
                 break;
+            case 'rolePermissions-03':
+                message = {
+                  code, 
+                  userMessage: 'Essa atribuição de permissão não foi encontrada.',
+                  devMessage: 'RolePermission id not found.'
+                };
+                break;
         }
 
         return message;
