@@ -26,6 +26,29 @@ module.exports = app => {
                 res.status(500).json(error.parse('rolePermissions-02', e));
             });
     }
-  
+
+    api.specific = (req, res) => {
+        models.RolePermission
+          .findById(req.params.id, 
+            {
+              include: [
+                  {
+                      model: models.RoleType,
+                      required: false
+                  },
+                  {
+                      model:models.Permission,
+                      required: false
+                  }
+                ]
+            })
+          .then(rolePermission => {
+            res.json(rolePermission)
+          }, e => {
+            res.status(500).json(error.parse('rolePermissions-02', e));
+          });
+    };
+
+    
     return api;
   }
