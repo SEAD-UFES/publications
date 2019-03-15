@@ -4,8 +4,9 @@
   "description": "sead publications backend system",
   "main": "server.js",
   "scripts": {
-    "test": "cross-env NODE_ENV=\"test\" npm run migrate",
-    "migrate": "./node_modules/.bin/sequelize db:migrate && npm run report",
+    "migrate":  "./node_modules/.bin/sequelize db:migrate:undo:all; ./node_modules/.bin/sequelize db:migrate",
+    "seed":     "./node_modules/.bin/sequelize db:seed:undo:all; ./node_modules/.bin/sequelize db:seed:all",
+    "refresh":  "npm run migrate; npm run seed",
     "report": "nyc --reporter=html --reporter=text mocha --exit ./test/*.test.js",
     "start": "nodemon server.js"
   },
