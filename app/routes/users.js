@@ -6,6 +6,9 @@ module.exports = app => {
         .post(authApi.authenticationRequired, authApi.checkAccessLevel, api.create)
         .get(authApi.authenticationRequired, authApi.checkAccessLevel, api.list);
     
+    app.route(app.get('userApiRoute')+'/minimal')
+        .get(authApi.authenticationRequired, authApi.checkAccessLevel, api.minimal)
+    
     app.route(app.get('userApiRoute')+"/:id")
         .get(authApi.authenticationRequired, authApi.checkAccessLevel, api.specific)
         .put(authApi.authenticationRequired, authApi.checkAccessLevel, api.update)

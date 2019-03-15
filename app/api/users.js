@@ -66,6 +66,19 @@ module.exports = app => {
       });
   }
 
+  api.minimal = (req, res) => {
+    models.User
+      .findAll({
+        attributes: ['id', 'login'],
+        order: ['login']
+      })
+      .then(users => {
+        res.json(users)
+      }, e => {
+        res.status(500).json(error.parse('users-04', e))
+      });
+  }
+
   api.specific = (req, res) => {
     models.User
       .findById(req.params.id)

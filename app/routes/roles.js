@@ -3,5 +3,10 @@ module.exports = app => {
     const authApi = app.api.auth;
 
     app.route(app.get('roleApiRoute'))
-        .post(authApi.authenticationRequired, authApi.adminRequired, api.create);
+      .post(authApi.authenticationRequired, authApi.adminRequired, api.create)
+      .get(authApi.authenticationRequired, authApi.adminRequired, api.list);
+
+    app.route(app.get('roleApiRoute')+'/:id')
+      .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete)
+      .get(authApi.authenticationRequired, authApi.adminRequired, api.specific);
 }
