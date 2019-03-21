@@ -107,6 +107,10 @@ module.exports = app => {
           {
             model: models.Course,
             required: false
+          },
+          {
+            model: models.Publication,
+            required: false
           }
         ]})
       .then(selectiveProcess => {
