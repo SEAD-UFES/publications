@@ -21,6 +21,10 @@ module.exports = {
           key: 'id'
         }
       },
+      number: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
       resultDate: {
         type: Sequelize.DATE
       },
