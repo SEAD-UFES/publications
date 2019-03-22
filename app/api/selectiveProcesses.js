@@ -112,7 +112,15 @@ module.exports = app => {
             model: models.Publication,
             required: false
           }
-        ]})
+        ],
+        order: [
+          [
+            models.Call,
+            'createdAt',
+            'ASC'
+          ]
+        ]
+      })
       .then(selectiveProcess => {
         if (!selectiveProcess) {
           res.status(400).json(error.parse('selectiveProcesses-05', {}))
