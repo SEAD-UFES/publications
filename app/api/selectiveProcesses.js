@@ -110,7 +110,13 @@ module.exports = app => {
           },
           {
             model: models.Publication,
-            required: false
+            required: false,
+            include: [
+              { 
+                model: models.PublicationType,
+                required: true
+              }
+            ]
           }
         ],
         order: [
