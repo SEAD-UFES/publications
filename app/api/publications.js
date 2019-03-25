@@ -1,8 +1,10 @@
 module.exports = app => {
   const Sequelize = require('sequelize');
   const models = require('../models');
+  const path = require('path');
   const api = {};
   const error = app.errors.publications;
+
 
   api.create = (req, res) => {
     if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !(req.body.selectiveProcess_id) || !(req.body.publicationType_id)) {
@@ -56,5 +58,13 @@ module.exports = app => {
       });
   }
 
+  api.download = (req, res) => {
+    const file = req.params.file;
+    const fileLocation = path.join('./public/files/', file);
+
+    res.download(fileLocation, file);
+  }
+
   return api;
 }
+

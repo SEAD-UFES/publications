@@ -10,5 +10,8 @@ module.exports = app => {
     .get(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.specific)
     .put(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.update)
     .delete(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.delete);
+
+  app.route(app.get('publicationApiRoute')+'/download/:file')
+    .get(api.download);
 }
 
