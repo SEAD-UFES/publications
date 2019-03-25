@@ -116,7 +116,7 @@ module.exports = app => {
                 model: models.PublicationType,
                 required: true
               }
-            ]
+            ]         
           }
         ],
         order: [
@@ -124,6 +124,15 @@ module.exports = app => {
             models.Call,
             'createdAt',
             'ASC'
+          ],
+          [ 
+            models.Publication, 
+            'date',
+            'DESC' 
+          ],
+          [ models.Publication,
+            'createdAt',
+            'DESC'
           ]
         ]
       })
