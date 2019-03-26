@@ -11,7 +11,9 @@ module.exports = (sequelize, DataTypes) => {
     file: DataTypes.STRING,
     valid: DataTypes.BOOLEAN,
     date: DataTypes.DATE
-  }, {});
+  }, {
+    paranoid: true
+  });
 
   Publication.associate = function(models) {
     Publication.belongsTo(models.SelectiveProcess, { foreignKey: 'selectiveProcess_id'});
