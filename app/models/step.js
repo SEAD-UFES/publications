@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.UUID,
       primaryKey: true
     },
+    number: DataTypes.STRING,
     resultDate:DataTypes.DATE,
     openAppealDate: DataTypes.DATE,
     limitAppealDate: DataTypes.DATE,
