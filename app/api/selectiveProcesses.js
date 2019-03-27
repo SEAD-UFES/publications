@@ -126,6 +126,12 @@ module.exports = app => {
             'ASC'
           ],
           [ 
+            models.Call, 
+            models.Step,
+            'number',
+            'ASC'
+          ],
+          [ 
             models.Publication, 
             'date',
             'DESC' 
