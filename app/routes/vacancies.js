@@ -7,6 +7,7 @@ module.exports = app => {
     
     app.route(app.get('vacancyApiRoute')+"/:id")
         .put(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.update)
-        .get(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.specif)
-        .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete)
+        .get(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.specific)
+        .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete);
 }
+

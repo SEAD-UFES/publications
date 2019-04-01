@@ -17,12 +17,39 @@ module.exports = app => {
         }
     };
 
-    api.specif = (req, res) => {
+    api.specific = (req, res) => {
         models.Vacancy
             .findById(req.params.id, {
-                attributes: {
-                    include: []
-                }
+                    include: [ 
+                      { 
+                        model: models.Call,
+                        required: false,
+                        include: [
+                          {
+                            model: models.SelectiveProcess,
+                            required: false,
+                            include: [
+                              {
+                                model: models.Course,
+                                required: false
+                              }
+                            ]
+                          }                        
+                        ]
+                      },                      
+                      { 
+                        model: models.Region, 
+                        required: false 
+                      },
+                      { 
+                        model: models.Assignment, 
+                        required: false 
+                      },
+                      { 
+                        model: models.Restriction, 
+                        required: false 
+                      } 
+                    ]
             })
             .then(vacancy => {
                 res.json(vacancy);
@@ -53,3 +80,4 @@ module.exports = app => {
   
     return api;
   }
+

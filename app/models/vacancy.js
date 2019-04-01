@@ -5,10 +5,6 @@ module.exports = (sequelize, DataTypes) => {
   const Vacancy = sequelize.define('Vacancy', {
     qtd: DataTypes.INTEGER,
     reserve: DataTypes.BOOLEAN
-  }, {
-    defaultScope:{
-      attributes: {}
-    }
   });
   Vacancy.associate = function(models) {
     Vacancy.belongsTo(models.Assignment,  {
