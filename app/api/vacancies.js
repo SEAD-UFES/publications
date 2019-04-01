@@ -17,7 +17,7 @@ module.exports = app => {
         }
     };
 
-    api.specif = (req, res) => {
+    api.specific = (req, res) => {
         models.Vacancy
             .findById(req.params.id, {
                 attributes: {
@@ -53,3 +53,4 @@ module.exports = app => {
   
     return api;
   }
+
