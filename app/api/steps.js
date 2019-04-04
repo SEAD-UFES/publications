@@ -20,8 +20,30 @@ module.exports = app => {
 
     api.specific = (req, res) => {
         models.Step
-            .findById(req.params.id)
-            .then(step => {
+        .findById(req.params.id, {
+          include: [
+            {
+              model: models.Call,
+              required: false,
+              include: [
+                {
+                  model: models.SelectiveProcess,
+                  required: false,
+                  include: [
+                    {
+                      model: models.Course,
+                      required: false
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              model: models.StepType,
+              required: false
+            }
+          ]          
+        }).then(step => {
             res.json(step)
             }, e => {
                 res.status(500).json(error.parse('steps-02', e));
