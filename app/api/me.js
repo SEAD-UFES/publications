@@ -6,13 +6,37 @@ module.exports = app => {
 
 
   api.me = (req, res) => {
-    models.Person.findOne({where: {user_id: req.user.id}})
-      .then(person =>{
-        res.send({
-          "user": req.user,
-          person
-        });
-      });
+    
+    models.User
+      .findById(req.user.id, {
+        include: [
+          {
+            model: models.Role,
+            required: false,
+            include: [
+              {
+                model: models.RoleType,
+                required: false,
+                include: [
+                  {
+                    model: models.Permission,
+                    required: false 
+                  }
+                ]
+              },
+              {
+                model: models.Course,
+                required: false
+              }
+            ]
+          },
+          {
+            model: models.Person,
+            require: false
+          }
+        ]
+      })
+      .then(user => res.send(user))  
   }
 
   api.update = (req, res) => {
