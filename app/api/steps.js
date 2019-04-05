@@ -75,7 +75,7 @@ module.exports = app => {
             .then( _ => {
                 res.sendStatus(204);
             }, e => {
-                res.status(500).json(error.parse('steps-02'));
+                res.status(500).json(error.parse('steps-02', e));
             });
     }
 
