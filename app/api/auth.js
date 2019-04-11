@@ -34,7 +34,7 @@ module.exports = app => {
                 decoded.data, 
                 {
                     include: [{
-                        model: models.Role,
+                        model: models.UserRole,
                         required: false,
                         attributes: {
                             exclude: ['roleType_id', 'user_id', 'course_id']
@@ -72,7 +72,7 @@ module.exports = app => {
     }
 
     api.adminRequired = (req, res, next) => {
-        if(req.user.Roles.some(o => o.RoleType.name == 'Administrador')) next();
+        if(req.user.UserRoles.some(o => o.RoleType.name == 'Administrador')) next();
         else res.status(401).json(error.parse('auth-08', new Error("Administrator level required")));
     }
 
@@ -84,9 +84,9 @@ module.exports = app => {
 
         let processed = 0;
         let finded = false;
-        if(req.user.Roles.length === 0) callBack(false);
-        else if(req.user.Roles.some(o => o.RoleType.name == 'Administrador')) next();
-        else req.user.Roles.forEach((role, i, arr) => {
+        if(req.user.UserRoles.length === 0) callBack(false);
+        else if(req.user.UserRoles.some(o => o.RoleType.name == 'Administrador')) next();
+        else req.user.UserRoles.forEach((role, i, arr) => {
                models.RolePermission.findAll({
                 where: {
                     roleType_id: role.RoleType.id
@@ -126,8 +126,8 @@ module.exports = app => {
     }
 
     api.checkCourseStaff = (req, res, next) => {
-        if(req.user.Roles.length === 0) res.status(401).json(error.parse('auth-10', new Error("You're not member of this course staff.")));
-        else if(req.user.Roles.some(o => (o.RoleType.name == 'Administrador' || o.Course.id == req.body.course_id || o.Course.id == req.query.course_id))) next();
+        if(req.user.UserRoles.length === 0) res.status(401).json(error.parse('auth-10', new Error("You're not member of this course staff.")));
+        else if(req.user.UserRoles.some(o => (o.RoleType.name == 'Administrador' || o.Course.id == req.body.course_id || o.Course.id == req.query.course_id))) next();
         else res.status(401).json(error.parse('auth-11', new Error("You're not member of this course staff.")));
     }
 

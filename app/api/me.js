@@ -11,7 +11,7 @@ module.exports = app => {
       .findById(req.user.id, {
         include: [
           {
-            model: models.Role,
+            model: models.UserRole,
             required: false,
             include: [
               {

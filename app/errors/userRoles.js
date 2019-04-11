@@ -5,14 +5,14 @@ module.exports = app => {
         let message = {};
 
         switch(code){
-            case 'roles-01': 
+            case 'userRoles-01': 
                 message = {
                     code,
                     userMessage: 'Requisição inválida',
                     devMessage: 'Essa requisição espera um objeto contendo roleType_id e user_id'
                 };
                 break;
-            case 'roles-02': 
+            case 'userRoles-02': 
                 message = {
                     code,
                     userMessage: 'Erro interno do servidor. Contate o administrador.',

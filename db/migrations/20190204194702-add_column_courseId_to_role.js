@@ -3,7 +3,7 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     queryInterface
       .addColumn(
-          'Roles',
+          'UserRoles',
           'course_id',
             {
                 type:Sequelize.UUID,
@@ -17,6 +17,6 @@ module.exports = {
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.removeColumn('Roles','course_id');
+    return queryInterface.removeColumn('UserRoles','course_id');
   }
 };

@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     description: DataTypes.STRING
   }, {});
   RoleType.associate = function(models) {
-    RoleType.hasMany(models.Role, {
+    RoleType.hasMany(models.UserRole, {
       foreignKey: 'roleType_id'
     });
 

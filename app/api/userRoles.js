@@ -7,18 +7,18 @@ module.exports = app => {
         if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !(req.body.roleType_id) || !(req.body.user_id)) {
             res.status(400).json(error.parse('roles-01', {}));
         } else {
-            models.Role
+            models.UserRole
                 .create(req.body)
                 .then(_ => {
                     res.sendStatus(201)
                 }, e => {
-                    res.status(500).json(error.parse('roles-02', e));
+                    res.status(500).json(error.parse('userRoles-02', e));
                 });
         }
     };
   
     api.list = (req, res) => {
-      models.Role
+      models.UserRole
         .findAll({
           include: [
             { model: models.User, attributes: { exclude: ['password'] } },
@@ -30,12 +30,12 @@ module.exports = app => {
         .then(roles => {
           res.json(roles)
         }, e => {
-          res.status(500).json(error.parse('roles-02', e));
+          res.status(500).json(error.parse('userRoles-02', e));
         });
     };
 
   api.specific = (req, res) => {
-    models.Role
+    models.UserRole
       .findOne({
         where: {id: req.params.id}, 
         include: [
@@ -43,18 +43,18 @@ module.exports = app => {
           { model: models.RoleType },
           { model: models.Course, required: false }
         ]})
-      .then(role => {
-        res.json(role)
+      .then(userRole => {
+        res.json(userRole)
       }, e => {
-        res.status(500).json(error.parse('roles-02', e));
+        res.status(500).json(error.parse('userRoles-02', e));
       })
   }
 
     api.delete = (req, res) => {
-      models.Role
+      models.UserRole
         .destroy({ where: { id: req.params.id }})
         .then(_ => res.sendStatus(204),
-          e => res.status(500).json(error.parse('role-02', e)));
+          e => res.status(500).json(error.parse('userRole-02', e)));
     };
   
     return api;

@@ -21,7 +21,7 @@ module.exports = {
           role_ids[el.name] = el.id;
         }
 
-        return queryInterface.bulkInsert('Roles', [
+        return queryInterface.bulkInsert('UserRoles', [
           { id: uuid(), roleType_id: role_ids['Administrador'], user_id: user_ids['admin@ufes.br'] },
           { id: uuid(), roleType_id: role_ids['Coordenador'], user_id: user_ids['coordenador@ufes.br'] },
           { id: uuid(), roleType_id: role_ids['Gerente'], user_id: user_ids['gerente@ufes.br'] }
@@ -31,6 +31,6 @@ module.exports = {
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.bulkDelete('Roles', null, {});
+    return queryInterface.bulkDelete('UserRoles', null, {});
   }
 };
