@@ -4,6 +4,7 @@ module.exports = app => {
     const jwt = require('jsonwebtoken');
     const api = {};
     const error = app.errors.auth;
+    const courseInfo = ('../helpers/courseInfo.js');
 
     api.authenticate = (req, res) => {
         if(Array.isArray(req.body) || (req.body.constructor === Object && Object.keys(req.body).length === 0) || !req.body.login || !req.body.password) res.status(400).json(error.parse('auth-03', new Error('This resource spect a JSON user object in the body request containing username and password.')));
@@ -125,139 +126,48 @@ module.exports = app => {
         });
     }
 
-
     api.checkCourseStaff = async (req, res, next) => {
-      if(req.user.Roles && req.user.Roles.length !== 0) {
-        const isAdmin = req.user.Roles
+      if(req.user.UserRoles && req.user.UserRoles.length !== 0) {
+        const isAdmin = req.user.UserRoles
           .map(x => x.RoleType.name)
           .includes('Administrador')
 
-        let allowedCourse
-        let targetCourse
-
-        // o.Course.id == req.body.course_id || o.Course.id == req.query.course_id
-
-        if (req.body.course_id || req.query.course_id) {
-          targetCourse = (req.body.course_id) ? req.body.course_id : req.query.course_id;
-        } else if (req.body.selectiveProcess_id) {
-          try {
-            selectiveProcess = await models.SelectiveProcess
-              .findById(req.body.selectiveProcess_id)
-
-            targetCourse = selectiveProcess.course_id
-          } catch (e) {
-            res
-              .status(401)
-              .json({'erro': new Error("Deu ruim no try/catch #1")});
-          }
-        } else if (req.body.call_id) {
-          try {
-            call = await models.Call
-              .findById(req.body.call_id)
-            
-            targetCourse = call.SelectiveProcess.course_id
-          } catch (e) {
-            res
-              .status(401)
-              .json({'erro': new Error("Deu ruim no try/catch #2")});
-          }
-        }
-
-        allowedCourse = req.user.Roles
-          .filter(x => x.Course)
-          .map(x => x.Course.id)
-          .includes(targetCourse)
-        
-         
-        console.log(`
-          user ${req.user.login}
-          allowedCourse ${allowedCourse}
-          targetCourse ${targetCourse}
-          isAdmin ${isAdmin}
-          body? ${req.body && true} query? ${req.query && true}
-          from: ${req.method} ${req.url}
-
-        `)
-
-        // || (req.method === 'GET')
-            
-        if (isAdmin || allowedCourse ) {
+        if (isAdmin) {
           next()
-        } else {
-          res.status(401)
-            .json({'erro': new Error('desgraça')})
-        }
+        } else if(req.body || req.query) {
 
-      } else {
-        res
-          .status(401)
-          .json(error
-            .parse('auth-10', 
-              new Error("You're not member of this course staff.")
-            )
-          );
-      }
+          let allowedCourse
+          let targetCourse
 
-    api.checkCourseStaff = async (req, res, next) => {
-      if(req.user.Roles && req.user.Roles.length !== 0) {
-        const isAdmin = req.user.Roles
-          .map(x => x.RoleType.name)
-          .includes('Administrador')
-
-        let allowedCourse
-        let targetCourse
-
-        // o.Course.id == req.body.course_id || o.Course.id == req.query.course_id
-
-        if (req.body.course_id || req.query.course_id) {
-          targetCourse = (req.body.course_id) ? req.body.course_id : req.query.course_id;
-        } else if (req.body.selectiveProcess_id) {
-          try {
-            selectiveProcess = await models.SelectiveProcess
-              .findById(req.body.selectiveProcess_id)
-
-            targetCourse = selectiveProcess.course_id
-          } catch (e) {
-            res
-              .status(401)
-              .json({'erro': new Error("Deu ruim no try/catch #1")});
+          if (req.method === 'GET' || req.method === 'DELETE') {
+            targetCourse = await courseInfo.paramRoute(req.url);
+          } else if (req.body.course_id || req.query.course_id) {
+            targetCourse = (req.body.course_id) ? req.body.course_id : req.query.course_id;
+          } else {
+            targetCourse = (req.body) ? await courseInfo.bodyRoute(req.body) : await courseInfo.bodyRoute(req.query)
           }
-        } else if (req.body.call_id) {
-          try {
-            call = await models.Call
-              .findById(req.body.call_id)
-            
-            targetCourse = call.SelectiveProcess.course_id
-          } catch (e) {
-            res
-              .status(401)
-              .json({'erro': new Error("Deu ruim no try/catch #2")});
+
+          allowedCourse = req.user.UserRoles
+            .filter(x => x.Course)
+            .map(x => x.Course.id)
+            .includes(targetCourse)
+          
+           
+          console.log(`
+            user ${req.user.login}
+            allowedCourse ${allowedCourse}
+            targetCourse ${targetCourse}
+            isAdmin ${isAdmin}
+            body? ${req.body && true} query? ${req.query && true}
+            from: ${req.method} ${req.url}
+
+          `)
+              
+          if (allowedCourse) {
+            next()
+          } else {
+            res.status(401).json({'erro': new Error('desgraça')})
           }
-        }
-
-        allowedCourse = req.user.Roles
-          .filter(x => x.Course)
-          .map(x => x.Course.id)
-          .includes(targetCourse)
-        
-         
-        console.log(`
-          user ${req.user.login}
-          allowedCourse ${allowedCourse}
-          targetCourse ${targetCourse}
-          isAdmin ${isAdmin}
-          body? ${req.body && true} query? ${req.query && true}
-          from: ${req.method} ${req.url}
-
-        `)
-
-        // || (req.method === 'GET')
-            
-        if (isAdmin || allowedCourse ) {
-          next()
-        } else {
-          res.status(401)
-            .json({'erro': new Error('desgraça')})
         }
 
       } else {
@@ -274,3 +184,4 @@ module.exports = app => {
 
     return api;
 }
+
