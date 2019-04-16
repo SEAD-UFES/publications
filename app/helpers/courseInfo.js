@@ -1,11 +1,12 @@
-module.exports = app => {
+
   const models = require('../models');
+  const error = require('../errors/auth');
   const api = {};
 
-  paramRoute = async (url) => {
+  const paramRoute = async (url) => {
     const params  = url.split('/')
-    const model   = params[2]
-    const id      = params[3]
+    const id      = params.pop()
+    const model   = params.pop()
 
     let query; 
 
@@ -21,60 +22,80 @@ module.exports = app => {
     switch (model) {
 
       case 'selectiveprocesses':
-        query = await models.SelectiveProcess
-          .findById(id)
+        try {
+          query = await models.SelectiveProcess
+            .findById(id)
 
-        return query.course_id;
+          return query.course_id;
+        } catch (e) {
+          throw new Error('Unable to find Course related to this Selective Process.' )
+        }
         break;
 
       case 'publications':
-        query = await models.Publication
-          .findById(id, eagerLoad)
-        return query.SelectiveProcess.id;
+        try {
+          query = await models.Publication
+            .findById(id, eagerLoad)
+          return query.SelectiveProcess.course_id;
+        } catch (e) {
+          throw new Error('Unable to find Course related to this Publication.' )
+        }
         break;
 
       case 'calls':
-        query = await models.Call
-          .findById(id, eagerLoad)
-        return query.SelectiveProcess.id;
+        try {
+          query = await models.Call
+            .findById(id, eagerLoad)
+          return query.SelectiveProcess.course_id;
+        } catch (e) {
+          throw new Error('Unable to find Course related to this Call.' )
+        }
         break;
 
       case 'steps':
-        query = await models.Step
-          .findById(id, eagerLoad)        
-        return query.SelectiveProcess.id;
+        try {
+          query = await models.Step
+            .findById(id, eagerLoad)        
+          return query.SelectiveProcess.course_id;
+        } catch (e) {
+          throw new Error('Unable to find Course related to this Step.' )
+        }
         break;
 
       case 'vacancies':
-        query = await models.Vacancy
-          .findById(id, eagerLoad)       
-        return query.SelectiveProcess.id;
+        try {
+          query = await models.Vacancy
+            .findById(id, eagerLoad)       
+          return query.SelectiveProcess.course_id;
+        } catch (e) {
+          throw new Error('Unable to find Course related to this Vacancy.' )
+        }
         break;
+
+      default: throw new Error('Unable to find any Course related to this route.')
     }
-  },
-  bodyRoute = async (body) => {
+  }
+
+  const bodyRoute = async (body) => {
+
     if (body.selectiveProcess_id) {
       try {
-        query = await models.SelectiveProcess
-          .findById(req.body.selectiveProcess_id)
-
+        let query = await models.SelectiveProcess
+          .findById(body.selectiveProcess_id)
         return query.course_id
       } catch (e) {
-        res
-          .status(401)
-          .json({'erro': new Error("Deu ruim no try/catch #1")});
+        throw new Error('Unable to find Course related to this Call/Publication.')
       }
     } else if (body.call_id) {
       try {
-        query = await models.Call
-          .findById(req.body.call_id, eagerLoad)
-        
-        return query.SelectiveProcess.course_id;
+        let query = await models.Call
+          .findById(body.call_id, eagerLoad)       
+        return query.SelectiveProcess.course_id
       } catch (e) {
-        res.status(401)
-          .json({'erro': new Error("Deu ruim no try/catch #2")});
+        throw new Error('Unable to find Course related to this Step/Vacancy.' )
       }
-    } else res.status(401)
-              .json({'erro': new Error("Deu ruim no try/catch #2")});
+    } else throw new Error('Unable to find any Course related to this route.' )
   } 
-}
+
+module.exports = { paramRoute, bodyRoute } 
+

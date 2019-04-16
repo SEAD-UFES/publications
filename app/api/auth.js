@@ -4,7 +4,7 @@ module.exports = app => {
     const jwt = require('jsonwebtoken');
     const api = {};
     const error = app.errors.auth;
-    const courseInfo = ('../helpers/courseInfo.js');
+    const { bodyRoute, paramRoute } = require('../helpers/courseInfo');
 
     api.authenticate = (req, res) => {
         if(Array.isArray(req.body) || (req.body.constructor === Object && Object.keys(req.body).length === 0) || !req.body.login || !req.body.password) res.status(400).json(error.parse('auth-03', new Error('This resource spect a JSON user object in the body request containing username and password.')));
@@ -127,59 +127,55 @@ module.exports = app => {
     }
 
     api.checkCourseStaff = async (req, res, next) => {
-      if(req.user.UserRoles && req.user.UserRoles.length !== 0) {
+      if(req.user.UserRoles && req.user.UserRoles.length === 0) {
+        res.status(500).json(error.parse('auth-11', 'This user has no Permissions.'));
+      } else {
+
         const isAdmin = req.user.UserRoles
           .map(x => x.RoleType.name)
           .includes('Administrador')
 
         if (isAdmin) {
           next()
-        } else if(req.body || req.query) {
+        } else {
 
           let allowedCourse
           let targetCourse
 
-          if (req.method === 'GET' || req.method === 'DELETE') {
-            targetCourse = await courseInfo.paramRoute(req.url);
+          console.log(req.method)
+
+          if (req.method === 'GET' || req.method === 'DELETE' || req.method === 'PUT') {
+            try {
+              targetCourse = await paramRoute(req.url);
+            } catch (e) {
+              res.status(500).json(error.parse('auth-11', e));
+            }
           } else if (req.body.course_id || req.query.course_id) {
-            targetCourse = (req.body.course_id) ? req.body.course_id : req.query.course_id;
+            targetCourse = (req.body.course_id) ? req.body.course_id : req.query.course_id; 
           } else {
-            targetCourse = (req.body) ? await courseInfo.bodyRoute(req.body) : await courseInfo.bodyRoute(req.query)
+            try {
+              targetCourse = (req.body) ? await bodyRoute(req.body) : await bodyRoute(req.query)
+            } catch (e) {
+              res.status(500).json(error.parse('auth-11', e));
+            }
           }
 
-          allowedCourse = req.user.UserRoles
-            .filter(x => x.Course)
-            .map(x => x.Course.id)
-            .includes(targetCourse)
-          
-           
-          console.log(`
-            user ${req.user.login}
-            allowedCourse ${allowedCourse}
-            targetCourse ${targetCourse}
-            isAdmin ${isAdmin}
-            body? ${req.body && true} query? ${req.query && true}
-            from: ${req.method} ${req.url}
+          console.log(`targetCourse ${targetCourse}`)
 
-          `)
-              
-          if (allowedCourse) {
-            next()
-          } else {
-            res.status(401).json({'erro': new Error('desgraça')})
+          if (targetCourse) {
+            allowedCourse = req.user.UserRoles
+              .filter(x => x.Course)
+              .map(x => x.Course.id)
+              .includes(targetCourse)
+
+            if (allowedCourse) {
+              next()
+            } else {
+              res.status(500).json(error.parse('auth-11', 'This user does not have the required permissions to access this resource.'));
+            }
           }
         }
-
-      } else {
-        res
-          .status(401)
-          .json(error
-            .parse('auth-10', 
-              new Error("You're not member of this course staff.")
-            )
-          );
       }
-
     }
 
     return api;
