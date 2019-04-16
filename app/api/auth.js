@@ -4,6 +4,7 @@ module.exports = app => {
     const jwt = require('jsonwebtoken');
     const api = {};
     const error = app.errors.auth;
+    const { bodyRoute, paramRoute } = require('../helpers/courseInfo');
 
     api.authenticate = (req, res) => {
         if(Array.isArray(req.body) || (req.body.constructor === Object && Object.keys(req.body).length === 0) || !req.body.login || !req.body.password) res.status(400).json(error.parse('auth-03', new Error('This resource spect a JSON user object in the body request containing username and password.')));
@@ -126,78 +127,57 @@ module.exports = app => {
     }
 
     api.checkCourseStaff = async (req, res, next) => {
-      if(req.user.Roles && req.user.Roles.length !== 0) {
-        const isAdmin = req.user.Roles
+      if(req.user.UserRoles && req.user.UserRoles.length === 0) {
+        res.status(500).json(error.parse('auth-11', 'This user has no Permissions.'));
+      } else {
+
+        const isAdmin = req.user.UserRoles
           .map(x => x.RoleType.name)
           .includes('Administrador')
 
-        let allowedCourse
-        let targetCourse
-
-        // o.Course.id == req.body.course_id || o.Course.id == req.query.course_id
-
-        if (req.body.course_id || req.query.course_id) {
-          targetCourse = (req.body.course_id) ? req.body.course_id : req.query.course_id;
-        } else if (req.body.selectiveProcess_id) {
-          try {
-            selectiveProcess = await models.SelectiveProcess
-              .findById(req.body.selectiveProcess_id)
-
-            targetCourse = selectiveProcess.course_id
-          } catch (e) {
-            res
-              .status(401)
-              .json({'erro': new Error("Deu ruim no try/catch #1")});
-          }
-        } else if (req.body.call_id) {
-          try {
-            call = await models.Call
-              .findById(req.body.call_id)
-            
-            targetCourse = call.SelectiveProcess.course_id
-          } catch (e) {
-            res
-              .status(401)
-              .json({'erro': new Error("Deu ruim no try/catch #2")});
-          }
-        }
-
-        allowedCourse = req.user.Roles
-          .filter(x => x.Course)
-          .map(x => x.Course.id)
-          .includes(targetCourse)
-        
-         
-        console.log(`
-          user ${req.user.login}
-          allowedCourse ${allowedCourse}
-          targetCourse ${targetCourse}
-          isAdmin ${isAdmin}
-          body? ${req.body && true} query? ${req.query && true}
-          from: ${req.method} ${req.url}
-
-        `)
-
-        // || (req.method === 'GET')
-            
-        if (isAdmin || allowedCourse ) {
+        if (isAdmin) {
           next()
         } else {
-          res.status(401)
-            .json({'erro': new Error('desgraça')})
+
+          let allowedCourse
+          let targetCourse
+
+          console.log(req.method)
+
+          if (req.method === 'GET' || req.method === 'DELETE' || req.method === 'PUT') {
+            try {
+              targetCourse = await paramRoute(req.url);
+            } catch (e) {
+              res.status(500).json(error.parse('auth-11', e));
+            }
+          } else if (req.body.course_id || req.query.course_id) {
+            targetCourse = (req.body.course_id) ? req.body.course_id : req.query.course_id; 
+          } else {
+            try {
+              targetCourse = (req.body) ? await bodyRoute(req.body) : await bodyRoute(req.query)
+            } catch (e) {
+              res.status(500).json(error.parse('auth-11', e));
+            }
+          }
+
+          console.log(`targetCourse ${targetCourse}`)
+
+          if (targetCourse) {
+            allowedCourse = req.user.UserRoles
+              .filter(x => x.Course)
+              .map(x => x.Course.id)
+              .includes(targetCourse)
+
+            if (allowedCourse) {
+              next()
+            } else {
+              res.status(500).json(error.parse('auth-11', 'This user does not have the required permissions to access this resource.'));
+            }
+          }
         }
-
-      } else {
-        res
-          .status(401)
-          .json(error
-            .parse('auth-10', 
-              new Error("You're not member of this course staff.")
-            )
-          );
       }
-
     }
 
     return api;
 }
+
