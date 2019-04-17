@@ -77,6 +77,13 @@ module.exports = {
                   description: "Excluir publicação",
                   action_id: action_ids["DELETE"],
                   target_id: target_ids["/v1/publications"]
+                },
+                {
+                  id: uuid(),
+                  name: "parameter_list",
+                  description: "Listar parâmetros",
+                  action_id: null,
+                  target_id: null
                 }
               ],
               {}
