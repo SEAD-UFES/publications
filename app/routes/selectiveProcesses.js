@@ -3,6 +3,13 @@ module.exports = app => {
   const api = app.api.selectiveProcesses;
   const authApi = app.api.auth;
 
+
+  app.route(app.get('selectiveProcessApiRoute')+'/public')
+    .get(api.listPublic)
+
+  app.route(app.get('selectiveProcessApiRoute')+'/:id/public')
+    .get(api.specificPublic)
+
   app.route(app.get('selectiveProcessApiRoute'))
     .post(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.create)
     .get(api.list);
