@@ -56,8 +56,7 @@ module.exports = {
         type: Sequelize.ENUM('masculino', 'feminino', 'outro'),
         validate: {
           isIn: [['masculino', 'feminino', 'outro']]
-        },
-        allowNull: false
+        } 
       },
       createdAt: {
         allowNull: false,
