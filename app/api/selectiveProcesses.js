@@ -4,6 +4,13 @@ module.exports = app => {
   const api = {};
   const error = app.errors.selectiveProcesses;
 
+  api.public = (req, res, next) => {
+    //check if the motherfucka has auth info
+    //call next if he does, send public stuff if not
+    console.log(req.headers['x-access-token'])
+    next()
+  }
+
   api.list = (req, res) => {
 
     req.query.limit = (req.query.limit > 100) ? 100 : req.query.limit * 1 || 10;
@@ -189,24 +196,25 @@ module.exports = app => {
       });
   }
 
-  api.listPublic = (req, res) => {
-
-    req.query.limit = (req.query.limit > 100) ? 100 : req.query.limit * 1 || 10;
-    req.query.page = req.query.page * 1 || 1;
-    req.query.offset = ((req.query.page - 1) * req.query.limit);
-
-    if (req.query.year && req.query.year.length === 4) {
-      req.query.where = {
-        "year": req.query.year 
-      }
+  api.listPublic = (req, res, next) => {
+    if (req.headers['x-access-token']) {
+      next()
     } else {
-      req.query.where = {}
-    }
+      req.query.limit = req.query.limit > 100 ? 100 : req.query.limit * 1 || 10
+      req.query.page = req.query.page * 1 || 1
+      req.query.offset = (req.query.page - 1) * req.query.limit
 
-    req.query.where.visible = true;
+      if (req.query.year && req.query.year.length === 4) {
+        req.query.where = {
+          year: req.query.year
+        }
+      } else {
+        req.query.where = {}
+      }
 
-    models.SelectiveProcess
-      .findAndCountAll({
+      req.query.where.visible = true
+
+      models.SelectiveProcess.findAndCountAll({
         include: [
           {
             model: models.Call,
@@ -222,23 +230,28 @@ module.exports = app => {
         offset: req.query.offset,
         page: req.query.page,
         where: req.query.where
-      })
-      .then(selectiveProcesses => res.json({
-          "info": {
-            "count": selectiveProcesses.count,
-            "currentPage": req.query.page ? req.query.page * 1 : 1,
-            "numberOfPages": Math.ceil(selectiveProcesses.count / req.query.limit)
-          },
-          "selectiveProcesses": selectiveProcesses.rows
-        }),
+      }).then(
+        selectiveProcesses =>
+          res.json({
+            info: {
+              count: selectiveProcesses.count,
+              currentPage: req.query.page ? req.query.page * 1 : 1,
+              numberOfPages: Math.ceil(selectiveProcesses.count / req.query.limit)
+            },
+            selectiveProcesses: selectiveProcesses.rows
+          }),
         e => {
-          res.status(500).json(error.parse('selectiveProcesses-01', e));
-        });
-  };
+          res.status(500).json(error.parse('selectiveProcesses-01', e))
+        }
+      )
+    }
+  }
 
-  api.specificPublic = (req, res) => {
-    models.SelectiveProcess
-      .findById(req.params.id, {
+  api.specificPublic = (req, res, next) => {
+    if (req.headers['x-access-token']) {
+      next()
+    } else {
+      models.SelectiveProcess.findById(req.params.id, {
         include: [
           {
             model: models.Call,
@@ -282,46 +295,32 @@ module.exports = app => {
             model: models.Publication,
             required: false,
             include: [
-              { 
+              {
                 model: models.PublicationType,
                 required: true
               }
-            ]         
+            ]
           }
         ],
         order: [
-          [
-            models.Call,
-            'createdAt',
-            'ASC'
-          ],
-          [ 
-            models.Call, 
-            models.Step,
-            'number',
-            'ASC'
-          ],
-          [ 
-            models.Publication, 
-            'date',
-            'DESC' 
-          ],
-          [ models.Publication,
-            'createdAt',
-            'DESC'
-          ]
+          [models.Call, 'createdAt', 'ASC'],
+          [models.Call, models.Step, 'number', 'ASC'],
+          [models.Publication, 'date', 'DESC'],
+          [models.Publication, 'createdAt', 'DESC']
         ]
-      })
-      .then(selectiveProcess => {
-        if (!selectiveProcess || !selectiveProcess.visible) {
-          res.status(400).json(error.parse('selectiveProcesses-05', {}))
-        } else {
-          res.json(selectiveProcess);
+      }).then(
+        selectiveProcess => {
+          if (!selectiveProcess || !selectiveProcess.visible) {
+            res.status(400).json(error.parse('selectiveProcesses-05', {}))
+          } else {
+            res.json(selectiveProcess)
+          }
+        },
+        e => {
+          res.status(500).json(error.parse('selectiveProcesses-05', e))
         }
-      }, e => {
-        res.status(500).json(error.parse('selectiveProcesses-05', e));
-      });
- 
+      )
+    }
   }
 
   return api;
