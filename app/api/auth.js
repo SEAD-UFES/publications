@@ -43,7 +43,13 @@ module.exports = app => {
                         include: [
                             {
                                 model: models.RoleType,
-                                required: false
+                              required: false,
+                              include: [
+                                {
+                                  model: models.Permission,
+                                  required: false
+                                }
+                              ]
                             },
                             {
                                 model: models.Course,

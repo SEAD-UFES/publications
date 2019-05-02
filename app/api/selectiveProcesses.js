@@ -1,26 +1,45 @@
 module.exports = app => {
 
   const models = require('../models');
-  const api = {};
+  const Sequelize = require('sequelize');
   const error = app.errors.selectiveProcesses;
+  const api = {};
+  const $or = Sequelize.Op.or; // sequelize OR shortcut
+  const check = require('../helpers/permissionCheck');
 
-  api.public = (req, res, next) => {
-    //check if the motherfucka has auth info
-    //call next if he does, send public stuff if not
-    console.log(req.headers['x-access-token'])
-    next()
-  }
 
   api.list = (req, res) => {
 
+    // stores all search restrictions 
+    let where = {} 
+
+    // pagination, limit, year
     req.query.limit = (req.query.limit > 100) ? 100 : req.query.limit * 1 || 10;
     req.query.page = req.query.page * 1 || 1;
     req.query.offset = ((req.query.page - 1) * req.query.limit);
+  
+    if (req.query.year && req.query.year.length === 4)
+      where.year = req.query.year
 
-    if (req.query.year && req.query.year.length === 4) {
-      req.query.where = {
-        "year": req.query.year
+    const hasRoles = check.hasRoles(req.user)
+
+    if (hasRoles) {
+      const isAdmin = check.isAdmin(req.user)
+      const isGlobal = check
+        .hasGlobalPermission(req.user, 'processo seletivo listar')
+
+      if (!(isAdmin || isGlobal)) { 
+        const allowedCourseIds = check
+          .allowedCourseIds(req.user, 'processo seletivo listar')
+   
+          where[$or] = [
+            { visible: true},
+            { course_id: allowedCourseIds } 
+          ]
       }
+    } else {
+      // only access visible/published selective processes
+      where.visible = true
     }
 
     models.SelectiveProcess
@@ -39,7 +58,7 @@ module.exports = app => {
         limit: req.query.limit,
         offset: req.query.offset,
         page: req.query.page,
-        where: req.query.where
+        where
       })
       .then(selectiveProcesses => res.json({
           "info": {
@@ -50,7 +69,7 @@ module.exports = app => {
           "selectiveProcesses": selectiveProcesses.rows
         }),
         e => {
-          res.status(500).json(error.parse('selectiveProcesses-01', e));
+          res.status(500).json({ e }) // error.parse('selectiveProcesses-01', e));
         });
   };
 
@@ -127,26 +146,10 @@ module.exports = app => {
           }
         ],
         order: [
-          [
-            models.Call,
-            'createdAt',
-            'ASC'
-          ],
-          [ 
-            models.Call, 
-            models.Step,
-            'number',
-            'ASC'
-          ],
-          [ 
-            models.Publication, 
-            'date',
-            'DESC' 
-          ],
-          [ models.Publication,
-            'createdAt',
-            'DESC'
-          ]
+          [ models.Call, 'createdAt', 'ASC' ],
+          [ models.Call, models.Step, 'number', 'ASC' ],
+          [ models.Publication, 'date', 'DESC' ],
+          [ models.Publication, 'createdAt', 'DESC' ]
         ]
       })
       .then(selectiveProcess => {
@@ -204,15 +207,12 @@ module.exports = app => {
       req.query.page = req.query.page * 1 || 1
       req.query.offset = (req.query.page - 1) * req.query.limit
 
+      let where = { 'visible': true }
+
       if (req.query.year && req.query.year.length === 4) {
-        req.query.where = {
-          year: req.query.year
-        }
-      } else {
-        req.query.where = {}
+        where.year = req.query.year
       }
 
-      req.query.where.visible = true
 
       models.SelectiveProcess.findAndCountAll({
         include: [
@@ -225,11 +225,11 @@ module.exports = app => {
             required: false
           }
         ],
-        distinct: true,
+
         limit: req.query.limit,
         offset: req.query.offset,
         page: req.query.page,
-        where: req.query.where
+        where
       }).then(
         selectiveProcesses =>
           res.json({
