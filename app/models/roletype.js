@@ -1,22 +1,33 @@
-const uuid = require('uuid/v4');
-'use strict';
+'use strict'
+
+const uuid = require('uuid/v4')
+
 module.exports = (sequelize, DataTypes) => {
-  const RoleType = sequelize.define('RoleType', {
-    name: DataTypes.STRING,
-    description: DataTypes.STRING
-  }, {});
+  const RoleType = sequelize.define(
+    'RoleType',
+    {
+      name: DataTypes.STRING,
+      description: DataTypes.STRING,
+      global: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+      }
+    },
+    {}
+  )
   RoleType.associate = function(models) {
     RoleType.hasMany(models.UserRole, {
       foreignKey: 'roleType_id'
-    });
+    })
 
-    RoleType.belongsToMany(models.Permission, { through: models.RolePermission, foreignKey: 'roleType_id' });
-    
-    return RoleType;
-  };
-  RoleType.beforeCreate((roleType, _ ) => {
-    roleType.id = uuid();
-    return roleType;
-  });
-  return RoleType;
-};
+    RoleType.belongsToMany(models.Permission, { through: models.RolePermission, foreignKey: 'roleType_id' })
+
+    return RoleType
+  }
+  RoleType.beforeCreate((roleType, _) => {
+    roleType.id = uuid()
+    return roleType
+  })
+  return RoleType
+}
+

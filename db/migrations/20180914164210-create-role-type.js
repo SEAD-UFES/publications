@@ -1,5 +1,7 @@
-'use strict';
+'use strict'
+
 module.exports = {
+
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('RoleTypes', {
       id: {
@@ -15,6 +17,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
+      global: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,
@@ -25,10 +32,10 @@ module.exports = {
         type: Sequelize.DATE,
         defaultValue: Sequelize.fn('now')
       }
-    });
+    })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('RoleTypes');
+    return queryInterface.dropTable('RoleTypes')
   }
-};
+}
 
