@@ -43,6 +43,15 @@ module.exports = {
                 { id: uuid(), name: "vaga criar", description: "descrição", action_id: action_ids["POST"], target_id: target_ids["/v1/vacancies"] },
                 { id: uuid(), name: "vaga editar", description: "descrição", action_id: action_ids["PUT"], target_id: target_ids["/v1/vacancies/:id"] },
                 { id: uuid(), name: "vaga acessar", description: "descrição", action_id: action_ids["GET"], target_id: target_ids["/v1/vacancies/:id"] },
+
+                {
+                  id: uuid(),
+                  name: "processo seletivo listar",
+                  description: "descrição",
+                  action_id: action_ids["GET"],
+                  target_id: target_ids["/v1/selectiveprocesses"]
+                },
+
                 {
                   id: uuid(),
                   name: "processo seletivo criar",

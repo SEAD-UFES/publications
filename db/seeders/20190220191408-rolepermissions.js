@@ -24,6 +24,9 @@ module.exports = {
           { id: uuid(), roleType_id: roletype_ids["Coordenador"], permission_id: permission_ids["etapa criar"] },
           { id: uuid(), roleType_id: roletype_ids["Coordenador"], permission_id: permission_ids["etapa editar"] },
           { id: uuid(), roleType_id: roletype_ids["Coordenador"], permission_id: permission_ids["pessoa acessar"] },
+
+          { id: uuid(), roleType_id: roletype_ids["Coordenador"], permission_id: permission_ids["processo seletivo listar"] },
+          
           { id: uuid(), roleType_id: roletype_ids["Coordenador"], permission_id: permission_ids["processo seletivo criar"] },
           { id: uuid(), roleType_id: roletype_ids["Coordenador"], permission_id: permission_ids["processo seletivo editar"] },
           { id: uuid(), roleType_id: roletype_ids["Coordenador"], permission_id: permission_ids["usuário acessar"] },
@@ -40,6 +43,9 @@ module.exports = {
           { id: uuid(), roleType_id: roletype_ids["Gerente"], permission_id: permission_ids["etapa editar"] },
           { id: uuid(), roleType_id: roletype_ids["Gerente"], permission_id: permission_ids["pessoa acessar"] },
           { id: uuid(), roleType_id: roletype_ids["Gerente"], permission_id: permission_ids["pessoa editar"] },
+
+          { id: uuid(), roleType_id: roletype_ids["Gerente"], permission_id: permission_ids["processo seletivo listar"] }, // 
+
           { id: uuid(), roleType_id: roletype_ids["Gerente"], permission_id: permission_ids["processo seletivo criar"] },
           { id: uuid(), roleType_id: roletype_ids["Gerente"], permission_id: permission_ids["processo seletivo editar"] },
           { id: uuid(), roleType_id: roletype_ids["Gerente"], permission_id: permission_ids["usuário acessar"] },
