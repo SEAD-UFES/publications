@@ -1,6 +1,10 @@
-const uuid = require('uuid/v4');
-const apiRoutes = require('../../config/apiRoutes.json');
 'use strict';
+
+const uuid = require('uuid/v4');
+const models = require('../models');
+const apiRoutes = require('../../config/apiRoutes.json');
+
+
 module.exports = (sequelize, DataTypes) => {
   const Course = sequelize.define('Course', {
     name: {
@@ -10,8 +14,11 @@ module.exports = (sequelize, DataTypes) => {
     description: DataTypes.STRING
   }, {});
   Course.associate = function(models) {
-    // associations can be defined here
+    Course.belongsTo(models.GraduationType, { foreignKey: 'graduationType_id' });
+
+    return Course;
   };
+
   Course.beforeCreate((course, _) => {
     course.id = uuid();
     return course;

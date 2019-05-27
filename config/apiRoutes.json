@@ -22,7 +22,7 @@
     { "key": "actionApiRoute",              "value": "/v1/actions" },
     { "key": "permissionApiRoute",              "value": "/v1/permissions" },
     { "key": "rolePermissionApiRoute",              "value": "/v1/rolepermissions" },
-    { "key": "publicationApiRoute",       "value": "/v1/publications"}
-
+    { "key": "publicationApiRoute",       "value": "/v1/publications"},
+    { "key": "graduationTypeApiRoute",  "value": "/v1/graduationtypes" }
 ]
 
