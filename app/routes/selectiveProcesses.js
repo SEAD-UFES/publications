@@ -7,6 +7,10 @@ module.exports = app => {
     .post(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.create)
     .get(api.listPublic, authApi.authenticationRequired, api.list);
 
+
+  app.route(app.get('selectiveProcessApiRoute')+'/filters')
+    .get(api.filters)
+
   app.route(app.get('selectiveProcessApiRoute')+"/:id")
     .get(api.specificPublic, authApi.authenticationRequired, api.specific)
     .put(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.update)

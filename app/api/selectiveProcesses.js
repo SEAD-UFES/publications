@@ -1,11 +1,13 @@
 module.exports = app => {
 
+  const api = {};
   const models = require('../models');
   const Sequelize = require('sequelize');
   const error = app.errors.selectiveProcesses;
-  const api = {};
+
   const $or = Sequelize.Op.or; // sequelize OR shortcut
   const check = require('../helpers/permissionCheck');
+  const { unique, removeEmpty,  validYears, validProcessNumbers, validIds } = require('../helpers/listFilters');
 
 
   api.list = (req, res) => {
@@ -92,6 +94,70 @@ module.exports = app => {
     }
   };
 
+  api.filters = async (req, res) => {
+    let selectiveProcesses 
+    let assignments
+
+    try {
+      selectiveProcesses = await models.SelectiveProcess
+        .findAll({
+          include: [
+            {
+              model: models.Course,
+              required: false,
+              include: [
+                {
+                  model: models.GraduationType,
+                  required: false
+                }
+              ]
+            }
+          ],
+          distinct: true,
+        });
+    } catch (e) {
+      res.status(500).json(error.parse('selectiveProcesses-04', e));
+    }
+
+    try {
+      assignments = await models.Assignment
+        .findAll({
+          attributes: ['id' , 'name']
+        });
+    } catch (e) {
+      res.status(500).json(error.parse('selectiveProcesses-04', e));
+    }
+
+    const years = [...new Set(selectiveProcesses
+      .map(x => x.year)
+    )]
+
+    const numbers = [...new Set(selectiveProcesses
+      .map(x => x.number)
+    )]
+
+    const allCourses = selectiveProcesses
+      .map(x =>({'id': x.Course.id, 'name': x.Course.name}))
+    
+    const courses = unique(allCourses, 'id')
+
+    const allGraduationTypes = selectiveProcesses
+      .map(x => ({ 
+        'id': x.Course.GraduationType.id, 
+        'name': x.Course.GraduationType.name 
+      }))
+
+    const graduationTypes = unique(allGraduationTypes, 'id')
+   
+    res.status(201).json({ 
+      years, 
+      numbers, 
+      courses, 
+      graduationTypes, 
+      assignments 
+    }) 
+  }
+
   api.specific = (req, res) => {
     models.SelectiveProcess
       .findById(req.params.id, {
@@ -164,7 +230,6 @@ module.exports = app => {
   };
 
   api.update = (req, res) => {
-
     if (!(Object.prototype.toString.call(req.body) === '[object Object]')) {
       res.status(400).json(error.parse('selectiveProcesses-01', {}));
     } else {
@@ -199,7 +264,7 @@ module.exports = app => {
       });
   }
 
-  api.listPublic = (req, res, next) => {
+  api.listPublic = async (req, res, next) => {
     if (req.headers['x-access-token']) {
       next()
     } else {
@@ -207,29 +272,93 @@ module.exports = app => {
       req.query.page = req.query.page * 1 || 1
       req.query.offset = (req.query.page - 1) * req.query.limit
 
-      let where = { 'visible': true }
+      // filter by year, number and course
+      const where = removeEmpty({
+        visible: true,    
+        year:  validYears(req.query.years),
+        number: validProcessNumbers(req.query.numbers),
+        course_id: validIds(req.query.courses)
+      })
 
-      if (req.query.year && req.query.year.length === 4) {
-        where.year = req.query.year
+      const graduationTypeIds = validIds(req.query.graduationTypes)
+      const assignmentIds = validIds(req.query.assignments)
+
+      // filter by graduation type
+      if (typeof graduationTypeIds === 'object' && graduationTypeIds.length > 0) {
+        const graduations = await models.GraduationType
+          .findAll({ 
+            attributes: ['id', 'name'],
+            where: {
+              id: graduationTypeIds
+            },
+            include: [
+              {
+                model: models.Course,
+                attributes: ['id'],
+                required: false
+              }
+            ]
+          })
+
+       const aditionalCourseIds = graduations
+        .flatMap(graduation => graduation.Courses
+          .map(course => course.id))
+
+        if (typeof where.course_id === 'undefined') {
+          where.course_id = aditionalCourseIds
+        } else {
+          const ids = validIds([...where.course_id, ...aditionalCourseIds])
+          where.course_id = ids
+        }
+      }
+     
+      // filter by assignments (vacancy and its type)
+      if (typeof assignmentIds === 'object' && assignmentIds.length > 0) {
+        const vacancies = await models.Vacancy
+          .findAll({
+            where: {
+              assignment_id: assignmentIds
+            },
+            include: [
+              {
+                model: models.Call,
+                attributes: ['id', 'selectiveProcess_id'],
+                required: false
+              }
+            ]
+
+          })
+
+        const aditionalSelectiveProcessIds = vacancies
+          .map(vacancy => vacancy.Call.selectiveProcess_id)
+       
+        where.id = unique(aditionalSelectiveProcessIds)
       }
 
+      console.log(where)
 
       models.SelectiveProcess.findAndCountAll({
-        include: [
-          {
-            model: models.Call,
-            required: false
-          },
-          {
-            model: models.Course,
-            required: false
-          }
-        ],
 
+        include: [
+        {
+          model: models.Call,
+          required: false
+        },  
+        {
+          model: models.Course,
+          required: false,
+          include: [
+          {
+            model: models.GraduationType,
+            required: false, 
+          }]
+        }],
         limit: req.query.limit,
         offset: req.query.offset,
         page: req.query.page,
+        distinct: true,
         where
+
       }).then(
         selectiveProcesses =>
           res.json({
@@ -238,13 +367,13 @@ module.exports = app => {
               currentPage: req.query.page ? req.query.page * 1 : 1,
               numberOfPages: Math.ceil(selectiveProcesses.count / req.query.limit)
             },
-            selectiveProcesses: selectiveProcesses.rows
+            selectiveProcesses: selectiveProcesses.rows,
           }),
         e => {
           res.status(500).json(error.parse('selectiveProcesses-01', e))
         }
       )
-    }
+    } // end-else 
   }
 
   api.specificPublic = (req, res, next) => {
