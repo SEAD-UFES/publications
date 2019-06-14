@@ -63,7 +63,8 @@ const removeEmpty = o => {
 const sortObjectByNameValue = (a, b) => {
   const _a = a.name.toLowerCase()
   const _b = b.name.toLowerCase()
-  return _a < _b ? 1 : 0
+
+  return _a < _b ? -1 : 1
 }
 
 module.exports = {
