@@ -7,8 +7,14 @@ module.exports = app => {
 
   const $or = Sequelize.Op.or; // sequelize OR shortcut
   const check = require('../helpers/permissionCheck');
-  const { unique, removeEmpty,  validYears, validProcessNumbers, validIds } = require('../helpers/listFilters');
-
+  const {  
+    unique,
+    removeEmpty,
+    validYears,
+    validProcessNumbers,
+    validIds,
+    sortObjectByNameValue
+  } = require('../helpers/listFilters');
 
   api.list = (req, res) => {
 
@@ -110,7 +116,7 @@ module.exports = app => {
                   model: models.GraduationType,
                   required: false
                 }
-              ]
+              ],
             }
           ],
           distinct: true,
@@ -130,24 +136,27 @@ module.exports = app => {
 
     const years = [...new Set(selectiveProcesses
       .map(x => x.year)
-    )]
+    )].sort()
 
     const numbers = [...new Set(selectiveProcesses
       .map(x => x.number)
-    )]
+    )].sort()
 
     const allCourses = selectiveProcesses
       .map(x =>({'id': x.Course.id, 'name': x.Course.name}))
     
     const courses = unique(allCourses, 'id')
+      .sort(sortObjectByNameValue)
 
     const allGraduationTypes = selectiveProcesses
       .map(x => ({ 
         'id': x.Course.GraduationType.id, 
         'name': x.Course.GraduationType.name 
-      }))
+      }))      
+      .sort(sortObjectByNameValue)
 
     const graduationTypes = unique(allGraduationTypes, 'id')
+      .sort(sortObjectByNameValue)
    
     res.status(201).json({ 
       years, 

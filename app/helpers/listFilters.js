@@ -60,4 +60,17 @@ const removeEmpty = o => {
   return o
 }
 
-module.exports = { unique, removeEmpty, validYears, validProcessNumbers, validIds }
+const sortObjectByNameValue = (a, b) => {
+  const _a = a.name.toLowerCase()
+  const _b = b.name.toLowerCase()
+  return _a < _b ? 1 : 0
+}
+
+module.exports = {
+  unique,
+  removeEmpty,
+  validYears,
+  validProcessNumbers,
+  validIds,
+  sortObjectByNameValue
+}
