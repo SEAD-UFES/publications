@@ -16,70 +16,128 @@ module.exports = app => {
     sortObjectByNameValue
   } = require('../helpers/listFilters');
 
-  api.list = (req, res) => {
-
-    // stores all search restrictions 
-    let where = {} 
+  api.list = async (req, res) => {
 
     // pagination, limit, year
-    req.query.limit = (req.query.limit > 100) ? 100 : req.query.limit * 1 || 10;
+    req.query.limit = req.query.limit > 100 ? 100 : req.query.limit * 1 || 10;
     req.query.page = req.query.page * 1 || 1;
-    req.query.offset = ((req.query.page - 1) * req.query.limit);
-  
-    if (req.query.year && req.query.year.length === 4)
-      where.year = req.query.year
+    req.query.offset = (req.query.page - 1) * req.query.limit;
 
-    const hasRoles = check.hasRoles(req.user)
+    // filter by year, number and course
+    const where = removeEmpty({
+      visible: true,
+      year: validYears(req.query.years),
+      number: validProcessNumbers(req.query.numbers),
+      course_id: validIds(req.query.courses)
+    });
 
-    if (hasRoles) {
-      const isAdmin = check.isAdmin(req.user)
-      const isGlobal = check
-        .hasGlobalPermission(req.user, 'processo seletivo listar')
+    // params for graduation types and assingment filters
+    const graduationTypeIds = validIds(req.query.graduationTypes);
+    const assignmentIds = validIds(req.query.assignments);
 
-      if (!(isAdmin || isGlobal)) { 
-        const allowedCourseIds = check
-          .allowedCourseIds(req.user, 'processo seletivo listar')
-   
-          where[$or] = [
-            { visible: true},
-            { course_id: allowedCourseIds } 
-          ]
+    // filter by graduation type
+    if (typeof graduationTypeIds === "object" && graduationTypeIds.length > 0) {
+      const graduations = await models.GraduationType.findAll({
+        attributes: ["id", "name"],
+        where: {
+          id: graduationTypeIds
+        },
+        include: [
+          {
+            model: models.Course,
+            attributes: ["id"],
+            required: false
+          }
+        ]
+      });
+
+      const aditionalCourseIds = graduations.flatMap(graduation =>
+        graduation.Courses.map(course => course.id)
+      );
+
+      if (typeof where.course_id === "undefined") {
+        where.course_id = aditionalCourseIds;
+      } else {
+        const ids = validIds([...where.course_id, ...aditionalCourseIds]);
+        where.course_id = ids;
       }
-    } else {
-      // only access visible/published selective processes
-      where.visible = true
     }
 
-    models.SelectiveProcess
-      .findAndCountAll({
+    // filter by assignments (vacancy and its type)
+    if (typeof assignmentIds === "object" && assignmentIds.length > 0) {
+      const vacancies = await models.Vacancy.findAll({
+        where: {
+          assignment_id: assignmentIds
+        },
         include: [
           {
             model: models.Call,
-            required: false
-          },
-          {
-            model: models.Course,
+            attributes: ["id", "selectiveProcess_id"],
             required: false
           }
-        ],
-        distinct: true,
-        limit: req.query.limit,
-        offset: req.query.offset,
-        page: req.query.page,
-        where
-      })
-      .then(selectiveProcesses => res.json({
-          "info": {
-            "count": selectiveProcesses.count,
-            "currentPage": req.query.page ? req.query.page * 1 : 1,
-            "numberOfPages": Math.ceil(selectiveProcesses.count / req.query.limit)
+        ]
+      });
+
+      const aditionalSelectiveProcessIds = vacancies.map(
+        vacancy => vacancy.Call.selectiveProcess_id
+      );
+
+      where.id = unique(aditionalSelectiveProcessIds);
+    }
+    
+    // check if user has roles
+    const hasRoles = check.hasRoles(req.user);
+    
+    // filter user permissions (roles/restrictions)
+    if (hasRoles) {
+      const isAdmin = check.isAdmin(req.user);
+      const isGlobal = check.hasGlobalPermission(
+        req.user,
+        "processo seletivo listar"
+      );
+
+      if (!(isAdmin || isGlobal)) {
+        const allowedCourseIds = check.allowedCourseIds(
+          req.user,
+          "processo seletivo listar"
+        );
+
+        delete where.visible
+        where[$or] = [{ visible: true }, { course_id: allowedCourseIds }];
+      }
+    }
+    
+    models.SelectiveProcess.findAndCountAll({
+      include: [
+        {
+          model: models.Call,
+          required: false
+        },
+        {
+          model: models.Course,
+          required: false
+        }
+      ],
+      distinct: true,
+      limit: req.query.limit,
+      offset: req.query.offset,
+      page: req.query.page,
+      where
+    }).then(
+      selectiveProcesses =>
+        res.json({
+          info: {
+            count: selectiveProcesses.count,
+            currentPage: req.query.page ? req.query.page * 1 : 1,
+            numberOfPages: Math.ceil(selectiveProcesses.count / req.query.limit)
           },
-          "selectiveProcesses": selectiveProcesses.rows
+          selectiveProcesses: selectiveProcesses.rows
         }),
-        e => {
-          res.status(500).json({ e }) // error.parse('selectiveProcesses-01', e));
-        });
-  };
+      e => {
+        res.status(500).json({ e }); // error.parse('selectiveProcesses-01', e));
+      }
+    );
+  }  
 
   api.create = (req, res) => {
     if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !(req.body.number) || !(req.body.year)) {
