@@ -17,6 +17,14 @@ module.exports = app => {
     sortObjectByNameValue
   } = require('../helpers/listFilters');
 
+<<<<<<< HEAD
+  api.list = (req, res) => {
+
+    // stores all search restrictions 
+    let where = {} 
+||||||| parent of 05b456c... Fixed visible/hidden in list and flatMap polyfill
+  api.list = async (req, res) => {
+=======
   // temporary polyfill for flaMap
   // the function is not yet supported by Nodea 10.16 LTS
   if (!Array.prototype.flatMap) {
@@ -28,13 +36,26 @@ module.exports = app => {
 
 
   api.list = async (req, res) => {
+>>>>>>> 05b456c... Fixed visible/hidden in list and flatMap polyfill
 
     // pagination, limit, year
-    req.query.limit = req.query.limit > 100 ? 100 : req.query.limit * 1 || 10;
+    req.query.limit = (req.query.limit > 100) ? 100 : req.query.limit * 1 || 10;
     req.query.page = req.query.page * 1 || 1;
+<<<<<<< HEAD
+    req.query.offset = ((req.query.page - 1) * req.query.limit);
+  
+    if (req.query.year && req.query.year.length === 4)
+      where.year = req.query.year
+||||||| parent of 05b456c... Fixed visible/hidden in list and flatMap polyfill
     req.query.offset = (req.query.page - 1) * req.query.limit;
 
-    const hasRoles = check.hasRoles(req.user)
+    // filter by year, number and course
+    const where = removeEmpty({
+      visible: true,
+      year: validYears(req.query.years),
+      number: validProcessNumbers(req.query.numbers),
+      course_id: validIds(req.query.courses)
+    });
 
     // params for graduation types and assingment filters
     const graduationTypeIds = validIds(req.query.graduationTypes);
@@ -55,34 +76,141 @@ module.exports = app => {
           }
         ]
       });
+=======
+    req.query.offset = (req.query.page - 1) * req.query.limit;
 
-      const aditionalCourseIds = graduations.flatMap(graduation =>
-        graduation.Courses.map(course => course.id)
-      );
+    // filter by year, number and course
+    const where = removeEmpty({
 
-      if (typeof where.course_id === "undefined") {
-        where.course_id = aditionalCourseIds;
-      } else {
-        const ids = validIds([...where.course_id, ...aditionalCourseIds]);
-        where.course_id = ids;
+      year: validYears(req.query.years),
+      number: validProcessNumbers(req.query.numbers),
+      course_id: validIds(req.query.courses)
+    });
+
+    // params for graduation types and assingment filters
+    const graduationTypeIds = validIds(req.query.graduationTypes);
+    const assignmentIds = validIds(req.query.assignments);
+
+    // filter by graduation type
+    if (typeof graduationTypeIds === "object" && graduationTypeIds.length > 0) {
+      const graduations = await models.GraduationType.findAll({
+        attributes: ["id", "name"],
+        where: {
+          id: graduationTypeIds
+        },
+        include: [
+          {
+            model: models.Course,
+            attributes: ["id"],
+            required: false
+          }
+        ]
+      });
+>>>>>>> 05b456c... Fixed visible/hidden in list and flatMap polyfill
+
+    const hasRoles = check.hasRoles(req.user)
+
+    if (hasRoles) {
+      const isAdmin = check.isAdmin(req.user)
+      const isGlobal = check
+        .hasGlobalPermission(req.user, 'processo seletivo listar')
+
+      if (!(isAdmin || isGlobal)) { 
+        const allowedCourseIds = check
+          .allowedCourseIds(req.user, 'processo seletivo listar')
+   
+          where[$or] = [
+            { visible: true},
+            { course_id: allowedCourseIds } 
+          ]
       }
     } else {
       // only access visible/published selective processes
       where.visible = true
     }
 
-    // filter by assignments (vacancy and its type)
-    if (typeof assignmentIds === "object" && assignmentIds.length > 0) {
-      const vacancies = await models.Vacancy.findAll({
-        where: {
-          assignment_id: assignmentIds
-        },
+    models.SelectiveProcess
+      .findAndCountAll({
         include: [
           {
             model: models.Call,
-            attributes: ["id", "selectiveProcess_id"],
+            required: false
+          },
+          {
+            model: models.Course,
             required: false
           }
+<<<<<<< HEAD
+        ],
+        distinct: true,
+        limit: req.query.limit,
+        offset: req.query.offset,
+        page: req.query.page,
+        where,
+        order:[['year', 'DESC'], ['number', 'DESC']]
+      })
+      .then(selectiveProcesses => res.json({
+          "info": {
+            "count": selectiveProcesses.count,
+            "currentPage": req.query.page ? req.query.page * 1 : 1,
+            "numberOfPages": Math.ceil(selectiveProcesses.count / req.query.limit)
+||||||| parent of 05b456c... Fixed visible/hidden in list and flatMap polyfill
+        ]
+      });
+
+      const aditionalSelectiveProcessIds = vacancies.map(
+        vacancy => vacancy.Call.selectiveProcess_id
+      );
+
+      where.id = unique(aditionalSelectiveProcessIds);
+    }
+    
+    // check if user has roles
+    const hasRoles = check.hasRoles(req.user);
+    
+    // filter user permissions (roles/restrictions)
+    if (hasRoles) {
+      const isAdmin = check.isAdmin(req.user);
+      const isGlobal = check.hasGlobalPermission(
+        req.user,
+        "processo seletivo listar"
+      );
+
+      if (!(isAdmin || isGlobal)) {
+        const allowedCourseIds = check.allowedCourseIds(
+          req.user,
+          "processo seletivo listar"
+        );
+
+        delete where.visible
+        where[$or] = [{ visible: true }, { course_id: allowedCourseIds }];
+      }
+    }
+    
+    models.SelectiveProcess.findAndCountAll({
+      include: [
+        {
+          model: models.Call,
+          required: false
+        },
+        {
+          model: models.Course,
+          required: false
+        }
+      ],
+      distinct: true,
+      limit: req.query.limit,
+      offset: req.query.offset,
+      page: req.query.page,
+      where
+    }).then(
+      selectiveProcesses =>
+        res.json({
+          info: {
+            count: selectiveProcesses.count,
+            currentPage: req.query.page ? req.query.page * 1 : 1,
+            numberOfPages: Math.ceil(selectiveProcesses.count / req.query.limit)
+=======
         ]
       });
 
@@ -124,13 +252,7 @@ module.exports = app => {
         },
         {
           model: models.Course,
-          required: false,
-          include: [
-            {
-              model: models.GraduationType,
-              required: false
-            }
-          ]
+          required: false
         }
       ],
       distinct: true,
@@ -145,14 +267,14 @@ module.exports = app => {
             count: selectiveProcesses.count,
             currentPage: req.query.page ? req.query.page * 1 : 1,
             numberOfPages: Math.ceil(selectiveProcesses.count / req.query.limit)
+>>>>>>> 05b456c... Fixed visible/hidden in list and flatMap polyfill
           },
-          selectiveProcesses: selectiveProcesses.rows
+          "selectiveProcesses": selectiveProcesses.rows
         }),
-      e => {
-        res.status(500).json({ e }); // error.parse('selectiveProcesses-01', e));
-      }
-    );
-  }  
+        e => {
+          res.status(500).json({ e }) // error.parse('selectiveProcesses-01', e));
+        });
+  };
 
   api.create = (req, res) => {
     if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !(req.body.number) || !(req.body.year)) {
@@ -419,6 +541,8 @@ module.exports = app => {
         where.id = unique(aditionalSelectiveProcessIds)
       }
 
+      console.log(where)
+
       models.SelectiveProcess.findAndCountAll({
 
         include: [
@@ -430,11 +554,10 @@ module.exports = app => {
           model: models.Course,
           required: false,
           include: [
-            {
-              model: models.GraduationType,
-              required: false 
-            }
-          ]
+          {
+            model: models.GraduationType,
+            required: false, 
+          }]
         }],
         limit: req.query.limit,
         offset: req.query.offset,
