@@ -309,15 +309,17 @@ module.exports = app => {
             ]
           })
 
-       const aditionalCourseIds = graduations
-        .flatMap(graduation => graduation.Courses
-          .map(course => course.id))
+        if (graduations && graduations.length) {
+         const aditionalCourseIds = graduations
+          .flatMap(graduation => graduation.Courses
+            .map(course => course.id))
 
-        if (typeof where.course_id === 'undefined') {
-          where.course_id = aditionalCourseIds
-        } else {
-          const ids = validIds([...where.course_id, ...aditionalCourseIds])
-          where.course_id = ids
+          if (typeof where.course_id === 'undefined') {
+            where.course_id = aditionalCourseIds
+          } else {
+            const ids = validIds([...where.course_id, ...aditionalCourseIds])
+            where.course_id = ids
+          }
         }
       }
      
