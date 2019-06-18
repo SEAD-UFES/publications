@@ -126,7 +126,13 @@ module.exports = app => {
         },
         {
           model: models.Course,
-          required: false
+          required: false,
+          include: [
+            {
+              model: models.GraduationType,
+              required: false
+            }
+          ]
         }
       ],
       distinct: true,
@@ -413,8 +419,6 @@ module.exports = app => {
         where.id = unique(aditionalSelectiveProcessIds)
       }
 
-      console.log(where)
-
       models.SelectiveProcess.findAndCountAll({
 
         include: [
@@ -426,10 +430,11 @@ module.exports = app => {
           model: models.Course,
           required: false,
           include: [
-          {
-            model: models.GraduationType,
-            required: false, 
-          }]
+            {
+              model: models.GraduationType,
+              required: false 
+            }
+          ]
         }],
         limit: req.query.limit,
         offset: req.query.offset,
