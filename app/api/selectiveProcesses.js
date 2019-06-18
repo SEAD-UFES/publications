@@ -16,6 +16,16 @@ module.exports = app => {
     sortObjectByNameValue
   } = require('../helpers/listFilters');
 
+  // temporary polyfill for flaMap
+  // the function is not yet supported by Nodea 10.16 LTS
+  if (!Array.prototype.flatMap) {
+    Array.prototype.flatMap = function(lambda) {
+      return Array.prototype.concat.apply([], this.map(lambda));
+    }
+  }  
+  // end-polyfill
+
+
   api.list = async (req, res) => {
 
     // pagination, limit, year
@@ -25,7 +35,7 @@ module.exports = app => {
 
     // filter by year, number and course
     const where = removeEmpty({
-      visible: true,
+
       year: validYears(req.query.years),
       number: validProcessNumbers(req.query.numbers),
       course_id: validIds(req.query.courses)
@@ -102,9 +112,10 @@ module.exports = app => {
           "processo seletivo listar"
         );
 
-        delete where.visible
         where[$or] = [{ visible: true }, { course_id: allowedCourseIds }];
       }
+    } else {
+      where.visible = true
     }
     
     models.SelectiveProcess.findAndCountAll({
