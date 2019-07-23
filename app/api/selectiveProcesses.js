@@ -1,3 +1,4 @@
+// prettier-ignore
 module.exports = app => {
 
   const api = {};
@@ -66,7 +67,8 @@ module.exports = app => {
         limit: req.query.limit,
         offset: req.query.offset,
         page: req.query.page,
-        where
+        where,
+        order:[['year', 'DESC'], ['number', 'DESC']]
       })
       .then(selectiveProcesses => res.json({
           "info": {
@@ -306,7 +308,7 @@ module.exports = app => {
                 attributes: ['id'],
                 required: false
               }
-            ]
+            ],
           })
 
         if (graduations && graduations.length) {
@@ -336,8 +338,8 @@ module.exports = app => {
                 attributes: ['id', 'selectiveProcess_id'],
                 required: false
               }
-            ]
-
+            ],
+            order:[year, 'DESC']
           })
 
         const aditionalSelectiveProcessIds = vacancies
@@ -368,8 +370,8 @@ module.exports = app => {
         offset: req.query.offset,
         page: req.query.page,
         distinct: true,
-        where
-
+        where,
+        order:[['year', 'DESC'], ['number', 'DESC']]
       }).then(
         selectiveProcesses =>
           res.json({
