@@ -93,9 +93,7 @@ module.exports = app => {
       where.id = unique(aditionalSelectiveProcessIds);
     }
     
-    // check if user has roles
-    const hasRoles = check.hasRoles(req.user);
-    
+   
     // filter user permissions (roles/restrictions)
     if (hasRoles) {
       const isAdmin = check.isAdmin(req.user);
