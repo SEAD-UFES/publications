@@ -33,23 +33,28 @@ module.exports = app => {
     req.query.page = req.query.page * 1 || 1;
     req.query.offset = (req.query.page - 1) * req.query.limit;
 
-    const hasRoles = check.hasRoles(req.user)
+    // filter by year, number and course
+    const where = removeEmpty({
+      year: validYears(req.query.years),
+      number: validProcessNumbers(req.query.numbers),
+      course_id: validIds(req.query.courses)
+    })
 
     // params for graduation types and assingment filters
     const graduationTypeIds = validIds(req.query.graduationTypes);
     const assignmentIds = validIds(req.query.assignments);
 
     // filter by graduation type
-    if (typeof graduationTypeIds === "object" && graduationTypeIds.length > 0) {
+    if (typeof graduationTypeIds === 'object' && graduationTypeIds.length > 0) {
       const graduations = await models.GraduationType.findAll({
-        attributes: ["id", "name"],
+        attributes: ['id', 'name'],
         where: {
           id: graduationTypeIds
         },
         include: [
           {
             model: models.Course,
-            attributes: ["id"],
+            attributes: ['id'],
             required: false
           }
         ]
@@ -65,11 +70,8 @@ module.exports = app => {
         const ids = validIds([...where.course_id, ...aditionalCourseIds]);
         where.course_id = ids;
       }
-    } else {
-      // only access visible/published selective processes
-      where.visible = true
-    }
-
+    } 
+    
     // filter by assignments (vacancy and its type)
     if (typeof assignmentIds === "object" && assignmentIds.length > 0) {
       const vacancies = await models.Vacancy.findAll({
@@ -92,6 +94,9 @@ module.exports = app => {
       where.id = unique(aditionalSelectiveProcessIds);
     }
     
+    // check if user has roles
+    const hasRoles = check.hasRoles(req.user);
+    
    
     // filter user permissions (roles/restrictions)
     if (hasRoles) {
@@ -110,6 +115,7 @@ module.exports = app => {
         where[$or] = [{ visible: true }, { course_id: allowedCourseIds }];
       }
     } else {
+      // if user has no special roles, selects only ~visible~ processes
       where.visible = true
     }
     
@@ -134,7 +140,8 @@ module.exports = app => {
       limit: req.query.limit,
       offset: req.query.offset,
       page: req.query.page,
-      where
+      where,
+      order: [['year', 'DESC'], ['number', 'DESC']]
     }).then(
       selectiveProcesses =>
         res.json({
@@ -146,7 +153,7 @@ module.exports = app => {
           selectiveProcesses: selectiveProcesses.rows
         }),
       e => {
-        res.status(500).json({ e }); // error.parse('selectiveProcesses-01', e));
+        res.status(500).json(error.parse('selectiveProcesses-01', e));
       }
     );
   }  
@@ -407,7 +414,7 @@ module.exports = app => {
                 required: false
               }
             ],
-            order:[year, 'DESC']
+            order: [year, 'DESC']
           })
 
         const aditionalSelectiveProcessIds = vacancies
@@ -415,8 +422,6 @@ module.exports = app => {
        
         where.id = unique(aditionalSelectiveProcessIds)
       }
-
-      console.log(where)
 
       models.SelectiveProcess.findAndCountAll({
 
