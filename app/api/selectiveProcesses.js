@@ -1,4 +1,3 @@
-// prettier-ignore
 module.exports = app => {
 
   const api = {};
@@ -416,6 +415,8 @@ module.exports = app => {
        
         where.id = unique(aditionalSelectiveProcessIds)
       }
+
+      console.log(where)
 
       models.SelectiveProcess.findAndCountAll({
 
