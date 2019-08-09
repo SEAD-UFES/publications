@@ -2,7 +2,7 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    queryInterface
+    return queryInterface
       .addColumn(
           'Users',
           'deletedAt',
@@ -14,7 +14,7 @@ module.exports = {
   },
 
   down: (queryInterface, Sequelize) => {
-    queryInterface.removeColumn('Users','deletedAt');
+    return queryInterface.removeColumn('Users','deletedAt');
   }
 };
 
