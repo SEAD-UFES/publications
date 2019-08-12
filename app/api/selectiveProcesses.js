@@ -7,7 +7,7 @@ module.exports = app => {
 
   const $or = Sequelize.Op.or; // sequelize OR shortcut
   const check = require('../helpers/permissionCheck');
-  const {  
+  const {
     unique,
     removeEmpty,
     validYears,
@@ -19,10 +19,10 @@ module.exports = app => {
   // temporary polyfill for flaMap
   // the function is not yet supported by Nodea 10.16 LTS
   if (!Array.prototype.flatMap) {
-    Array.prototype.flatMap = function(lambda) {
+    Array.prototype.flatMap = function (lambda) {
       return Array.prototype.concat.apply([], this.map(lambda));
     }
-  }  
+  }
   // end-polyfill
 
 
@@ -70,8 +70,8 @@ module.exports = app => {
         const ids = validIds([...where.course_id, ...aditionalCourseIds]);
         where.course_id = ids;
       }
-    } 
-    
+    }
+
     // filter by assignments (vacancy and its type)
     if (typeof assignmentIds === "object" && assignmentIds.length > 0) {
       const vacancies = await models.Vacancy.findAll({
@@ -93,11 +93,11 @@ module.exports = app => {
 
       where.id = unique(aditionalSelectiveProcessIds);
     }
-    
+
     // check if user has roles
     const hasRoles = check.hasRoles(req.user);
-    
-   
+
+
     // filter user permissions (roles/restrictions)
     if (hasRoles) {
       const isAdmin = check.isAdmin(req.user);
@@ -118,7 +118,7 @@ module.exports = app => {
       // if user has no special roles, selects only ~visible~ processes
       where.visible = true
     }
-    
+
     models.SelectiveProcess.findAndCountAll({
       include: [
         {
@@ -156,7 +156,7 @@ module.exports = app => {
         res.status(500).json(error.parse('selectiveProcesses-01', e));
       }
     );
-  }  
+  }
 
   api.create = (req, res) => {
     if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !(req.body.number) || !(req.body.year)) {
@@ -178,7 +178,7 @@ module.exports = app => {
   };
 
   api.filters = async (req, res) => {
-    let selectiveProcesses 
+    let selectiveProcesses
     let assignments
 
     try {
@@ -205,7 +205,7 @@ module.exports = app => {
     try {
       assignments = await models.Assignment
         .findAll({
-          attributes: ['id' , 'name']
+          attributes: ['id', 'name']
         });
     } catch (e) {
       res.status(500).json(error.parse('selectiveProcesses-04', e));
@@ -220,28 +220,28 @@ module.exports = app => {
     )].sort()
 
     const allCourses = selectiveProcesses
-      .map(x =>({'id': x.Course.id, 'name': x.Course.name}))
-    
+      .map(x => ({ 'id': x.Course.id, 'name': x.Course.name }))
+
     const courses = unique(allCourses, 'id')
       .sort(sortObjectByNameValue)
 
     const allGraduationTypes = selectiveProcesses
-      .map(x => ({ 
-        'id': x.Course.GraduationType.id, 
-        'name': x.Course.GraduationType.name 
-      }))      
+      .map(x => ({
+        'id': x.Course.GraduationType.id,
+        'name': x.Course.GraduationType.name
+      }))
       .sort(sortObjectByNameValue)
 
     const graduationTypes = unique(allGraduationTypes, 'id')
       .sort(sortObjectByNameValue)
-   
-    res.status(201).json({ 
-      years, 
-      numbers, 
-      courses, 
-      graduationTypes, 
-      assignments 
-    }) 
+
+    res.status(201).json({
+      years,
+      numbers,
+      courses,
+      graduationTypes,
+      assignments
+    })
   }
 
   api.specific = (req, res) => {
@@ -261,24 +261,6 @@ module.exports = app => {
                     required: false
                   }
                 ]
-              },
-              {
-                model: models.Vacancy,
-                required: false,
-                include: [
-                  {
-                    model: models.Assignment,
-                    required: false
-                  },
-                  {
-                    model: models.Restriction,
-                    required: false
-                  },
-                  {
-                    model: models.Region,
-                    required: false
-                  }
-                ]
               }
             ]
           },
@@ -290,18 +272,18 @@ module.exports = app => {
             model: models.Publication,
             required: false,
             include: [
-              { 
+              {
                 model: models.PublicationType,
                 required: true
               }
-            ]         
+            ]
           }
         ],
         order: [
-          [ models.Call, 'createdAt', 'ASC' ],
-          [ models.Call, models.Step, 'number', 'ASC' ],
-          [ models.Publication, 'date', 'DESC' ],
-          [ models.Publication, 'createdAt', 'DESC' ]
+          [models.Call, 'createdAt', 'ASC'],
+          [models.Call, models.Step, 'number', 'ASC'],
+          [models.Publication, 'date', 'DESC'],
+          [models.Publication, 'createdAt', 'DESC']
         ]
       })
       .then(selectiveProcess => {
@@ -360,8 +342,8 @@ module.exports = app => {
 
       // filter by year, number and course
       const where = removeEmpty({
-        visible: true,    
-        year:  validYears(req.query.years),
+        visible: true,
+        year: validYears(req.query.years),
         number: validProcessNumbers(req.query.numbers),
         course_id: validIds(req.query.courses)
       })
@@ -372,7 +354,7 @@ module.exports = app => {
       // filter by graduation type
       if (typeof graduationTypeIds === 'object' && graduationTypeIds.length > 0) {
         const graduations = await models.GraduationType
-          .findAll({ 
+          .findAll({
             attributes: ['id', 'name'],
             where: {
               id: graduationTypeIds
@@ -387,9 +369,9 @@ module.exports = app => {
           })
 
         if (graduations && graduations.length) {
-         const aditionalCourseIds = graduations
-          .flatMap(graduation => graduation.Courses
-            .map(course => course.id))
+          const aditionalCourseIds = graduations
+            .flatMap(graduation => graduation.Courses
+              .map(course => course.id))
 
           if (typeof where.course_id === 'undefined') {
             where.course_id = aditionalCourseIds
@@ -399,7 +381,7 @@ module.exports = app => {
           }
         }
       }
-     
+
       // filter by assignments (vacancy and its type)
       if (typeof assignmentIds === 'object' && assignmentIds.length > 0) {
         const vacancies = await models.Vacancy
@@ -419,33 +401,33 @@ module.exports = app => {
 
         const aditionalSelectiveProcessIds = vacancies
           .map(vacancy => vacancy.Call.selectiveProcess_id)
-       
+
         where.id = unique(aditionalSelectiveProcessIds)
       }
 
       models.SelectiveProcess.findAndCountAll({
 
         include: [
-        {
-          model: models.Call,
-          required: false
-        },  
-        {
-          model: models.Course,
-          required: false,
-          include: [
-            {
-              model: models.GraduationType,
-              required: false 
-            }
-          ]
-        }],
+          {
+            model: models.Call,
+            required: false
+          },
+          {
+            model: models.Course,
+            required: false,
+            include: [
+              {
+                model: models.GraduationType,
+                required: false
+              }
+            ]
+          }],
         limit: req.query.limit,
         offset: req.query.offset,
         page: req.query.page,
         distinct: true,
         where,
-        order:[['year', 'DESC'], ['number', 'DESC']]
+        order: [['year', 'DESC'], ['number', 'DESC']]
       }).then(
         selectiveProcesses =>
           res.json({
@@ -479,24 +461,6 @@ module.exports = app => {
                 include: [
                   {
                     model: models.StepType,
-                    required: false
-                  }
-                ]
-              },
-              {
-                model: models.Vacancy,
-                required: false,
-                include: [
-                  {
-                    model: models.Assignment,
-                    required: false
-                  },
-                  {
-                    model: models.Restriction,
-                    required: false
-                  },
-                  {
-                    model: models.Region,
                     required: false
                   }
                 ]
