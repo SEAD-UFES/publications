@@ -80,7 +80,6 @@ module.exports = app => {
 
     const findCourseByVacancy = async vacancy_id => {
       const vacancy = await models.Vacancy.findById(vacancy_id)
-      console.log('\n', vacancy, '\n')
       const course = await findCourseByCall(vacancy.call_id)
       return course
     }
