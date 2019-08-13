@@ -68,7 +68,9 @@ module.exports = app => {
   api.find = async (req, res) => {
     const findCourseByProcess = async process_id => {
       const process = await models.SelectiveProcess.findById(process_id)
-      const course = await models.Course.findById(process.course_id)
+      const course = await models.Course.findById(process.course_id, {
+        include: [models.GraduationType]
+      })
       return course
     }
 
