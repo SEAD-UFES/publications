@@ -92,33 +92,31 @@ module.exports = app => {
         res.json(course)
       } catch (err) {
         res.status(500).json(error.parse('courses-03', err.toString()))
-        return
       }
     }
 
     //Buscar por call
-    if (req.query.call_id) {
+    else if (req.query.call_id) {
       try {
         const course = await findCourseByCall(req.query.call_id)
         res.json(course)
       } catch (err) {
         res.status(500).json(error.parse('courses-03', err.toString()))
-        return
       }
     }
 
     //Buscar por vacancy
-    if (req.query.vacancy_id) {
+    else if (req.query.vacancy_id) {
       try {
         const course = await findCourseByVacancy(req.query.vacancy_id)
         res.json(course)
       } catch (err) {
         res.status(500).json(error.parse('courses-03', err.toString()))
-        return
       }
     }
 
-    res.status(500).json(error.parse('courses-02', 'Caso não previsto pela api.'))
+    //Casos não previstos
+    else res.status(500).json(error.parse('courses-02', 'Caso não previsto pela api.'))
   }
 
   return api
