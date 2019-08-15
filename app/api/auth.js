@@ -159,14 +159,12 @@ module.exports = app => {
 
   api.checkCourseStaff = async (req, res, next) => {
     if (req.user.UserRoles && req.user.UserRoles.length === 0) {
-      res.status(500).json(error.parse('auth-11', 'This user has no Permissions.'))
+      res.status(500).json(error.parse('auth-11', 'This user has no UserRoles.'))
     } else {
       const Admin = isAdmin(req.user)
       const needed_permission = getPermission({ url: req.url, method: req.method })
       const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
-
       //É administrador
-
       if (Admin) {
         next()
       }
@@ -176,7 +174,7 @@ module.exports = app => {
         next()
       }
 
-      //Outros casos
+      // outros casos
       else {
         let allowedCourse
         let targetCourse

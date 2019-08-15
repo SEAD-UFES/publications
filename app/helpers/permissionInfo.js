@@ -5,8 +5,8 @@ const getPermission = options => {
   if (!options.method) throw new Error('method option needed.')
 
   const params = options.url.split('/')
-  const id = params.pop()
-  const model = params.pop()
+  const model = params[2]
+  const possible_id = params[3]
   const method = options.method
 
   permissions = {
@@ -49,7 +49,7 @@ const getPermission = options => {
           return permissions.process_create
           break
         case 'GET':
-          if (!id) {
+          if (!!possible_id) {
             return permissions.process_list
           } else {
             return permissions.process_read
@@ -71,7 +71,7 @@ const getPermission = options => {
           return permissions.publication_create
           break
         case 'GET':
-          if (!id) {
+          if (!!possible_id) {
             return permissions.publication_list
           } else {
             return permissions.publication_read
@@ -94,7 +94,7 @@ const getPermission = options => {
           return permissions.call_create
           break
         case 'GET':
-          if (!id) {
+          if (!!possible_id) {
             return permissions.call_list
           } else {
             return permissions.call_read
@@ -116,7 +116,7 @@ const getPermission = options => {
         case 'POST':
           return permissions.step_create.break
         case 'GET':
-          if (!id) {
+          if (!!possible_id) {
             return permissions.step_list
           } else {
             return permissions.step_read
@@ -139,7 +139,7 @@ const getPermission = options => {
           return permissions.vacancy_create
           break
         case 'GET':
-          if (!id) {
+          if (!!possible_id) {
             return permissions.vacancy_list
           } else {
             return permissions.vacancy_read
