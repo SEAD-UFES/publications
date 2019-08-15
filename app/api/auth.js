@@ -161,17 +161,18 @@ module.exports = app => {
     if (req.user.UserRoles && req.user.UserRoles.length === 0) {
       res.status(500).json(error.parse('auth-11', 'This user has no Permissions.'))
     } else {
-      //É administrador
-      //const isAdmin = req.user.UserRoles.map(x => x.RoleType.name).includes('Administrador')
       const Admin = isAdmin(req.user)
+      const needed_permission = getPermission({ url: req.url, method: req.method })
+      const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
+
+      //É administrador
+
       if (Admin) {
         next()
       }
 
       //Tem papel global com as permissão
-      const needed_permission = getPermission({ url: req.url, method: req.method })
-      const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
-      if (GlobalPermission) {
+      else if (GlobalPermission) {
         next()
       }
 
@@ -201,13 +202,9 @@ module.exports = app => {
             .map(x => x.Course.id)
             .includes(targetCourse)
 
-          console.log('\n', `targetCourse:${targetCourse}`, '\n')
-
           if (allowedCourse) {
             next()
           } else {
-            console.log('\n', `allowedCourse:${allowedCourse}`, '\n')
-
             res
               .status(500)
               .json(error.parse('auth-11', 'This user does not have the required permissions to access this resource.'))
