@@ -107,54 +107,73 @@ module.exports = app => {
         res.status(401).json(error.parse('auth-10', new Error("You don't have permission to require this operation")))
     }
 
-    let processed = 0
-    let finded = false
-    if (req.user.UserRoles.length === 0) callBack(false)
-    else if (req.user.UserRoles.some(o => o.RoleType.name == 'Administrador')) next()
-    else
-      req.user.UserRoles.forEach((role, i, arr) => {
-        models.RolePermission.findAll({
-          where: {
-            roleType_id: role.RoleType.id
-          },
-          include: [
-            {
-              model: models.Permission,
-              required: false,
-              include: [
-                {
-                  model: models.Action,
-                  required: false,
-                  attributes: ['name']
-                },
-                {
-                  model: models.Target,
-                  required: false,
-                  attributes: ['name', 'urn']
-                }
-              ],
-              attributes: ['action_id', 'target_id']
+    const Admin = isAdmin(req.user)
+    const needed_permission = getPermission({ url: req.url, method: req.method })
+    const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
+
+    //É administrador
+    if (Admin) {
+      next()
+    }
+
+    //Tem papel global com as permissão
+    else if (GlobalPermission) {
+      next()
+    }
+
+    //outros casos
+    else {
+      let processed = 0
+      let finded = false
+      if (req.user.UserRoles.length === 0) callBack(false)
+      else if (req.user.UserRoles.some(o => o.RoleType.name == 'Administrador')) next()
+      else
+        req.user.UserRoles.forEach((role, i, arr) => {
+          models.RolePermission.findAll({
+            where: {
+              roleType_id: role.RoleType.id
+            },
+            include: [
+              {
+                model: models.Permission,
+                required: false,
+                include: [
+                  {
+                    model: models.Action,
+                    required: false,
+                    attributes: ['name']
+                  },
+                  {
+                    model: models.Target,
+                    required: false,
+                    attributes: ['name', 'urn']
+                  }
+                ],
+                attributes: ['action_id', 'target_id']
+              }
+            ],
+            attributes: ['permission_id']
+          }).then(rolePermissions => {
+            processed++
+            console.log(req.route.path)
+            if (
+              rolePermissions.some(rp => {
+                console.log('\n', rp.Permission.Action.name, '\n')
+                return (
+                  rp.Permission.Action.name == req.method &&
+                  (rp.Permission.Target.urn == req.originalUrl || rp.Permission.Target.urn == req.route.path)
+                )
+              })
+            ) {
+              finded = true
             }
-          ],
-          attributes: ['permission_id']
-        }).then(rolePermissions => {
-          processed++
-          console.log(req.route.path)
-          if (
-            rolePermissions.some(
-              rp =>
-                rp.Permission.Action.name == req.method &&
-                (rp.Permission.Target.urn == req.originalUrl || rp.Permission.Target.urn == req.route.path)
-            )
-          ) {
-            finded = true
-          }
-          if (processed === arr.length)
-            if (finded) callBack(true)
-            else callBack(false)
-          else if (finded) callBack(true)
+            if (processed === arr.length)
+              if (finded) callBack(true)
+              else callBack(false)
+            else if (finded) callBack(true)
+          })
         })
-      })
+    }
   }
 
   api.checkCourseStaff = async (req, res, next) => {
