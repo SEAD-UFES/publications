@@ -163,11 +163,8 @@ module.exports = app => {
     } else {
       const Admin = isAdmin(req.user)
       const needed_permission = getPermission({ url: req.url, method: req.method })
-      console.log('\n', needed_permission, '\n')
       const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
 
-      console.log(needed_permission)
-      console.log(GlobalPermission)
       //É administrador
       if (Admin) {
         next()
