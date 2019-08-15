@@ -5,160 +5,128 @@ const getPermission = options => {
   if (!options.method) throw new Error('method option needed.')
 
   const params = options.url.split('/')
-  const model = params[2]
-  const possible_id = params[3]
-  const method = options.method
+  const model_name = params[2]
+  const option1 = params[3]
+  const method_name = options.method
 
   permissions = {
-    //selective process
-    process_create: 'processo seletivo criar',
-    process_read: 'processo seletivo listar',
-    process_update: 'processo seletivo editar',
-    process_delete: 'processo seletivo apagar',
-    process_list: 'processo seletivo listar',
-    //publications
-    publication_create: 'publication_create',
-    publication_read: 'publication_read',
-    publication_update: 'publication_update',
-    publication_delete: 'publication_delete',
-    publication_list: '',
-    //calls
-    call_create: 'chamada criar',
-    call_read: 'chamada acessar',
-    call_update: 'chamada editar',
-    call_delete: 'chamada apagar',
-    call_list: '',
-    //steps
-    step_create: 'etapa criar',
-    step_read: 'etapa acessar',
-    step_update: 'etapa editar',
-    step_delete: 'etapa apagar',
-    step_list: '',
-    //vacancies
-    vacancy_create: 'vaga criar',
-    vacancy_read: 'vaga acessar',
-    vacancy_update: 'vaga editar',
-    vacancy_delete: 'vaga apagar',
-    vacancy_list: ''
+    selectiveProcesses: {
+      GET: {
+        read: 'processo seletivo listar',
+        list: 'processo seletivo listar'
+      },
+      POST: {
+        create: 'processo seletivo criar'
+      },
+      PUT: {
+        update: 'processo seletivo editar'
+      },
+      DELETE: {
+        delete: 'processo seletivo apagar'
+      }
+    },
+    publications: {
+      GET: {
+        read: 'publication_read',
+        list: ''
+      },
+      POST: {
+        create: 'publication_create'
+      },
+      PUT: {
+        update: 'publication_update'
+      },
+      DELETE: {
+        delete: 'publication_delete'
+      }
+    },
+    calls: {
+      GET: {
+        read: 'chamada acessar',
+        list: ''
+      },
+      POST: {
+        create: 'chamada criar'
+      },
+      PUT: {
+        update: 'chamada editar'
+      },
+      DELETE: {
+        delete: 'chamada apagar'
+      }
+    },
+    steps: {
+      GET: {
+        read: 'etapa acessar',
+        list: ''
+      },
+      POST: {
+        create: 'etapa criar'
+      },
+      PUT: {
+        update: 'etapa editar'
+      },
+      DELETE: {
+        delete: 'etapa apagar'
+      }
+    },
+    vacancies: {
+      GET: {
+        read: 'vaga acessar',
+        list: ''
+      },
+      POST: {
+        create: 'vaga criar'
+      },
+      PUT: {
+        update: 'vaga editar'
+      },
+      DELETE: {
+        delete: 'vaga apagar'
+      }
+    }
   }
 
-  switch (model) {
-    case 'selectiveprocesses':
-      switch (method) {
-        case 'POST':
-          return permissions.process_create
-          break
-        case 'GET':
-          if (!!possible_id) {
-            return permissions.process_list
-          } else {
-            return permissions.process_read
-          }
-          break
-        case 'PUT':
-          return permissions.process_update
-          break
-        case 'DELETE':
-          return permissions.process_delete
-          break
-        default:
-          throw new Error('Unable to find any method related to this route.')
-      }
-      break
-    case 'publications':
-      switch (method) {
-        case 'POST':
-          return permissions.publication_create
-          break
-        case 'GET':
-          if (!!possible_id) {
-            return permissions.publication_list
-          } else {
-            return permissions.publication_read
-          }
-          break
-        case 'PUT':
-          return permissions.publication_update
-          break
-        case 'DELETE':
-          return permissions.publication_delete
-          break
-        default:
-          throw new Error('Unable to find any method related to this route.')
-      }
-      break
+  if (!permissions[model_name]) {
+    throw new Error('Unable to find any model related to this route.')
+  }
 
-    case 'calls':
-      switch (method) {
-        case 'POST':
-          return permissions.call_create
-          break
-        case 'GET':
-          if (!!possible_id) {
-            return permissions.call_list
-          } else {
-            return permissions.call_read
-          }
-          break
-        case 'PUT':
-          return permissions.call_update
-          break
-        case 'DELETE':
-          return permissions.call_delete
-          break
-        default:
-          throw new Error('Unable to find any method related to this route.')
+  if (!permissions[model_name][method_name]) {
+    throw new Error('Unable to find any method related to this route.')
+  }
+
+  let permission = undefined
+  switch (method_name) {
+    case 'POST':
+      permission = permissions[model_name][method_name].create
+      break
+    case 'GET':
+      if (!option1) {
+        permission = permissions[model_name][method_name].list
+        break
+      }
+      if (option1 === 'minimal') {
+        permission = permissions[model_name][method_name].minimal
+      } else if (option1 === 'find') {
+        permission = permissions[model_name][method_name].find
+      } else {
+        permission = permissions[model_name][method_name].read
       }
       break
-
-    case 'steps':
-      switch (method) {
-        case 'POST':
-          return permissions.step_create.break
-        case 'GET':
-          if (!!possible_id) {
-            return permissions.step_list
-          } else {
-            return permissions.step_read
-          }
-          break
-        case 'PUT':
-          return permissions.step_update
-          break
-        case 'DELETE':
-          return permissions.step_delete
-          break
-        default:
-          throw new Error('Unable to find any method related to this route.')
-      }
+    case 'PUT':
+      permission = permissions[model_name][method_name].update
       break
-
-    case 'vacancies':
-      switch (method) {
-        case 'POST':
-          return permissions.vacancy_create
-          break
-        case 'GET':
-          if (!!possible_id) {
-            return permissions.vacancy_list
-          } else {
-            return permissions.vacancy_read
-          }
-          break
-        case 'PUT':
-          return permissions.vacancy_update
-          break
-        case 'DELETE':
-          return permissions.vacancy_delete
-          break
-        default:
-          throw new Error('Unable to find any method related to this route.')
-      }
+    case 'DELETE':
+      permission = permissions[model_name][method_name].delete
       break
-
     default:
-      throw new Error('Unable to find any model related to this route.')
+      break
   }
-}
 
+  if (typeof permission === 'undefined') {
+    throw new Error('Unable to find any permission related to this route.')
+  }
+
+  return permission
+}
 module.exports = { getPermission }
