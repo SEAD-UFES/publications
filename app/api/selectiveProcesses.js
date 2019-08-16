@@ -395,8 +395,8 @@ module.exports = app => {
                 attributes: ['id', 'selectiveProcess_id'],
                 required: false
               }
-            ],
-            order: [year, 'DESC']
+            ]
+
           })
 
         const aditionalSelectiveProcessIds = vacancies
