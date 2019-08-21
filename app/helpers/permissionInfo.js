@@ -10,7 +10,7 @@ const getPermission = options => {
   const method_name = options.method
 
   permissions = {
-    selectiveProcesses: {
+    selectiveprocesses: {
       GET: {
         read: 'processo seletivo listar',
         list: 'processo seletivo listar'
