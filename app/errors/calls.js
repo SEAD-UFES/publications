@@ -1,8 +1,10 @@
+/** @format */
+
 module.exports = app => {
-  let error = {};
+  let error = {}
 
   error.parse = (code, e) => {
-    let message = {};
+    let message = {}
 
     switch (code) {
       case 'calls-01':
@@ -10,41 +12,41 @@ module.exports = app => {
           code,
           userMessage: 'Requisição inválida',
           devMessage: 'Essa requisição espera um objeto contendo propriedade name.'
-        };
-        break;
+        }
+        break
 
       case 'calls-02':
         message = {
           code,
           userMessage: 'Erro interno do servidor. Contate o administrador.',
           devMessage: e
-        };
-        break;
+        }
+        break
       case 'calls-03':
         message = {
           code,
           userMessage: 'Já existe uma chamada com esse nome.',
           devMessage: e
-        };
-        break;
+        }
+        break
       case 'calls-04':
         message = {
           code,
           userMessage: 'A chamada requisitada não pode ser encontrada.',
           devMessage: e
-        };
-        break;
+        }
+        break
       case 'calls-05':
         message = {
           code,
-          userMessage: 'Não é possível criar uma nova chamada enquanto houver uma chamada ativa.',
+          userMessage: 'Não é possível mais de uma chamada no mesmo intervalo de tempo.',
           devMessage: e
-        };
-        break;
+        }
+        break
     }
 
-    return message;
+    return message
   }
 
-  return error;
+  return error
 }
