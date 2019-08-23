@@ -105,8 +105,6 @@ const getPermission = options => {
     }
   }
 
-  console.log('\n', model_name)
-
   if (!permissions[model_name]) {
     throw new Error('Unable to find any model related to this route.')
   }

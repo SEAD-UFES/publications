@@ -74,10 +74,6 @@ module.exports = app => {
     //Find and return call
     models.Call.findById(req.params.id, call_structure).then(
       call => {
-        console.log(`
-         openingDate ${call.openingDate}
-         endingDate ${call.endingDate}
-        `)
         res.json(call)
       },
       e => {

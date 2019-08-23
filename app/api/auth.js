@@ -108,17 +108,19 @@ module.exports = app => {
     }
 
     const Admin = isAdmin(req.user)
-    const needed_permission = getPermission({ url: req.url, method: req.method })
-    const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
 
     //É administrador
     if (Admin) {
       next()
+      return
     }
 
     //Tem papel global com as permissão
-    else if (GlobalPermission) {
+    const needed_permission = getPermission({ url: req.url, method: req.method })
+    const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
+    if (GlobalPermission) {
       next()
+      return
     }
 
     //outros casos
@@ -155,10 +157,8 @@ module.exports = app => {
             attributes: ['permission_id']
           }).then(rolePermissions => {
             processed++
-            console.log(req.route.path)
             if (
               rolePermissions.some(rp => {
-                console.log('\n', rp.Permission.Action.name, '\n')
                 return (
                   rp.Permission.Action.name == req.method &&
                   (rp.Permission.Target.urn == req.originalUrl || rp.Permission.Target.urn == req.route.path)
@@ -181,17 +181,19 @@ module.exports = app => {
       res.status(500).json(error.parse('auth-11', 'This user has no UserRoles.'))
     } else {
       const Admin = isAdmin(req.user)
-      const needed_permission = getPermission({ url: req.url, method: req.method })
-      const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
 
       //É administrador
       if (Admin) {
         next()
+        return
       }
 
       //Tem papel global com as permissão
-      else if (GlobalPermission) {
+      const needed_permission = getPermission({ url: req.url, method: req.method })
+      const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
+      if (GlobalPermission) {
         next()
+        return
       }
 
       // outros casos
