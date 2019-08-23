@@ -5,11 +5,29 @@ const getPermission = options => {
   if (!options.method) throw new Error('method option needed.')
 
   const params = options.url.split('/')
-  const model_name = params[2]
+  let model_name = params[2]
+  if (model_name.includes('?')) {
+    model_name = model_name.split('?')[0]
+  }
   const option1 = params[3]
   const method_name = options.method
 
   permissions = {
+    users: {
+      GET: {
+        read: 'usuário acessar',
+        list: 'usuários listar'
+      },
+      POST: {
+        create: 'usuário criar'
+      },
+      PUT: {
+        update: 'usuários editar'
+      },
+      DELETE: {
+        delete: 'usuário apagar'
+      }
+    },
     selectiveprocesses: {
       GET: {
         read: 'processo seletivo listar',
@@ -28,7 +46,7 @@ const getPermission = options => {
     publications: {
       GET: {
         read: 'publication_read',
-        list: ''
+        list: 'publication_read'
       },
       POST: {
         create: 'publication_create'
@@ -43,7 +61,7 @@ const getPermission = options => {
     calls: {
       GET: {
         read: 'chamada acessar',
-        list: ''
+        list: 'chamada acessar'
       },
       POST: {
         create: 'chamada criar'
@@ -58,7 +76,7 @@ const getPermission = options => {
     steps: {
       GET: {
         read: 'etapa acessar',
-        list: ''
+        list: 'etapa acessar'
       },
       POST: {
         create: 'etapa criar'
@@ -73,7 +91,7 @@ const getPermission = options => {
     vacancies: {
       GET: {
         read: 'vaga acessar',
-        list: ''
+        list: 'vaga acessar'
       },
       POST: {
         create: 'vaga criar'
@@ -86,6 +104,8 @@ const getPermission = options => {
       }
     }
   }
+
+  console.log('\n', model_name)
 
   if (!permissions[model_name]) {
     throw new Error('Unable to find any model related to this route.')
