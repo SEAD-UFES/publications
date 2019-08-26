@@ -15,11 +15,11 @@ const getPermission = options => {
   permissions = {
     users: {
       GET: {
-        read: 'usuário acessar',
-        list: 'usuários listar'
+        read: 'user_read',
+        list: 'user_list'
       },
       POST: {
-        create: 'usuário criar'
+        create: 'user_create'
       },
       PUT: {
         update: 'usuários editar'
@@ -30,14 +30,14 @@ const getPermission = options => {
     },
     selectiveprocesses: {
       GET: {
-        read: 'processo seletivo listar',
-        list: 'processo seletivo listar'
+        read: 'selectiveprocess_read',
+        list: 'selectiveprocess_list'
       },
       POST: {
-        create: 'processo seletivo criar'
+        create: 'selectiveprocess_create'
       },
       PUT: {
-        update: 'processo seletivo editar'
+        update: 'selectiveprocess_create'
       },
       DELETE: {
         delete: 'processo seletivo apagar'
@@ -46,7 +46,7 @@ const getPermission = options => {
     publications: {
       GET: {
         read: 'publication_read',
-        list: 'publication_read'
+        list: 'publication_list'
       },
       POST: {
         create: 'publication_create'
@@ -60,47 +60,47 @@ const getPermission = options => {
     },
     calls: {
       GET: {
-        read: 'chamada acessar',
-        list: 'chamada acessar'
+        read: 'call_read',
+        list: 'call_list'
       },
       POST: {
-        create: 'chamada criar'
+        create: 'call_create'
       },
       PUT: {
-        update: 'chamada editar'
+        update: 'call_update'
       },
       DELETE: {
-        delete: 'chamada apagar'
+        delete: 'call_delete'
       }
     },
     steps: {
       GET: {
-        read: 'etapa acessar',
-        list: 'etapa acessar'
+        read: 'step_read',
+        list: 'step_list'
       },
       POST: {
-        create: 'etapa criar'
+        create: 'step_create'
       },
       PUT: {
-        update: 'etapa editar'
+        update: 'step_update'
       },
       DELETE: {
-        delete: 'etapa apagar'
+        delete: 'step_delete'
       }
     },
     vacancies: {
       GET: {
-        read: 'vaga acessar',
-        list: 'vaga acessar'
+        read: 'vacancy_read',
+        list: 'vacancy_read'
       },
       POST: {
-        create: 'vaga criar'
+        create: 'vacancy_create'
       },
       PUT: {
-        update: 'vaga editar'
+        update: 'vacancy_update'
       },
       DELETE: {
-        delete: 'vaga apagar'
+        delete: 'vacancy_delete'
       }
     }
   }
