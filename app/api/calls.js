@@ -5,44 +5,28 @@ module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.calls
+  const { validate } = require('../validators/calls.js')
+  const { isEmpty } = require('lodash')
 
-  api.create = (req, res) => {
-    if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !req.body.number) {
-      res.status(400).json(error.parse('calls-01', {}))
-    } else {
-      // assert req.body.endingDate > req.body.openingDate /* is this a date object? does it have to be? */
-      let options = {
-        where: {
-          [Sequelize.Op.or]: {
-            openingDate: {
-              [Sequelize.Op.gte]: req.body.openingDate,
-              [Sequelize.Op.lte]: req.body.endingDate
-            },
-            endingDate: {
-              [Sequelize.Op.gte]: req.body.openingDate,
-              [Sequelize.Op.lte]: req.body.endingDate
-            }
-          },
-          selectiveProcess_id: req.body.selectiveProcess_id
-        }
+  api.create = async (req, res) => {
+    let errors
+    try {
+      errors = await validate(req)
+    } catch (e) {
+      res.status(400).json(error.parse('calls-02', 'Error during validation.'))
+    }
+
+    if (isEmpty(errors)) {
+      try {
+        const createdCall = await models.Call.create(req.body)
+
+        res.status(201).json({ id: createdCall.id })
+      } catch (e) {
+        res.status(400).json(error.parse('calls-05', 'Error trying to create new Call.'))
       }
-      models.Call.findOne(options).then(result => {
-        if (result) {
-          res.status(400).json(error.parse('calls-05', result))
-        } else {
-          models.Call.create(req.body).then(
-            call => {
-              res.status(201).json({
-                id: call.id
-              })
-            },
-            e => {
-              if (e.name === 'SequelizeUniqueConstraintError') res.status(400).json(error.parse('calls-03', e))
-              else res.status(500).json(error.parse('calls-02', {}))
-            }
-          )
-        }
-      })
+    } else {
+      /* fail, send validation errors */
+      res.status(400).json(error.parse('calls-01', { errors }))
     }
   }
 
@@ -82,26 +66,27 @@ module.exports = app => {
     )
   }
 
-  api.update = (req, res) => {
-    models.Call.findById(req.params.id).then(
-      call => {
-        call.update(req.body, { fields: Object.keys(req.body) }).then(
-          updatedCall => {
-            res.json(updatedCall)
-          },
-          e => {
-            if (e.name === 'SequelizeUniqueConstraintError') {
-              res.status(400).json(error.parse('calls-02', e))
-            } else {
-              res.status(500).json(error.parse('calls-02', e))
-            }
-          }
-        )
-      },
-      e => {
-        res.status(500).json(error.parse('calls-02', e))
+  api.update = async (req, res) => {
+    let errors
+
+    try {
+      errors = await validate(req)
+    } catch (e) {
+      res.status(500).json(error.parse('calls-02', e))
+    }
+
+    if (isEmpty(errors)) {
+      try {
+        const call = await models.Call.findById(req.params.id)
+        const updatedCall = await call.update(req.body, { fields: Object.keys(req.body) })
+
+        res.json(updatedCall)
+      } catch (e) {
+        res.status(500).json(error.parse('calls-02', 'Error updating call.'))
       }
-    )
+    } else {
+      res.status(400).json(error.parse('calls-01', { errors }))
+    }
   }
 
   api.delete = (req, res) => {

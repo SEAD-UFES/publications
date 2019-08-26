@@ -11,7 +11,7 @@ module.exports = app => {
         message = {
           code,
           userMessage: 'Requisição inválida',
-          devMessage: 'Essa requisição espera um objeto contendo propriedade name.'
+          devMessage: e
         }
         break
 
