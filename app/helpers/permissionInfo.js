@@ -102,6 +102,21 @@ const getPermission = options => {
       DELETE: {
         delete: 'vacancy_delete'
       }
+    },
+    notices: {
+      GET: {
+        read: 'notice_read',
+        list: 'notice_list'
+      },
+      POST: {
+        create: 'notice_create'
+      },
+      PUT: {
+        update: 'notice_update'
+      },
+      DELETE: {
+        delete: 'notice_delete'
+      }
     }
   }
 

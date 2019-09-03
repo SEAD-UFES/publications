@@ -4,7 +4,7 @@ module.exports = app => {
 
   app
     .route(app.get('courseApiRoute'))
-    .post(authApi.authenticationRequired, authApi.checkAccessLevel, api.create)
+    .post(authApi.authenticationRequired, authApi.adminRequired, api.create)
     .get(authApi.authenticationRequired, api.list)
 
   app.route(app.get('courseApiRoute') + '/find').get(api.find)
