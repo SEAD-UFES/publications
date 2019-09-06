@@ -25,13 +25,13 @@ const validateId = async id => {
 
   if (isUUID(id)) {
     try {
-      const callFound = await models.Call.findById(id)
+      const noticeFound = await models.Notice.findById(id)
 
-      if (isEmpty(callFound)) errors.id = 'Essa chamada não está cadastrada.'
+      if (isEmpty(noticeFound)) errors.id = 'Essa noticia não está cadastrada.'
     } catch (e) {
-      errors.id = 'Não foi possível encontrar essa chamada no banco de dados.'
+      errors.id = 'Não foi possível encontrar essa notícia no banco de dados.'
     }
-  } else errors.id = 'A chamada enviada não tem uma identificação válida.'
+  } else errors.id = 'A notícia enviada não tem uma identificação válida.'
 
   return errors
 }

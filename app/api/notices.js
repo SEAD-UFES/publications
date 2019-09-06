@@ -6,7 +6,7 @@ module.exports = app => {
   const api = {}
   const error = app.errors.notices
   const { validate } = require('../validators/notices.js')
-
+  const { removeEmpty } = require('../helpers/listFilters')
   const { isEmpty } = require('lodash')
 
   api.create = async (req, res, next) => {
@@ -39,7 +39,11 @@ module.exports = app => {
     //Find and return notice
     models.Notice.findById(req.params.id).then(
       notice => {
-        res.json(notice)
+        if (notice) {
+          res.json(notice)
+        } else {
+          res.status(400).json(error.parse('notices-04', 'Notice not exist.'))
+        }
       },
       e => {
         res.status(500).json(error.parse('notices-02', e))
@@ -77,6 +81,22 @@ module.exports = app => {
       },
       e => {
         res.status(500).json(error.parse('notices-04'))
+      }
+    )
+  }
+
+  api.list = (req, res) => {
+    // filter by selectiveProcess_id
+    const where = removeEmpty({
+      selectiveProcess_id: req.query.selectiveProcess_id
+    })
+
+    models.Notice.findAll({ where: where }).then(
+      noticeList => {
+        res.json(noticeList)
+      },
+      e => {
+        res.status(500).json(error.parse('notices-02', e))
       }
     )
   }

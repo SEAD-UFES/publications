@@ -45,7 +45,7 @@ module.exports = app => {
 
   api.authenticationRequired = (req, res, next) => {
     try {
-      decoded = jwt.verify(req.headers['x-access-token'], app.get('jwt_secret'))
+      const decoded = jwt.verify(req.headers['x-access-token'], app.get('jwt_secret'))
       models.User.findById(decoded.data, {
         include: [
           {
