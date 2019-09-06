@@ -4,7 +4,7 @@
 
 const Sequelize = require('sequelize')
 const models = require('../models')
-const { isUUID, isBoolean } = require('validator')
+const { isUUID } = require('validator')
 const { isEmpty } = require('lodash')
 
 const validate = async ({ body, method, params }) => {
