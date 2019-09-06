@@ -22,13 +22,6 @@ module.exports = app => {
           devMessage: e
         }
         break
-      case 'notices-03':
-        message = {
-          code,
-          userMessage: 'Já existe uma chamada com esse nome.',
-          devMessage: e
-        }
-        break
       case 'notices-04':
         message = {
           code,
