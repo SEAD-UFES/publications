@@ -53,13 +53,13 @@ const validateBody = async ({ selectiveProcess_id, title, content, visible, over
   }
 
   if (visible) {
-    if (visible != true && visible != false) {
+    if (visible !== true && visible !== false) {
       errors.visible = 'Valor do campo inválido.'
     }
   }
 
   if (override) {
-    if (override != true && override != false) {
+    if (override !== true && override !== false) {
       errors.override = 'Valor do campo inválido.'
     }
   }
