@@ -78,8 +78,9 @@ const validateBody = async ({ selectiveProcess_id, title, content, visible, over
     if (!selectiveProcess) {
       errors.selectiveProcess_id = 'O processo seletivo associado à essa noticia não existe.'
     } else {
+      const notices = selectiveProcess.Notices.filter(notice => notice.id !== hasId)
       /* selective process already have a notice? */
-      if (selectiveProcess.Notices.length > 0) {
+      if (notices.length > 0) {
         errors.selectiveProcess_id = 'O processo seletivo já possui uma noticia cadastrada.'
       }
     }

@@ -4,12 +4,12 @@ module.exports = app => {
 
   app
     .route(app.get('noticeApiRoute'))
-    .get(api.list)
+    .get(api.listPublic, authApi.authenticationRequired, api.list)
     .post(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.create)
 
   app
     .route(app.get('noticeApiRoute') + '/:id')
-    .get(api.specific)
-    .put(authApi.authenticationRequired, api.update)
-    .delete(authApi.authenticationRequired, api.delete)
+    .get(api.specificPublic, authApi.authenticationRequired, api.specific)
+    .put(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.update)
+    .delete(authApi.authenticationRequired, authApi.checkCourseStaff, authApi.checkAccessLevel, api.delete)
 }
