@@ -1,6 +1,9 @@
+/** @format */
+
 'use strict'
 
 const uuid = require('uuid/v4')
+const apiRoutes = require('../../config/apiRoutes.json')
 
 module.exports = (sequelize, DataTypes) => {
   const RoleType = sequelize.define(
@@ -24,10 +27,25 @@ module.exports = (sequelize, DataTypes) => {
 
     return RoleType
   }
+
   RoleType.beforeCreate((roleType, _) => {
     roleType.id = uuid()
     return roleType
   })
+
+  RoleType.prototype.toJSON = function() {
+    let values = Object.assign({}, this.get())
+
+    values.link = {
+      rel: 'roleType',
+      href: apiRoutes.find(r => r.key === 'roleTypeApiRoute').value + '/' + values.id
+    }
+
+    delete values.createdAt
+    delete values.updatedAt
+
+    return values
+  }
+
   return RoleType
 }
-

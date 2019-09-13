@@ -1,8 +1,10 @@
 /** @format */
 
+'use strict'
+
 const uuid = require('uuid/v4')
 const apiRoutes = require('../../config/apiRoutes.json')
-;('use strict')
+
 module.exports = (sequelize, DataTypes) => {
   const Assignment = sequelize.define(
     'Assignment',
@@ -34,5 +36,6 @@ module.exports = (sequelize, DataTypes) => {
 
     return values
   }
+
   return Assignment
 }
