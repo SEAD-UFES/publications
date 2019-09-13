@@ -3,9 +3,10 @@ module.exports = app => {
   const jwt = require('jsonwebtoken')
   const api = {}
   const error = app.errors.auth
-  const { bodyRoute, paramRoute } = require('../helpers/courseInfo')
+  const { bodyRoute, paramRoute, getCourseId } = require('../helpers/courseInfo')
   const { getPermission } = require('../helpers/permissionInfo')
   const { isAdmin, hasGlobalPermission } = require('../helpers/permissionCheck')
+  const check = require('../helpers/permissionCheck')
 
   api.authenticate = (req, res) => {
     if (
@@ -100,80 +101,88 @@ module.exports = app => {
     else res.status(401).json(error.parse('auth-08', new Error('Administrator level required')))
   }
 
-  api.checkAccessLevel = (req, res, next) => {
-    function callBack(finded) {
-      if (finded) next()
-      else
-        res.status(401).json(error.parse('auth-10', new Error("You don't have permission to require this operation")))
-    }
-
-    const Admin = isAdmin(req.user)
+  api.checkAccessLevel = async (req, res, next) => {
+    // function callBack(finded) {
+    //   if (finded) return next()
+    //   else
+    //     res.status(401).json(error.parse('auth-10', new Error("You don't have permission to require this operation")))
+    // }
 
     //É administrador
+    const Admin = isAdmin(req.user)
     if (Admin) {
-      next()
-      return
+      return next()
     }
 
     //Tem papel global com as permissão
     const needed_permission = getPermission({ url: req.url, method: req.method })
     const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
     if (GlobalPermission) {
-      next()
-      return
+      return next()
     }
 
-    //outros casos
-    else {
-      let processed = 0
-      let finded = false
-      if (req.user.UserRoles.length === 0) callBack(false)
-      else if (req.user.UserRoles.some(o => o.RoleType.name == 'Administrador')) next()
-      else
-        req.user.UserRoles.forEach((role, i, arr) => {
-          models.RolePermission.findAll({
-            where: {
-              roleType_id: role.RoleType.id
-            },
-            include: [
-              {
-                model: models.Permission,
-                required: false,
-                include: [
-                  {
-                    model: models.Action,
-                    required: false,
-                    attributes: ['name']
-                  },
-                  {
-                    model: models.Target,
-                    required: false,
-                    attributes: ['name', 'urn']
-                  }
-                ],
-                attributes: ['action_id', 'target_id']
-              }
-            ],
-            attributes: ['permission_id']
-          }).then(rolePermissions => {
-            processed++
-            if (
-              rolePermissions.some(rp => {
-                return (
-                  rp.Permission.Action.name == req.method &&
-                  (rp.Permission.Target.urn == req.originalUrl || rp.Permission.Target.urn == req.route.path)
-                )
-              })
-            ) {
-              finded = true
-            }
-            if (processed === arr.length)
-              if (finded) callBack(true)
-              else callBack(false)
-            else if (finded) callBack(true)
-          })
-        })
+    //Tem permissão no curso em que se está tentando a operação
+    const needed_permission_course = getPermission({ url: req.url, method: req.method })
+    const needed_course_id = await getCourseId(req)
+    const allowedCourseIds = check.allowedCourseIds(req.user, needed_permission_course)
+    const onCoursePermission = allowedCourseIds.includes(needed_course_id)
+    if (onCoursePermission) {
+      return next()
     }
+
+    res.status(401).json(error.parse('auth-10', new Error("You don't have permission to require this operation")))
+
+    //outros casos
+    // else {
+    //   let processed = 0
+    //   let finded = false
+    //   if (req.user.UserRoles.length === 0) callBack(false)
+    //   else if (req.user.UserRoles.some(o => o.RoleType.name == 'Administrador')) next()
+    //   else
+    //     req.user.UserRoles.forEach((role, i, arr) => {
+    //       models.RolePermission.findAll({
+    //         where: {
+    //           roleType_id: role.RoleType.id
+    //         },
+    //         include: [
+    //           {
+    //             model: models.Permission,
+    //             required: false,
+    //             include: [
+    //               {
+    //                 model: models.Action,
+    //                 required: false,
+    //                 attributes: ['name']
+    //               },
+    //               {
+    //                 model: models.Target,
+    //                 required: false,
+    //                 attributes: ['name', 'urn']
+    //               }
+    //             ],
+    //             attributes: ['action_id', 'target_id']
+    //           }
+    //         ],
+    //         attributes: ['permission_id']
+    //       }).then(rolePermissions => {
+    //         processed++
+    //         if (
+    //           rolePermissions.some(rp => {
+    //             return (
+    //               rp.Permission.Action.name == req.method &&
+    //               (rp.Permission.Target.urn == req.originalUrl || rp.Permission.Target.urn == req.route.path)
+    //             )
+    //           })
+    //         ) {
+    //           finded = true
+    //         }
+    //         if (processed === arr.length)
+    //           if (finded) callBack(true)
+    //           else callBack(false)
+    //         else if (finded) callBack(true)
+    //       })
+    //     })
+    // }
   }
 
   api.checkCourseStaff = async (req, res, next) => {
@@ -184,16 +193,14 @@ module.exports = app => {
 
       //É administrador
       if (Admin) {
-        next()
-        return
+        return next()
       }
 
       //Tem papel global com as permissão
       const needed_permission = getPermission({ url: req.url, method: req.method })
       const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
       if (GlobalPermission) {
-        next()
-        return
+        return next()
       }
 
       // outros casos

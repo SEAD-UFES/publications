@@ -77,16 +77,19 @@ module.exports = app => {
         const notice_structure = {
           include: [
             {
-              model: models.selectiveProcess,
+              model: models.SelectiveProcess,
               required: false,
               include: [{ model: models.Course, where: { id: allowedCourseIds } }]
             }
           ]
         }
 
-        const noticeIds = await models.Notice.findAll(notice_structure).map(notice => notice.id)
-
-        where[$or] = [{ visible: true }, { notices_id: noticeIds }]
+        try {
+          const noticeIds = await models.Notice.findAll(notice_structure).map(notice => notice.id)
+          where[$or] = [{ visible: true }, { id: noticeIds }]
+        } catch (e) {
+          console.log(e)
+        }
       }
     } else {
       // if user has no special roles, selects only ~visible~ processes
@@ -181,16 +184,19 @@ module.exports = app => {
         const notice_structure = {
           include: [
             {
-              model: models.selectiveProcess,
+              model: models.SelectiveProcess,
               required: false,
               include: [{ model: models.Course, where: { id: allowedCourseIds } }]
             }
           ]
         }
 
-        const noticeIds = await models.Notice.findAll(notice_structure).map(notice => notice.id)
-
-        where[$or] = [{ visible: true }, { notices_id: noticeIds }]
+        try {
+          const noticeIds = await models.Notice.findAll(notice_structure).map(notice => notice.id)
+          where[$or] = [{ visible: true }, { id: noticeIds }]
+        } catch (e) {
+          console.log(e)
+        }
       }
     } else {
       // if user has no special roles, selects only ~visible~ processes
