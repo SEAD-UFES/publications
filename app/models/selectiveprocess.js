@@ -1,3 +1,4 @@
+/** @format */
 'use strict'
 
 const uuid = require('uuid/v4')
@@ -63,6 +64,10 @@ module.exports = (sequelize, DataTypes) => {
       rel: 'selectiveProcess',
       href: apiRoutes.find(r => r.key === 'selectiveProcessApiRoute').value + '/' + values.id
     }
+
+    delete values.createdAt
+    delete values.updatedAt
+    delete values.deletedAt
 
     return values
   }
