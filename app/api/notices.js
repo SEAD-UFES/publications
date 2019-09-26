@@ -21,14 +21,12 @@ module.exports = app => {
     }
 
     if (isEmpty(errors)) {
-      console.log(req.body)
       /*validation ok -  try to create*/
       try {
         const createdNotice = await models.Notice.create(req.body)
         res.status(201).json(createdNotice)
         return next()
       } catch (e) {
-        console.log(e)
         res.status(400).json(error.parse('notices-05', 'Error trying to create new Notice.'))
         return next()
       }
