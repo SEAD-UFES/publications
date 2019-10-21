@@ -12,7 +12,8 @@ module.exports = (sequelize, DataTypes) => {
       selectiveProcess_id: DataTypes.UUID,
       call_id: DataTypes.UUID,
       step_id: DataTypes.UUID,
-      description: DataTypes.STRING,
+      title: DataTypes.STRING,
+      description: DataTypes.TEXT,
       file: DataTypes.STRING,
       valid: DataTypes.BOOLEAN,
       date: DataTypes.DATE
