@@ -1,79 +1,73 @@
+/** @format */
+
 module.exports = app => {
   const models = require('../models')
   const jwt = require('jsonwebtoken')
   const api = {}
   const error = app.errors.auth
-  const { bodyRoute, paramRoute, getCourseId } = require('../helpers/courseInfo')
+
+  const { isAdmin, hasGlobalPermission, allowedCourseIds } = require('../helpers/permissionCheck')
   const { getPermission } = require('../helpers/permissionInfo')
-  const { isAdmin, hasGlobalPermission } = require('../helpers/permissionCheck')
-  const check = require('../helpers/permissionCheck')
+  const { getCourseId } = require('../helpers/courseInfo')
+
+  const userInclude = {
+    include: [
+      {
+        model: models.UserRole,
+        required: false,
+        attributes: {
+          exclude: ['roleType_id', 'user_id', 'course_id']
+        },
+        include: [
+          {
+            model: models.RoleType,
+            required: false,
+            include: [
+              {
+                model: models.Permission,
+                required: false
+              }
+            ]
+          },
+          {
+            model: models.Course,
+            required: false
+          }
+        ]
+      }
+    ]
+  }
 
   api.authenticate = (req, res) => {
-    if (
-      Array.isArray(req.body) ||
-      (req.body.constructor === Object && Object.keys(req.body).length === 0) ||
-      !req.body.login ||
-      !req.body.password
-    )
-      res
-        .status(400)
-        .json(
-          error.parse(
-            'auth-03',
-            new Error('This resource spect a JSON user object in the body request containing username and password.')
-          )
-        )
-    else {
+    if (req.body && req.body.login && req.body.password) {
       models.User.findOne({ where: { login: req.body.login } }).then(
         user => {
           if (!user) {
-            res.status(401).json(error.parse('auth-04', new Error('This login was not found.')))
-          } else if (!user.authorized) res.status(401).json(error.parse('auth-09', new Error('User is unauthorized')))
-          else
+            res.status(401).json(error.parse('auth-04', 'This login was not found.'))
+          } else if (!user.authorized) {
+            res.status(401).json(error.parse('auth-09', new Error('User is unauthorized')))
+          } else {
             user.validPassword(req.body.password).then(valid => {
               if (valid) {
                 let access_token = jwt.sign({ data: user.id }, app.get('jwt_secret'), { expiresIn: '6h' })
                 res.json({ access_token, userMessage: 'Authentication success' })
               } else {
-                res.status(401).json(error.parse('auth-05', new Error('Wrong password.')))
+                res.status(401).json(error.parse('auth-05', 'Wrong user or password.'))
               }
             })
+          }
         },
-        e => res.status(500).json(error.parse('auth-06', new Error('Internal server error.')))
+        e => res.status(500).json(error.parse('auth-06', 'Internal server error.'))
       )
+    } else {
+      res.status(400).json(error.parse('auth-03', 'The request must provide a login and password.'))
     }
   }
 
   api.authenticationRequired = (req, res, next) => {
     try {
       const decoded = jwt.verify(req.headers['x-access-token'], app.get('jwt_secret'))
-      models.User.findById(decoded.data, {
-        include: [
-          {
-            model: models.UserRole,
-            required: false,
-            attributes: {
-              exclude: ['roleType_id', 'user_id', 'course_id']
-            },
-            include: [
-              {
-                model: models.RoleType,
-                required: false,
-                include: [
-                  {
-                    model: models.Permission,
-                    required: false
-                  }
-                ]
-              },
-              {
-                model: models.Course,
-                required: false
-              }
-            ]
-          }
-        ]
-      }).then(
+      models.User.findById(decoded.data, userInclude).then(
         user => {
           req.user = user
           next()
@@ -97,148 +91,42 @@ module.exports = app => {
   }
 
   api.adminRequired = (req, res, next) => {
-    if (req.user.UserRoles.some(o => o.RoleType.name == 'Administrador')) next()
-    else res.status(401).json(error.parse('auth-08', new Error('Administrator level required')))
+    if (isAdmin(req.user)) next()
+    else res.status(401).json(error.parse('auth-08', 'Administrator level required'))
+  }
+
+  api.globalPermissionRequired = (req, res, next) => {
+    if (isAdmin(req.user)) return next()
+
+    const neededPermission = getPermission({ url: req.url, method: req.method })
+    const globalPermission = hasGlobalPermission(req.user, neededPermission)
+
+    if (globalPermission) return next()
+
+    return res.status(401).json(error.parse('auth-08', 'Global permission level required'))
   }
 
   api.checkAccessLevel = async (req, res, next) => {
-    // function callBack(finded) {
-    //   if (finded) return next()
-    //   else
-    //     res.status(401).json(error.parse('auth-10', new Error("You don't have permission to require this operation")))
-    // }
+    if (isAdmin(req.user)) return next()
 
-    //É administrador
-    const Admin = isAdmin(req.user)
-    if (Admin) {
-      return next()
-    }
+    const neededPermission = getPermission({ url: req.url, method: req.method })
+    const globalPermission = hasGlobalPermission(req.user, neededPermission)
 
-    //Tem papel global com as permissão
-    const needed_permission = getPermission({ url: req.url, method: req.method })
-    const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
-    if (GlobalPermission) {
-      return next()
-    }
+    if (globalPermission) return next()
 
-    //Tem permissão no curso em que se está tentando a operação
-    const needed_permission_course = getPermission({ url: req.url, method: req.method })
-    const needed_course_id = await getCourseId(req)
-    const allowedCourseIds = check.allowedCourseIds(req.user, needed_permission_course)
-    const onCoursePermission = allowedCourseIds.includes(needed_course_id)
-    if (onCoursePermission) {
-      return next()
+    try {
+      //Tem permissão no curso em que se está tentando a operação
+      const neededCourseId = await getCourseId(req)
+
+      const allowedCourseList = allowedCourseIds(req.user, neededPermission)
+      const onCoursePermission = allowedCourseList.includes(neededCourseId)
+
+      if (onCoursePermission) return next()
+    } catch (e) {
+      return res.status(401).json(error.parse('auth-10', new Error('This user has no associated courses')))
     }
 
     res.status(401).json(error.parse('auth-10', new Error("You don't have permission to require this operation")))
-
-    //outros casos
-    // else {
-    //   let processed = 0
-    //   let finded = false
-    //   if (req.user.UserRoles.length === 0) callBack(false)
-    //   else if (req.user.UserRoles.some(o => o.RoleType.name == 'Administrador')) next()
-    //   else
-    //     req.user.UserRoles.forEach((role, i, arr) => {
-    //       models.RolePermission.findAll({
-    //         where: {
-    //           roleType_id: role.RoleType.id
-    //         },
-    //         include: [
-    //           {
-    //             model: models.Permission,
-    //             required: false,
-    //             include: [
-    //               {
-    //                 model: models.Action,
-    //                 required: false,
-    //                 attributes: ['name']
-    //               },
-    //               {
-    //                 model: models.Target,
-    //                 required: false,
-    //                 attributes: ['name', 'urn']
-    //               }
-    //             ],
-    //             attributes: ['action_id', 'target_id']
-    //           }
-    //         ],
-    //         attributes: ['permission_id']
-    //       }).then(rolePermissions => {
-    //         processed++
-    //         if (
-    //           rolePermissions.some(rp => {
-    //             return (
-    //               rp.Permission.Action.name == req.method &&
-    //               (rp.Permission.Target.urn == req.originalUrl || rp.Permission.Target.urn == req.route.path)
-    //             )
-    //           })
-    //         ) {
-    //           finded = true
-    //         }
-    //         if (processed === arr.length)
-    //           if (finded) callBack(true)
-    //           else callBack(false)
-    //         else if (finded) callBack(true)
-    //       })
-    //     })
-    // }
-  }
-
-  api.checkCourseStaff = async (req, res, next) => {
-    if (req.user.UserRoles && req.user.UserRoles.length === 0) {
-      res.status(500).json(error.parse('auth-11', 'This user has no UserRoles.'))
-    } else {
-      const Admin = isAdmin(req.user)
-
-      //É administrador
-      if (Admin) {
-        return next()
-      }
-
-      //Tem papel global com as permissão
-      const needed_permission = getPermission({ url: req.url, method: req.method })
-      const GlobalPermission = hasGlobalPermission(req.user, needed_permission)
-      if (GlobalPermission) {
-        return next()
-      }
-
-      // outros casos
-      else {
-        let allowedCourse
-        let targetCourse
-
-        if (req.method === 'GET' || req.method === 'DELETE' || req.method === 'PUT') {
-          try {
-            targetCourse = await paramRoute(req.url)
-          } catch (e) {
-            res.status(500).json(error.parse('auth-11', e))
-          }
-        } else if (req.body.course_id || req.query.course_id) {
-          targetCourse = req.body.course_id ? req.body.course_id : req.query.course_id
-        } else {
-          try {
-            targetCourse = req.body ? await bodyRoute(req.body) : await bodyRoute(req.query)
-          } catch (e) {
-            res.status(500).json(error.parse('auth-11', e))
-          }
-        }
-
-        if (targetCourse) {
-          allowedCourse = req.user.UserRoles.filter(x => x.Course)
-            .map(x => x.Course.id)
-            .includes(targetCourse)
-
-          if (allowedCourse) {
-            next()
-          } else {
-            res
-              .status(500)
-              .json(error.parse('auth-11', 'This user does not have the required permissions to access this resource.'))
-          }
-        }
-      }
-    }
   }
 
   return api
