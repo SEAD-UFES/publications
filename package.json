@@ -4,8 +4,8 @@
   "description": "sead publications backend system",
   "main": "server.js",
   "scripts": {
-    "migrate": "./node_modules/.bin/sequelize db:migrate:undo:all; ./node_modules/.bin/sequelize db:migrate",
-    "seed": "./node_modules/.bin/sequelize db:seed:undo:all; ./node_modules/.bin/sequelize db:seed:all",
+    "migrate": "cross-env npx sequelize db:migrate:undo:all && npx sequelize db:migrate",
+    "seed": "cross-env npx sequelize db:seed:undo:all && npx sequelize db:seed:all",
     "refresh": "npm run migrate; npm run seed",
     "report": "nyc --reporter=html --reporter=text mocha --exit ./test/*.test.js",
     "start": "nodemon --inspect server.js"
