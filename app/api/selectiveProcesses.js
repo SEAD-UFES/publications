@@ -1,3 +1,5 @@
+/** @format */
+
 module.exports = app => {
   const api = {}
   const models = require('../models')
@@ -15,8 +17,17 @@ module.exports = app => {
     sortObjectByNameValue
   } = require('../helpers/listFilters')
 
+  const orderByYearAndNumber = [['year', 'DESC'], ['number', 'DESC']]
+
+  const orderByCallAndPublication = [
+    [models.Call, 'createdAt', 'ASC'],
+    [models.Call, models.Step, 'number', 'ASC'],
+    [models.Publication, 'date', 'DESC'],
+    [models.Publication, 'createdAt', 'DESC']
+  ]
+
   // temporary polyfill for flaMap
-  // the function is not yet supported by Nodea 10.16 LTS
+  // the function is not yet supported by Node 10.16 LTS
   if (!Array.prototype.flatMap) {
     Array.prototype.flatMap = function(lambda) {
       return Array.prototype.concat.apply([], this.map(lambda))
@@ -127,10 +138,7 @@ module.exports = app => {
       offset: req.query.offset,
       page: req.query.page,
       where,
-      order: [
-        ['year', 'DESC'],
-        ['number', 'DESC']
-      ]
+      order: orderByYearAndNumber
     }).then(
       selectiveProcesses =>
         res.json({
@@ -266,12 +274,7 @@ module.exports = app => {
           ]
         }
       ],
-      order: [
-        [models.Call, 'createdAt', 'ASC'],
-        [models.Call, models.Step, 'number', 'ASC'],
-        [models.Publication, 'date', 'DESC'],
-        [models.Publication, 'createdAt', 'DESC']
-      ]
+      order: orderByCallAndPublication
     }).then(
       selectiveProcess => {
         if (!selectiveProcess) {
@@ -414,10 +417,7 @@ module.exports = app => {
         page: req.query.page,
         distinct: true,
         where,
-        order: [
-          ['year', 'DESC'],
-          ['number', 'DESC']
-        ]
+        order: orderByYearAndNumber
       }).then(
         selectiveProcesses =>
           res.json({
@@ -478,12 +478,7 @@ module.exports = app => {
             ]
           }
         ],
-        order: [
-          [models.Call, 'createdAt', 'ASC'],
-          [models.Call, models.Step, 'number', 'ASC'],
-          [models.Publication, 'date', 'DESC'],
-          [models.Publication, 'createdAt', 'DESC']
-        ]
+        order: orderByCallAndPublication
       }).then(
         selectiveProcess => {
           if (!selectiveProcess || !selectiveProcess.visible) {
