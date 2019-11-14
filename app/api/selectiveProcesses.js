@@ -76,6 +76,16 @@ module.exports = app => {
             required: false
           }
         ]
+      },
+      {
+        model: models.Vacancy,
+        required: false,
+        include: [
+          {
+            model: models.Assignment,
+            required: false
+          }
+        ]
       }
     ]
   }
@@ -88,6 +98,9 @@ module.exports = app => {
     }
   }
   // end-polyfill
+
+  const getRelatedAssignments = process =>
+    unique(process.Calls.flatMap(call => call.Vacancies).map(vacancy => vacancy.Assignment), 'name')
 
   api.list = async (req, res) => {
     // pagination, limit, year
@@ -269,7 +282,9 @@ module.exports = app => {
         if (!selectiveProcess) {
           res.status(400).json(error.parse('selectiveProcesses-05', {}))
         } else {
-          res.json(selectiveProcess)
+          const assignments = getRelatedAssignments(selectiveProcess)
+
+          res.json({ process: selectiveProcess, assignments })
         }
       },
       e => {
