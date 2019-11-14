@@ -127,7 +127,10 @@ module.exports = app => {
       offset: req.query.offset,
       page: req.query.page,
       where,
-      order: [['year', 'DESC'], ['number', 'DESC']]
+      order: [
+        ['year', 'DESC'],
+        ['number', 'DESC']
+      ]
     }).then(
       selectiveProcesses =>
         res.json({
@@ -244,7 +247,13 @@ module.exports = app => {
         },
         {
           model: models.Course,
-          required: false
+          required: false,
+          include: [
+            {
+              model: models.GraduationType,
+              required: false
+            }
+          ]
         },
         {
           model: models.Publication,
@@ -405,7 +414,10 @@ module.exports = app => {
         page: req.query.page,
         distinct: true,
         where,
-        order: [['year', 'DESC'], ['number', 'DESC']]
+        order: [
+          ['year', 'DESC'],
+          ['number', 'DESC']
+        ]
       }).then(
         selectiveProcesses =>
           res.json({
@@ -447,7 +459,13 @@ module.exports = app => {
           },
           {
             model: models.Course,
-            required: false
+            required: false,
+            include: [
+              {
+                model: models.GraduationType,
+                required: false
+              }
+            ]
           },
           {
             model: models.Publication,
