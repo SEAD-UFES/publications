@@ -17,6 +17,7 @@ module.exports = app => {
     sortObjectByNameValue
   } = require('../helpers/listFilters')
 
+  /* ordering */
   const orderByYearAndNumber = [['year', 'DESC'], ['number', 'DESC']]
 
   const orderByCallAndPublication = [
@@ -25,6 +26,56 @@ module.exports = app => {
     [models.Publication, 'date', 'DESC'],
     [models.Publication, 'createdAt', 'DESC']
   ]
+
+  /* includes for eager loading */
+  const includeCourse = {
+    model: models.Course,
+    required: false
+  }
+
+  const includeCall = {
+    model: models.Call,
+    required: false
+  }
+
+  const includeCourseWithGraduationType = {
+    model: models.Course,
+    required: false,
+    include: [
+      {
+        model: models.GraduationType,
+        required: false
+      }
+    ]
+  }
+
+  const includePublicationWithType = {
+    model: models.Publication,
+    required: false,
+    include: [
+      {
+        model: models.PublicationType,
+        required: true
+      }
+    ]
+  }
+
+  const includeCallWithStepAndType = {
+    model: models.Call,
+    required: false,
+    include: [
+      {
+        model: models.Step,
+        required: false,
+        include: [
+          {
+            model: models.StepType,
+            required: false
+          }
+        ]
+      }
+    ]
+  }
 
   // temporary polyfill for flaMap
   // the function is not yet supported by Node 10.16 LTS
@@ -61,9 +112,8 @@ module.exports = app => {
         },
         include: [
           {
-            model: models.Course,
-            attributes: ['id'],
-            required: false
+            ...includeCourse,
+            attributes: ['id']
           }
         ]
       })
@@ -86,9 +136,8 @@ module.exports = app => {
         },
         include: [
           {
-            model: models.Call,
-            attributes: ['id', 'selectiveProcess_id'],
-            required: false
+            ...includeCall,
+            attributes: ['id', 'selectiveProcess_id']
           }
         ]
       })
@@ -117,22 +166,7 @@ module.exports = app => {
     }
 
     models.SelectiveProcess.findAndCountAll({
-      include: [
-        {
-          model: models.Call,
-          required: false
-        },
-        {
-          model: models.Course,
-          required: false,
-          include: [
-            {
-              model: models.GraduationType,
-              required: false
-            }
-          ]
-        }
-      ],
+      include: [includeCall, includeCourseWithGraduationType],
       distinct: true,
       limit: req.query.limit,
       offset: req.query.offset,
@@ -182,18 +216,7 @@ module.exports = app => {
 
     try {
       selectiveProcesses = await models.SelectiveProcess.findAll({
-        include: [
-          {
-            model: models.Course,
-            required: false,
-            include: [
-              {
-                model: models.GraduationType,
-                required: false
-              }
-            ]
-          }
-        ],
+        include: [includeCourseWithGraduationType],
         distinct: true
       })
     } catch (e) {
@@ -236,44 +259,7 @@ module.exports = app => {
 
   api.specific = (req, res) => {
     models.SelectiveProcess.findById(req.params.id, {
-      include: [
-        {
-          model: models.Call,
-          required: false,
-          include: [
-            {
-              model: models.Step,
-              required: false,
-              include: [
-                {
-                  model: models.StepType,
-                  required: false
-                }
-              ]
-            }
-          ]
-        },
-        {
-          model: models.Course,
-          required: false,
-          include: [
-            {
-              model: models.GraduationType,
-              required: false
-            }
-          ]
-        },
-        {
-          model: models.Publication,
-          required: false,
-          include: [
-            {
-              model: models.PublicationType,
-              required: true
-            }
-          ]
-        }
-      ],
+      include: [includeCallWithStepAndType, includeCourse, includePublicationWithType],
       order: orderByCallAndPublication
     }).then(
       selectiveProcess => {
@@ -354,13 +340,7 @@ module.exports = app => {
           where: {
             id: graduationTypeIds
           },
-          include: [
-            {
-              model: models.Course,
-              attributes: ['id'],
-              required: false
-            }
-          ]
+          include: [includeCourse]
         })
 
         if (graduations && graduations.length) {
@@ -383,9 +363,8 @@ module.exports = app => {
           },
           include: [
             {
-              model: models.Call,
-              attributes: ['id', 'selectiveProcess_id'],
-              required: false
+              ...includeCall,
+              attributes: ['id', 'selectiveProcess_id']
             }
           ]
         })
@@ -396,22 +375,7 @@ module.exports = app => {
       }
 
       models.SelectiveProcess.findAndCountAll({
-        include: [
-          {
-            model: models.Call,
-            required: false
-          },
-          {
-            model: models.Course,
-            required: false,
-            include: [
-              {
-                model: models.GraduationType,
-                required: false
-              }
-            ]
-          }
-        ],
+        include: [includeCall, includeCourseWithGraduationType],
         limit: req.query.limit,
         offset: req.query.offset,
         page: req.query.page,
@@ -440,44 +404,7 @@ module.exports = app => {
       next()
     } else {
       models.SelectiveProcess.findById(req.params.id, {
-        include: [
-          {
-            model: models.Call,
-            required: false,
-            include: [
-              {
-                model: models.Step,
-                required: false,
-                include: [
-                  {
-                    model: models.StepType,
-                    required: false
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            model: models.Course,
-            required: false,
-            include: [
-              {
-                model: models.GraduationType,
-                required: false
-              }
-            ]
-          },
-          {
-            model: models.Publication,
-            required: false,
-            include: [
-              {
-                model: models.PublicationType,
-                required: true
-              }
-            ]
-          }
-        ],
+        include: [includeCallWithStepAndType, includeCourse, includePublicationWithType],
         order: orderByCallAndPublication
       }).then(
         selectiveProcess => {
