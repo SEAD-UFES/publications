@@ -18,7 +18,10 @@ module.exports = app => {
   } = require('../helpers/listFilters')
 
   /* ordering */
-  const orderByYearAndNumber = [['year', 'DESC'], ['number', 'DESC']]
+  const orderByYearAndNumber = [
+    ['year', 'DESC'],
+    ['number', 'DESC']
+  ]
 
   const orderByCallAndPublication = [
     [models.Call, 'createdAt', 'ASC'],
@@ -259,7 +262,7 @@ module.exports = app => {
 
   api.specific = (req, res) => {
     models.SelectiveProcess.findById(req.params.id, {
-      include: [includeCallWithStepAndType, includeCourse, includePublicationWithType],
+      include: [includeCallWithStepAndType, includeCourseWithGraduationType, includePublicationWithType],
       order: orderByCallAndPublication
     }).then(
       selectiveProcess => {
@@ -404,7 +407,7 @@ module.exports = app => {
       next()
     } else {
       models.SelectiveProcess.findById(req.params.id, {
-        include: [includeCallWithStepAndType, includeCourse, includePublicationWithType],
+        include: [includeCallWithStepAndType, includeCourseWithGraduationType, includePublicationWithType],
         order: orderByCallAndPublication
       }).then(
         selectiveProcess => {
