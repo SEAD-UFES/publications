@@ -376,7 +376,7 @@ module.exports = app => {
           where: {
             id: graduationTypeIds
           },
-          include: [includeCourse]
+          include: [includeCourseWithGraduationType]
         })
 
         if (graduations && graduations.length) {
