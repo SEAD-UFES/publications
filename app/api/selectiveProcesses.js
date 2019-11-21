@@ -102,6 +102,21 @@ module.exports = app => {
   const getRelatedAssignments = process =>
     unique(process.Calls.flatMap(call => call.Vacancies).map(vacancy => vacancy.Assignment), 'name')
 
+  const removeEntryByKey = (originalObject, key) => {
+    const { [key]: removed, ...otherProperties } = originalObject.toJSON()
+
+    return otherProperties
+  }
+
+  const injectAssignmentAndRemoveVacancies = process => {
+    let result = process.toJSON()
+    result.Assignments = getRelatedAssignments(process)
+
+    result.Calls = result.Calls.map(call => removeEntryByKey(call, 'Vacancies'))
+
+    return result
+  }
+
   api.list = async (req, res) => {
     // pagination, limit, year
     req.query.limit = req.query.limit > 100 ? 100 : req.query.limit * 1 || 10
@@ -182,7 +197,7 @@ module.exports = app => {
     }
 
     models.SelectiveProcess.findAndCountAll({
-      include: [includeCall, includeCourseWithGraduationType],
+      include: [includeCallWithStepAndType, includeCourseWithGraduationType],
       distinct: true,
       limit: req.query.limit,
       offset: req.query.offset,
@@ -197,7 +212,7 @@ module.exports = app => {
             currentPage: req.query.page ? req.query.page * 1 : 1,
             numberOfPages: Math.ceil(selectiveProcesses.count / req.query.limit)
           },
-          selectiveProcesses: selectiveProcesses.rows
+          selectiveProcesses: selectiveProcesses.rows.map(injectAssignmentAndRemoveVacancies)
         }),
       e => {
         res.status(500).json(error.parse('selectiveProcesses-01', e))
@@ -282,9 +297,12 @@ module.exports = app => {
         if (!selectiveProcess) {
           res.status(400).json(error.parse('selectiveProcesses-05', {}))
         } else {
-          const assignments = getRelatedAssignments(selectiveProcess)
+          let process = selectiveProcess.toJSON()
+          process.Assignments = getRelatedAssignments(selectiveProcess)
 
-          res.json({ process: selectiveProcess, assignments })
+          process.Calls = process.Calls.map(call => removeEntryByKey(call, 'Vacancies'))
+
+          res.json(process)
         }
       },
       e => {
@@ -393,7 +411,7 @@ module.exports = app => {
       }
 
       models.SelectiveProcess.findAndCountAll({
-        include: [includeCall, includeCourseWithGraduationType],
+        include: [includeCallWithStepAndType, includeCourseWithGraduationType],
         limit: req.query.limit,
         offset: req.query.offset,
         page: req.query.page,
@@ -408,7 +426,7 @@ module.exports = app => {
               currentPage: req.query.page ? req.query.page * 1 : 1,
               numberOfPages: Math.ceil(selectiveProcesses.count / req.query.limit)
             },
-            selectiveProcesses: selectiveProcesses.rows
+            selectiveProcesses: selectiveProcesses.rows.map(injectAssignmentAndRemoveVacancies)
           }),
         e => {
           res.status(500).json(error.parse('selectiveProcesses-01', e))
@@ -429,7 +447,9 @@ module.exports = app => {
           if (!selectiveProcess || !selectiveProcess.visible) {
             res.status(400).json(error.parse('selectiveProcesses-05', {}))
           } else {
-            res.json(selectiveProcess)
+            const process = injectAssignmentAndRemoveVacancies(selectiveProcess)
+
+            res.json(process)
           }
         },
         e => {
