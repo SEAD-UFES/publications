@@ -1,0 +1,33 @@
+{
+  "development": {
+    "username": "your_db_user_name",
+    "password": "your_db_user_password",
+    "database": "your_db_name",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "operatorsAliases": false,
+    "logging": false,
+    "dialectOptions": {
+      "dateStrings": true,
+      "typeCast": true
+    },
+    "timezone": "-03:00"
+  },
+  "test": {
+    "username": "your_db_user_name",
+    "password": "your_db_user_password",
+    "database": "your_db_name",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "operatorsAliases": false,
+    "logging": false
+  },
+  "production": {
+    "username": "your_db_user_name",
+    "password": "your_db_user_password",
+    "database": "your_db_name",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "operatorsAliases": false
+  }
+}
