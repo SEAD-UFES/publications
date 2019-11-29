@@ -1,3 +1,5 @@
+/** @format */
+
 module.exports = app => {
   const models = require('../models')
   const api = {}
@@ -12,7 +14,8 @@ module.exports = app => {
           res.status(201).json(graduationType)
         },
         e => {
-          res.status(500).json(error.parse('graduationTypes-02', e))
+          if (e.name === 'SequelizeUniqueConstraintError') res.status(500).json(error.parse('graduationTypes-04'))
+          else res.status(500).json(error.parse('graduationTypes-02', e))
         }
       )
     }
@@ -46,7 +49,10 @@ module.exports = app => {
       } else {
         graduationType.update(req.body, { fields: Object.keys(req.body) }).then(
           updated => res.json(updated),
-          e => res.status(500).json(error.parse('graduationTypes-02', e))
+          e => {
+            if (e.name === 'SequelizeUniqueConstraintError') res.status(500).json(error.parse('graduationTypes-04'))
+            else res.status(500).json(error.parse('graduationTypes-02', e))
+          }
         )
       }
     })
@@ -55,7 +61,11 @@ module.exports = app => {
   api.delete = (req, res) => {
     models.GraduationType.destroy({ where: { id: req.params.id } }).then(
       _ => res.sendStatus(204),
-      e => res.status(500).json(error.parse('graduationTypes-02', e))
+      e => {
+        if (e.name === 'SequelizeForeignKeyConstraintError') res
+          .status(500).json(error.parse('graduationTypes-05'))
+        else res.status(500).json(error.parse('graduationTypes-02', e))
+      }
     )
   }
 
