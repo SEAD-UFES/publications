@@ -42,7 +42,7 @@ const validProcessNumbers = list =>
       : []
   )
 
-const validIds = list =>
+const validIdsFromString = list =>
   unique(
     list
       ? list
@@ -51,6 +51,17 @@ const validIds = list =>
           .filter(x => validator.isUUID(x))
       : []
   )
+
+const validIdsFromArray = list =>
+  unique(list ? list.map(x => x.toString().trim()).filter(x => validator.isUUID(x)) : [])
+
+const validIds = list => {
+  if (list) {
+    if (list.constructor.name === 'Array') return validIdsFromArray(list)
+    if (list.constructor.name === 'String') return validIdsFromString(list)
+  }
+  return []
+}
 
 // remove undefined, null and [] entries from object
 const removeEmpty = o => {

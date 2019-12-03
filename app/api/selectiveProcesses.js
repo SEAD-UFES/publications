@@ -18,10 +18,7 @@ module.exports = app => {
   } = require('../helpers/listFilters')
 
   /* ordering */
-  const orderByYearAndNumber = [
-    ['year', 'DESC'],
-    ['number', 'DESC']
-  ]
+  const orderByYearAndNumber = [['year', 'DESC'], ['number', 'DESC']]
 
   const orderByCallAndPublication = [
     [models.Call, 'createdAt', 'ASC'],
@@ -154,7 +151,8 @@ module.exports = app => {
       if (typeof where.course_id === 'undefined') {
         where.course_id = aditionalCourseIds
       } else {
-        const ids = validIds([...where.course_id, ...aditionalCourseIds])
+        // REFACTOR -> move to helper fn intersection
+        const ids = validIds(where.course_id.filter(x => aditionalCourseIds.includes(x)))
         where.course_id = ids
       }
     }
@@ -385,7 +383,8 @@ module.exports = app => {
           if (typeof where.course_id === 'undefined') {
             where.course_id = aditionalCourseIds
           } else {
-            const ids = validIds([...where.course_id, ...aditionalCourseIds])
+            // REFACTOR -> move to helper fn intersection
+            const ids = validIds(where.course_id.filter(x => aditionalCourseIds.includes(x)))
             where.course_id = ids
           }
         }
