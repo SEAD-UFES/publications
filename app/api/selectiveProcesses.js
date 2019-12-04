@@ -246,6 +246,7 @@ module.exports = app => {
     try {
       selectiveProcesses = await models.SelectiveProcess.findAll({
         include: [includeCourseWithGraduationType],
+        where: { visible: true },
         distinct: true
       })
     } catch (e) {
