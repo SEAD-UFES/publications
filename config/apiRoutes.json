@@ -24,5 +24,6 @@
   { "key": "rolePermissionApiRoute", "value": "/v1/rolepermissions" },
   { "key": "publicationApiRoute", "value": "/v1/publications" },
   { "key": "graduationTypeApiRoute", "value": "/v1/graduationtypes" },
-  { "key": "noticeApiRoute", "value": "/v1/notices" }
+  { "key": "noticeApiRoute", "value": "/v1/notices" },
+  { "key": "recoverApiRoute", "value": "/v1/recover" }
 ]
