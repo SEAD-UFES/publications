@@ -10,6 +10,8 @@ module.exports = app => {
   const { getPermission } = require('../helpers/permissionInfo')
   const { getCourseId } = require('../helpers/courseInfo')
 
+  const { validateBody } = require('../validators/auth')
+
   const userInclude = {
     include: [
       {
@@ -127,6 +129,39 @@ module.exports = app => {
     }
 
     res.status(401).json(error.parse('auth-10', new Error("You don't have permission to require this operation")))
+  }
+
+  //revover password require
+  api.recoverRequire = async (req, res, next) => {
+    //Conferir se tem um body valido
+    const validation = validateBody(req.body)
+    if (!validation.isValid) {
+      return res.status(400).json(error.parse('auth-09', new Error('Bad request')))
+    }
+
+    //Conferir se o usuário existe e é valido
+    let user = await models.User.findOne({ where: { login: req.body.login, authorized: true } }).then(user => {
+      if (!user || user.authorized === false) {
+        return null
+      } else {
+        return user
+      }
+    })
+    if (user === null) {
+      return res.status(400).json(error.parse('auth-09', new Error('User: Inactive, Not valid, Not exist')))
+    }
+
+    //Se tudo ok, gerar e enviar token
+    const user_id = user.id
+    const token = 'asdsadasdas' //generateToken()
+    const passwordRecover = await models.PasswordRecover.create({ user_id: user_id, token: token })
+
+    return res.json({ user_email: user.login, recover_token: passwordRecover.token })
+  }
+
+  //recover password change
+  api.recoverChange = (req, res, next) => {
+    return res.json({ result: 'route password change working' })
   }
 
   return api

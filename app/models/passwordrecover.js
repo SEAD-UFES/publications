@@ -1,4 +1,7 @@
 'use strict'
+
+const uuid = require('uuid/v4')
+
 module.exports = (sequelize, DataTypes) => {
   const PasswordRecover = sequelize.define(
     'PasswordRecover',
@@ -7,8 +10,15 @@ module.exports = (sequelize, DataTypes) => {
     },
     {}
   )
+
   PasswordRecover.associate = function(models) {
-    Call.belongsTo(models.User, { foreignKey: 'user_id' })
+    PasswordRecover.belongsTo(models.User, { foreignKey: 'user_id' })
   }
+
+  PasswordRecover.beforeCreate((passwordRecover, _) => {
+    passwordRecover.id = uuid()
+    return passwordRecover
+  })
+
   return PasswordRecover
 }
