@@ -6,7 +6,6 @@ module.exports = {
     return queryInterface.createTable('UserVerificationTokens', {
       id: {
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
         type: Sequelize.UUID
       },
