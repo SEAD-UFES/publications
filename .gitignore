@@ -62,5 +62,6 @@ typings/
 
 config/database.json
 config/secrets.json
+config/mail.js
 
 .vscode
