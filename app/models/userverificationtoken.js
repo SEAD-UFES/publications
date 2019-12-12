@@ -1,9 +1,8 @@
-/** @format */
+/* @format */
 
 'use strict'
 
-//const uuid = require('uuid/v4')
-
+const uuid = require('uuid/v4')
 const randomToken = require('crypto-random-string')
 
 module.exports = (sequelize, DataTypes) => {
@@ -20,12 +19,16 @@ module.exports = (sequelize, DataTypes) => {
     },
     {}
   )
+
   UserVerificationToken.associate = function(models) {
     UserVerificationToken.belongsTo(models.User, { foreignKey: 'user_id' })
   }
 
   UserVerificationToken.beforeCreate((userVerification, _) => {
-    return (userVerification.token = randomToken(52) + '0' + Date.now().toString(16))
+    userVerification.id = uuid()
+    userVerification.token = randomToken({ length: 52 }) + '0' + Date.now().toString(16)
+
+    return userVerification
   })
 
   return UserVerificationToken
