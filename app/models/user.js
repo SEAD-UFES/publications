@@ -31,7 +31,11 @@ module.exports = (sequelize, DataTypes) => {
           isIn: [['ufes', 'sead']]
         }
       },
-      authorized: DataTypes.BOOLEAN
+      authorized: DataTypes.BOOLEAN,
+      verifiedAt: {
+        type: DataTypes.DATE,
+        allowNull: true
+      }
     },
     {
       paranoid: true
