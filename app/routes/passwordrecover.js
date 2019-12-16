@@ -5,5 +5,8 @@ module.exports = app => {
   app.route(`${app.get('recoverApiRoute')}`).post(api.recoverRequire)
 
   //post new password to the user. Return status message
-  app.route(`${app.get('recoverApiRoute')}/:token`).post(api.recoverChange)
+  app
+    .route(`${app.get('recoverApiRoute')}/:token`)
+    .get(api.recoverGet)
+    .post(api.recoverChange)
 }

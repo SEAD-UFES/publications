@@ -8,7 +8,9 @@ module.exports = (sequelize, DataTypes) => {
     {
       token: DataTypes.STRING
     },
-    {}
+    {
+      paranoid: true
+    }
   )
 
   PasswordRecover.associate = function(models) {

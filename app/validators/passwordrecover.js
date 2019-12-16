@@ -3,8 +3,8 @@
 const { isEmpty } = require('../helpers/is-empty')
 const Validator = require('validator')
 
-const validateBody = body => {
-  const login = !isEmpty(body.login) ? body.login : ''
+const validateBodyRequire = body => {
+  const login = body && !isEmpty(body.login) ? body.login : ''
   let errors = {}
 
   if (Validator.isEmpty(login)) {
@@ -12,7 +12,7 @@ const validateBody = body => {
   }
 
   if (!body.login) {
-    errors.login = 'Login é um campo requerido.'
+    errors.login = 'login é um campo requerido.'
   }
 
   return {
@@ -21,4 +21,26 @@ const validateBody = body => {
   }
 }
 
-module.exports = { validateBody }
+const validateBodyChange = body => {
+  const password = body && !isEmpty(body.password) ? body.password : ''
+  let errors = {}
+
+  if (Validator.isEmpty(password)) {
+    errors.password = 'Este campo é requerido.'
+  }
+
+  if (!Validator.isLength(password, { min: 6 })) {
+    errors.password = 'Senha deve um mínimo de 6 caracteres.'
+  }
+
+  if (!body.password) {
+    errors.password = 'password é um campo requerido.'
+  }
+
+  return {
+    errors: errors,
+    isValid: isEmpty(errors)
+  }
+}
+
+module.exports = { validateBodyRequire, validateBodyChange }
