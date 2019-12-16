@@ -13,15 +13,15 @@ module.exports = app => {
   api.recoverRequire = async (req, res) => {
     //Conferir se tem um body valido
     const validation = validateBody(req.body)
-    if (!validation.isValid) {
-      return res.status(400).json(error.parse('auth-01', new Error('Bad request')))
+    if (validation.isValid === false) {
+      return res.status(400).json(error.parse('recover-400', { ...validation.errros }))
     }
 
     //Conferir se o usuário existe e é valido
     let includes = [{ model: models.Person, required: false }]
     let user = await models.User.findOne({ include: includes, where: { login: req.body.login, authorized: true } })
     if (user === null) {
-      return res.status(400).json(error.parse('auth-01', new Error('User: Inactive, Not exist')))
+      return res.status(400).json(error.parse('recover-404', { login: 'Usuário inativo ou não existe' }))
     }
 
     //Se tudo ok, gerar e enviar token
@@ -65,7 +65,7 @@ module.exports = app => {
       })
       .catch(error => {
         console.log(error)
-        return res.status(400).json(error.parse('auth-01', new Error('Falha ao enviar email')))
+        return res.status(400).json(error.parse('recover-500', { sended: false, message: 'falha ao enviar o email' }))
       })
   }
 

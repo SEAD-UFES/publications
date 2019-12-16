@@ -5,11 +5,23 @@ module.exports = app => {
     let message = {}
 
     switch (code) {
-      case 'auth-01':
+      case 'recover-400':
         message = {
           code,
-          userMessage: 'Usuário não autorizado, contate os administradores.',
-          devMessage: e.message
+          userMessage: 'Requisição inválida',
+          devMessage: e
+        }
+      case 'recover-404':
+        message = {
+          code,
+          userMessage: 'Usuário inativo ou não existe',
+          devMessage: e
+        }
+      case 'recover-500':
+        message = {
+          code,
+          userMessage: 'Erro interno do servidor. Contate o administrador.',
+          devMessage: e
         }
     }
 
