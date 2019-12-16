@@ -1,6 +1,6 @@
 'use strict'
 
-const { isEmpty } = require('./is-empty')
+const { isEmpty } = require('../helpers/is-empty')
 const Validator = require('validator')
 
 const validateBody = body => {
