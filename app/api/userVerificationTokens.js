@@ -5,20 +5,61 @@ module.exports = app => {
   const api = {}
   // const error = app.errors.userVerificationTokens
 
+  const { sendMailPromise, sendMail } = require('../helpers/nodemailer.js')
+
+  const sendVerificationEmail = async (userName, userEmail, verificationToken) => {
+    const htmlMessage = `
+    <h1>Verificação de E-mail (Seleção SEAD UFES)</h1>
+    <p>Olá ${userName || userEmail},</p>
+    <p>Para confirmar sua conta de e-mail, por favor acesse o link abaixo:</p>
+    <p>
+      <a href="http://localhost:3000/verify/${verificationToken}"
+        target="_blank" 
+        rel="noopener noreferrer">Verificação (o link será aberto em uma nova página)</a>
+    </p>
+    <p>Este e-mail é automático, favor não responder.</p>
+  `
+    const textMessage = `
+    Verificação de E-mail (Seleção SEAD/UFES)
+
+    Olá ${userName || userEmail},
+
+    Para confirmar sua conta de e-mail, por favor acesse o link abaixo:
+    http://localhost:3000/verify/${verificationToken}
+
+    Este e-mail é automático, favor não responder.
+  `
+
+    const mailOptions = {
+      from: 'no-reply-spss@ufes.br',
+      to: userEmail,
+      subject: 'Seleção SEAD - Confirmação de E-mail',
+      html: htmlMessage,
+      text: textMessage
+    }
+
+    return await sendMail(mailOptions)
+  }
+
   api.send = async (req, res) => {
     // user is already verified
     if (req.user && req.user.verifiedAt) return res.json({ message: 'usuário já verificado' })
 
     try {
+      const userEmail = req.user.login
+      const userName = req.user.Person && req.user.Person.name
+
       await models.UserVerificationToken.destroy({ where: { user_id: req.user.id } }) // delete old tokens
-      const newToken = await models.UserVerificationToken.create({ user_id: req.user.id }) // create new one
+      const { token } = await models.UserVerificationToken.create({ user_id: req.user.id }) // create new one
 
       // send it via email
+      const sentMail = await sendVerificationEmail(userName, userEmail, token)
+      console.log(sentMail)
+
       // answer with "verification mail sent"
-      //res.json({ token: newToken, sendTo: req.user.login })
       res.json({ message: `verificação enviada para ${req.user.login}` })
     } catch (e) {
-      res.json({ message: 'deu ruim na hora de criar o token', user: req.user })
+      res.json({ message: 'deu ruim na hora de criar o token' })
     }
   }
 
@@ -34,7 +75,7 @@ module.exports = app => {
       if (foundToken) {
         // change user.isVerified to true
         const user = await models.User.findByPk(foundToken.user_id)
-        await user.update({ verifiedAt: new Date() })
+        await user.update({ verifiedAt: new Date(), authorized: true })
 
         // delete token
         await models.UserVerificationToken.destroy({ where: { user_id: user.id } }) // delete old tokens
