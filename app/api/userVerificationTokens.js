@@ -5,7 +5,7 @@ module.exports = app => {
   const api = {}
   const error = app.errors.userVerificationTokens
 
-  const { sendVerificationEmail } = require('../helpers/nodemailer.js')
+  const { sendVerificationEmail } = require('../helpers/nodemailerSendMail.js')
 
   api.send = async (req, res) => {
     // user is already verified

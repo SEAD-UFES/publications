@@ -8,8 +8,6 @@ const apiAddress = 'http://localhost:3000/v1/verify/'
 
 const transporter = nodemailer.createTransport(mailConfig)
 
-const sendMailPromise = util.promisify(transporter.sendMail)
-
 const sendMail = mailOptions => {
   return new Promise((resolve, reject) => {
     transporter.sendMail(mailOptions, function(error, info) {
