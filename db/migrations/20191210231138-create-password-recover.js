@@ -1,12 +1,15 @@
 'use strict'
 
+const uuid = require('uuid/v4')
+
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('PasswordRecovers', {
       id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.UUID
+        type: Sequelize.UUID,
+        defaultValue: () => uuid()
       },
       user_id: {
         type: Sequelize.UUID,
