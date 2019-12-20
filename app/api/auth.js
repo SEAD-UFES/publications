@@ -34,6 +34,10 @@ module.exports = app => {
             required: false
           }
         ]
+      },
+      {
+        model: models.Person,
+        require: false
       }
     ]
   }
