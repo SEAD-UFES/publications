@@ -80,7 +80,7 @@ module.exports = app => {
       return res.status(404).json(error.parse('recover-404', { token: 'token de recuperação não encontrado' }))
     }
 
-    return res.json({ login: passwordRecover.User.login })
+    return res.json({ found: true, login: passwordRecover.User.login })
   }
 
   //recover password change
