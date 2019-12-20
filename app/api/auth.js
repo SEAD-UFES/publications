@@ -10,6 +10,10 @@ module.exports = app => {
   const { getPermission } = require('../helpers/permissionInfo')
   const { getCourseId } = require('../helpers/courseInfo')
 
+  const { validateBody } = require('../validators/auth')
+  const cryptoRandomString = require('crypto-random-string')
+  const { sendMailPromise, sendMail } = require('../helpers/nodemailer')
+
   const userInclude = {
     include: [
       {
@@ -127,6 +131,61 @@ module.exports = app => {
     }
 
     res.status(401).json(error.parse('auth-10', new Error("You don't have permission to require this operation")))
+  }
+
+  //revover password require
+  api.recoverRequire = async (req, res) => {
+    //Conferir se tem um body valido
+    const validation = validateBody(req.body)
+    if (!validation.isValid) {
+      return res.status(400).json(error.parse('auth-09', new Error('Bad request')))
+    }
+
+    //Conferir se o usuário existe e é valido
+    let includes = [{ model: models.Person, required: false }]
+    let user = await models.User.findOne({ include: includes, where: { login: req.body.login, authorized: true } })
+    if (user === null) {
+      return res.status(400).json(error.parse('auth-09', new Error('User: Inactive, Not valid, Not exist')))
+    }
+
+    //Se tudo ok, gerar e enviar token
+    const token = cryptoRandomString({ length: 52 }) + '0' + Date.now().toString(16)
+    const passwordRecover = await models.PasswordRecover.create({ user_id: user.id, token: token })
+
+    const html = `
+    <h1>Requisição de troca de senha</h1>
+    <p>Olá ${user.Person ? user.Person.name : user.login}</p>
+    <p>Você nos disse que esqueceu sua senha. Se você realmente esqueceu, utilize o link abaixo para redefini-la.</p>
+    <p>
+      Para redefinir sua senha,
+      <a href="http://localhost:3000/recovery/${
+        passwordRecover.token
+      }" target="_blank" rel="noopener noreferrer">clique aqui</a>
+    </p>
+    <p>Este e-mail é automático, favor não responder!</p>
+    `
+
+    mailOptions = {
+      from: '1e3a18137a-8f25af@inbox.mailtrap.io',
+      to: user.login,
+      subject: 'SPS SEAD - Requisição de troca de senha.',
+      html: html
+    }
+
+    sendMail(mailOptions)
+      .then(info => {
+        console.log(`Email enviado para ${user.login} - `, info.response)
+        return res.json({ message: `Email enviado para ${user.login}` })
+      })
+      .catch(error => {
+        console.log(error)
+        return res.status(400).json(error.parse('auth-09', new Error('Falha ao enviar email')))
+      })
+  }
+
+  //recover password change
+  api.recoverChange = (req, res, next) => {
+    return res.json({ result: 'route password change working' })
   }
 
   return api
