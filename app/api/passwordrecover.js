@@ -33,7 +33,7 @@ module.exports = app => {
       Olá ${user.Person ? user.Person.name : user.login}\n
       Você nos disse que esqueceu sua senha. Se você realmente esqueceu, utilize o link abaixo para redefini-la.\n
       Para redefinir sua senha, acesse:\n
-      http://localhost:5000/recovery/${passwordRecover.token}\n
+      http://localhost:5000/recover/${passwordRecover.token}\n
       Este e-mail é automático, favor não responder!\n
       `
 
@@ -43,7 +43,7 @@ module.exports = app => {
       <p>Você nos disse que esqueceu sua senha. Se você realmente esqueceu, utilize o link abaixo para redefini-la.</p>
       <p>
         Para redefinir sua senha,
-        <a href="http://localhost:5000/recovery/${
+        <a href="http://localhost:5000/recover/${
           passwordRecover.token
         }" target="_blank" rel="noopener noreferrer">clique aqui</a>
       </p>
@@ -65,7 +65,7 @@ module.exports = app => {
       })
       .catch(error => {
         console.log(error)
-        return res.status(500).json(error.parse('recover-500', { sended: false, message: 'falha ao enviar o email' }))
+        return res.status(500).json(error.parse('recover-500', { sended: false, message: 'Falha ao enviar o email' }))
       })
   }
 
@@ -77,10 +77,12 @@ module.exports = app => {
       where: { token: req.params.token }
     })
     if (passwordRecover === null) {
-      return res.status(404).json(error.parse('recover-404', { token: 'token de recuperação não encontrado' }))
+      return res
+        .status(404)
+        .json(error.parse('recover-404', { finded: false, token: 'Token de recuperação não encontrado' }))
     }
 
-    return res.json({ login: passwordRecover.User.login })
+    return res.json({ finded: true, login: passwordRecover.User.login })
   }
 
   //recover password change
