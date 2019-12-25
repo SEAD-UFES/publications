@@ -65,3 +65,5 @@ config/secrets.json
 config/mail.js
 
 .vscode
+
+package-lock.json
