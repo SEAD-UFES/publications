@@ -35,10 +35,7 @@ const validYears = list =>
 const validProcessNumbers = list =>
   unique(
     list
-      ? list
-          .split(',')
-          .map(x => x.trim())
-          .filter(x => x.length === 3 && Number(x) > 0 && Number(x) < 999)
+      ? list.split(',').map(x => x.trim()) //.filter(x => x.length === 3 && Number(x) > 0 && Number(x) < 999)
       : []
   )
 
