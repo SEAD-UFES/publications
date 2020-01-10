@@ -5,6 +5,8 @@ module.exports = app => {
   const models = require('../models')
   const Sequelize = require('sequelize')
   const error = app.errors.selectiveProcesses
+  const { validate } = require('../validators/selectiveprocesses.js')
+  const { isEmpty } = require('../helpers/is-empty.js')
 
   const $or = Sequelize.Op.or // sequelize OR shortcut
   const check = require('../helpers/permissionCheck')
@@ -18,7 +20,10 @@ module.exports = app => {
   } = require('../helpers/listFilters')
 
   /* ordering */
-  const orderByYearAndNumber = [['year', 'DESC'], ['number', 'DESC']]
+  const orderByYearAndNumber = [
+    ['year', 'DESC'],
+    ['number', 'DESC']
+  ]
 
   const orderByCallAndPublication = [
     [models.Call, 'createdAt', 'ASC'],
@@ -97,7 +102,10 @@ module.exports = app => {
   // end-polyfill
 
   const getRelatedAssignments = process =>
-    unique(process.Calls.flatMap(call => call.Vacancies).map(vacancy => vacancy.Assignment), 'name')
+    unique(
+      process.Calls.flatMap(call => call.Vacancies).map(vacancy => vacancy.Assignment),
+      'name'
+    )
 
   const removeEntryByKey = (originalObject, key) => {
     const { [key]: removed, ...otherProperties } = originalObject.toJSON()
@@ -218,24 +226,23 @@ module.exports = app => {
     )
   }
 
-  api.create = (req, res) => {
-    if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !req.body.number || !req.body.year) {
-      res.status(400).json(error.parse('selectiveProcesses-01', {}))
+  api.create = async (req, res) => {
+    let errors
+    try {
+      errors = await validate(req)
+    } catch (e) {
+      res.status(400).json(error.parse('selectiveProcesses-04', 'Error during validation'))
+    }
+
+    if (isEmpty(errors)) {
+      try {
+        const createdProcess = await models.SelectiveProcess.create(req.body)
+        res.status(201).json({ id: createdProcess.id })
+      } catch (e) {
+        res.status(400).json(error.parse('selectiveProcesses-04', 'Error trying to create new Selective Process.'))
+      }
     } else {
-      models.SelectiveProcess.create(req.body).then(
-        selectiveProcess => {
-          res.status(201).json({
-            id: selectiveProcess.id
-          })
-        },
-        e => {
-          if (e.number === 'SequelizeUniqueConstraintError')
-            res.status(400).json(error.parse('selectiveProcesses-02', e))
-          else if (e.number === 'SequelizeValidationError')
-            res.status(400).json(error.parse('selectiveProcesses-03', e))
-          else res.status(500).json(error.parse('selectiveProcesses-04', e))
-        }
-      )
+      res.status(400).json(error.parse('selectiveProcesses-03', { errors }))
     }
   }
 
@@ -310,27 +317,25 @@ module.exports = app => {
     )
   }
 
-  api.update = (req, res) => {
-    if (!(Object.prototype.toString.call(req.body) === '[object Object]')) {
-      res.status(400).json(error.parse('selectiveProcesses-01', {}))
+  api.update = async (req, res) => {
+    let errors
+    try {
+      errors = await validate(req)
+    } catch (e) {
+      res.status(400).json(error.parse('selectiveProcesses-04', e))
+    }
+
+    if (isEmpty(errors)) {
+      try {
+        const selectiveProcess = await models.SelectiveProcess.findById(req.params.id)
+        const updatedSelectiveProcess = await selectiveProcess.update(req.body, { fields: Object.keys(req.body) })
+
+        res.json(updatedSelectiveProcess)
+      } catch (e) {
+        res.status(400).json(error.parse('updatedSelectiveProcess-04', 'Error updating Process'))
+      }
     } else {
-      models.SelectiveProcess.findOne({
-        where: {
-          id: req.params.id
-        }
-      }).then(
-        selectiveProcess => {
-          if (!selectiveProcess) res.status(400).json(error.parse('selectiveProcesses-05', {}))
-          else
-            selectiveProcess.update(req.body).then(
-              updatedSelectiveProcess => {
-                res.json(updatedSelectiveProcess)
-              },
-              e => res.status(500).json(error.parse('selectiveProcesses-04', e))
-            )
-        },
-        e => res.status(500).json(error.parse('selectiveProcesses-04', e))
-      )
+      res.status(500).json(error.parse('selectiveProcesses-03', { errors }))
     }
   }
 
