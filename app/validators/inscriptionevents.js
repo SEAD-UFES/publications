@@ -43,9 +43,9 @@ const validateBody = async (
     startDate,
     endDate,
     numberOfInscriptionsAllowed,
-    oneInscriptionPerAssignment,
-    oneInscriptionPerRegion,
-    oneInscriptionPerRestriction
+    allowMultipleAssignments,
+    allowMultipleRegions,
+    allowMultipleRestrictions
   },
   hasId
 ) => {
@@ -64,16 +64,14 @@ const validateBody = async (
   if (typeof numberOfInscriptionsAllowed !== 'undefined' && !Number.isInteger(numberOfInscriptionsAllowed))
     errors.numberOfInscriptionsAllowed = 'O número de inscrições permitidas precisa ser um número inteiro.'
 
-  if (typeof oneInscriptionPerAssignment !== 'undefined' && !validBool(oneInscriptionPerAssignment))
-    errors.oneInscriptionPerAssignment =
-      'É necessário definir se é permitido fazer mais de uma inscrição por atribuição.'
+  if (typeof allowMultipleAssignments !== 'undefined' && !validBool(allowMultipleAssignments))
+    errors.allowMultipleAssignments = 'É necessário definir se é permitido fazer mais de uma inscrição por atribuição.'
 
-  if (typeof oneInscriptionPerRegion !== 'undefined' && !validBool(oneInscriptionPerRegion))
-    errors.oneInscriptionPerRegion = 'É necessário definir se é permitido fazer mais de uma inscrição por região.'
+  if (typeof allowMultipleRegions !== 'undefined' && !validBool(allowMultipleRegions))
+    errors.allowMultipleRegions = 'É necessário definir se é permitido fazer mais de uma inscrição por região.'
 
-  if (typeof oneInscriptionPerRestriction !== 'undefined' && !validBool(oneInscriptionPerRestriction))
-    errors.oneInscriptionPerRestriction =
-      'É necessário definir se é permitido fazer mais de uma inscrição por restrição.'
+  if (typeof allowMultipleRestrictions !== 'undefined' && !validBool(allowMultipleRestrictions))
+    errors.allowMultipleRestrictions = 'É necessário definir se é permitido fazer mais de uma inscrição por restrição.'
 
   return errors
 }

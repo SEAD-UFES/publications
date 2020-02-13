@@ -12,9 +12,9 @@ module.exports = (sequelize, DataTypes) => {
       startDate: DataTypes.DATE,
       endDate: DataTypes.DATE,
       numberOfInscriptionsAllowed: DataTypes.INTEGER,
-      oneInscriptionPerAssignment: DataTypes.BOOLEAN,
-      oneInscriptionPerRegion: DataTypes.BOOLEAN,
-      oneInscriptionPerRestriction: DataTypes.BOOLEAN
+      allowMultipleAssignments: DataTypes.BOOLEAN,
+      allowMultipleRegions: DataTypes.BOOLEAN,
+      allowMultipleRestrictions: DataTypes.BOOLEAN
     },
     {}
   )

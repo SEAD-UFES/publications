@@ -22,19 +22,19 @@ module.exports = {
         defaultValue: 0,
         allowNull: false
       },
-      oneInscriptionPerAssignment: {
+      allowMultipleAssignments: {
         type: Sequelize.BOOLEAN,
-        defaultValue: true,
+        defaultValue: false,
         allowNull: false
       },
-      oneInscriptionPerRegion: {
+      allowMultipleRegions: {
         type: Sequelize.BOOLEAN,
-        defaultValue: true,
+        defaultValue: false,
         allowNull: false
       },
-      oneInscriptionPerRestriction: {
+      allowMultipleRestrictions: {
         type: Sequelize.BOOLEAN,
-        defaultValue: true,
+        defaultValue: false,
         allowNull: false
       },
       createdAt: {
