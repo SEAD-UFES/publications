@@ -63,7 +63,7 @@ typings/
 config/database.json
 config/secrets.json
 config/mail.js
+config/site.js
+config/apiRoutes.json
 
 .vscode
-
-package-lock.json
