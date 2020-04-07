@@ -1,58 +1,77 @@
-module.exports = app => {
-    let error = {};
+module.exports = (app) => {
+  let error = {}
 
-    error.parse = (code, e) => {
-        let message = {};
+  error.parse = (code, e) => {
+    let message = {}
 
-        switch(code){
-            case 'users-01': 
-                message = {
-                    code,
-                    userMessage: 'Requisição inválida',
-                    devMessage: 'Essa requisição espera um objeto contendo login e password'
-                };
-                break;
-            case 'users-02': 
-                message = {
-                    code,
-                    userMessage: 'Usuário já existe',
-                    devMessage: e.errors[0].message
-                };
-                break;
-            case 'users-03': 
-                message = {
-                    code,
-                    userMessage: 'Tipo de usuário inválido',
-                    devMessage: e.errors[0].message
-                };
-                break;
-            case 'users-04':
-                message = {
-                    code,
-                    userMessage: 'Erro interno no servidor. Entre em contato com o suporte.',
-                    devMessage: e
-                };
-                break;
-            case 'users-05':
-                message = {
-                    code,
-                    userMessage: 'O usuário requisitado não pode ser encontrado.',
-                    devMessage: 'O usuário requisitado não foi encontrado no banco. Verifique o id solicitado.'
-                };
-                break;
-            case 'users-06':
-                message = {
-                    code,
-                    userMessage: 'Login já existe na base de dados.',
-                    devMessage: e.errors[0].message
-                };
-                break;
-            
+    switch (code) {
+      case 'users-01':
+        message = {
+          code,
+          userMessage: 'Requisição inválida',
+          devMessage: 'Essa requisição espera um objeto contendo login e password',
         }
-
-        return message;
+        break
+      case 'users-02':
+        message = {
+          code,
+          userMessage: 'Usuário já existe',
+          devMessage: e.errors[0].message,
+        }
+        break
+      case 'users-03':
+        message = {
+          code,
+          userMessage: 'Tipo de usuário inválido',
+          devMessage: e.errors[0].message,
+        }
+        break
+      case 'users-04':
+        message = {
+          code,
+          userMessage: 'Erro interno no servidor. Entre em contato com o suporte.',
+          devMessage: e,
+        }
+        break
+      case 'users-05':
+        message = {
+          code,
+          userMessage: 'O usuário requisitado não pode ser encontrado.',
+          devMessage: 'O usuário requisitado não foi encontrado no banco. Verifique o id solicitado.',
+        }
+        break
+      case 'users-06':
+        message = {
+          code,
+          userMessage: 'Login já existe na base de dados.',
+          devMessage: e.errors[0].message,
+        }
+        break
+      case 'user-400':
+        message = {
+          code,
+          userMessage: 'Requisição inválida.',
+          devMessage: e,
+        }
+        break
+      case 'user-403':
+        message = {
+          code,
+          userMessage: 'Operação proibida.',
+          devMessage: e,
+        }
+        break
+      case 'user-500':
+        message = {
+          code,
+          userMessage: 'Erro interno do servidor.',
+          devMessage: e,
+        }
+        break
     }
-    
-    return error;
-}
 
+    return message
+  }
+
+  return error
+}
