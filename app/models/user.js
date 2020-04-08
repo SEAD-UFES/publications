@@ -5,6 +5,7 @@
 const uuid = require('uuid/v4')
 const bcrypt = require('bcrypt')
 const apiRoutes = require('../../config/apiRoutes.json')
+const { validateDelete } = require('../../app/validators/users')
 
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
@@ -21,7 +22,6 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           len: [4, 80]
         },
-        unique: true,
         allowNull: false
       },
       password: DataTypes.STRING,
@@ -37,11 +37,9 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true
       }
     },
-    {
-      paranoid: true
-    }
+    { timestamps: true, paranoid: true }
   )
-  User.associate = function(models) {
+  User.associate = function (models) {
     User.hasMany(models.UserRole, { foreignKey: 'user_id' })
     User.hasOne(models.Person, { foreignKey: 'user_id' })
 
@@ -73,11 +71,22 @@ module.exports = (sequelize, DataTypes) => {
     }
   })
 
-  User.prototype.validPassword = async function(password) {
+  User.beforeDestroy(async (user, _) => {
+    //validação de restrições neste ou em modelos relacionados. (onDelete:'RESTRICT')
+    const errors = await validateDelete(user, sequelize.models)
+    if (errors) {
+      throw { name: 'ForbbidenDeletionError', traceback: 'User', errors: errors }
+    }
+
+    //operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
+    //vazio
+  })
+
+  User.prototype.validPassword = async function (password) {
     return await bcrypt.compare(password, this.password)
   }
 
-  User.prototype.toJSON = function() {
+  User.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
     values.link = {

@@ -1,6 +1,6 @@
 /** @format */
 
-module.exports = (app) => {
+module.exports = app => {
   const models = require('../models')
   const jwt = require('jsonwebtoken')
   const api = {}
@@ -16,7 +16,7 @@ module.exports = (app) => {
         model: models.UserRole,
         required: false,
         attributes: {
-          exclude: ['roleType_id', 'user_id', 'course_id'],
+          exclude: ['roleType_id', 'user_id', 'course_id']
         },
         include: [
           {
@@ -25,33 +25,33 @@ module.exports = (app) => {
             include: [
               {
                 model: models.Permission,
-                required: false,
-              },
-            ],
+                required: false
+              }
+            ]
           },
           {
             model: models.Course,
-            required: false,
-          },
-        ],
+            required: false
+          }
+        ]
       },
       {
         model: models.Person,
-        require: false,
-      },
-    ],
+        require: false
+      }
+    ]
   }
 
   api.authenticate = (req, res) => {
     if (req.body && req.body.login && req.body.password) {
       models.User.findOne({ where: { login: req.body.login } }).then(
-        (user) => {
+        user => {
           if (!user) {
             res.status(401).json(error.parse('auth-04', 'This login was not found.'))
           } else if (!user.authorized) {
             res.status(401).json(error.parse('auth-09', new Error('User is unauthorized')))
           } else {
-            user.validPassword(req.body.password).then((valid) => {
+            user.validPassword(req.body.password).then(valid => {
               if (valid) {
                 let access_token = jwt.sign({ data: user.id }, app.get('jwt_secret'), { expiresIn: '6h' })
                 res.json({ access_token, userMessage: 'Authentication success' })
@@ -61,7 +61,7 @@ module.exports = (app) => {
             })
           }
         },
-        (e) => res.status(500).json(error.parse('auth-06', 'Internal server error.'))
+        e => res.status(500).json(error.parse('auth-06', 'Internal server error.'))
       )
     } else {
       res.status(400).json(error.parse('auth-03', 'The request must provide a login and password.'))
@@ -72,12 +72,12 @@ module.exports = (app) => {
     try {
       const decoded = jwt.verify(req.headers['x-access-token'], app.get('jwt_secret'))
       models.User.findByPk(decoded.data, userInclude)
-        .then((user) => {
+        .then(user => {
           if (!user) return res.status(500).json(error.parse('auth-03', { errors: { id: 'usuário não encontrado.' } }))
           req.user = user
           return next()
         })
-        .catch((e) => {
+        .catch(e => {
           return res.status(500).json(error.parse('auth-03', e))
         })
     } catch (e) {
