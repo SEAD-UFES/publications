@@ -1,4 +1,6 @@
-module.exports = (app) => {
+/** @format */
+
+module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.users
@@ -9,10 +11,10 @@ module.exports = (app) => {
       res.status(400).json(error.parse('users-01', {}))
     } else {
       models.User.create(req.body).then(
-        (_) => {
+        _ => {
           res.sendStatus(201)
         },
-        (e) => {
+        e => {
           if (e.name === 'SequelizeUniqueConstraintError') res.status(400).json(error.parse('users-02', e))
           else if (e.name === 'SequelizeValidationError') res.status(400).json(error.parse('users-03', e))
           else res.status(500).json(error.parse('users-04', e))
@@ -24,20 +26,20 @@ module.exports = (app) => {
   api.list = (req, res) => {
     req.query = {
       page: req.query.page * 1 || 1,
-      limit: (req.query.limit * 1 <= 100 ? req.query.limit * 1 : 100) || 5,
+      limit: (req.query.limit * 1 <= 100 ? req.query.limit * 1 : 100) || 5
     }
     models.User.findAll({
       offset: (req.query.page - 1) * req.query.limit,
-      limit: req.query.limit,
+      limit: req.query.limit
     }).then(
-      (users) => {
+      users => {
         Promise.all(
-          users.map((u) => {
+          users.map(u => {
             return models.Person.findOne({
               where: {
-                user_id: u.id,
-              },
-            }).then((p) => {
+                user_id: u.id
+              }
+            }).then(p => {
               if (!p) return u
               else {
                 u = u.toJSON()
@@ -46,22 +48,22 @@ module.exports = (app) => {
               }
             })
           })
-        ).then((result) => {
+        ).then(result => {
           models.User.count().then(
-            (count) =>
+            count =>
               res.json({
                 info: {
                   count: count,
                   currentPage: req.query.page,
-                  numberOfPages: Math.ceil(count / req.query.limit),
+                  numberOfPages: Math.ceil(count / req.query.limit)
                 },
-                users: result,
+                users: result
               }),
-            (e) => res.status(500).json(error.parse('users-04', e))
+            e => res.status(500).json(error.parse('users-04', e))
           )
         })
       },
-      (e) => {
+      e => {
         res.status(500).json(error.parse('users-04', e))
       }
     )
@@ -70,12 +72,12 @@ module.exports = (app) => {
   api.minimal = (req, res) => {
     models.User.findAll({
       attributes: ['id', 'login'],
-      order: ['login'],
+      order: ['login']
     }).then(
-      (users) => {
+      users => {
         res.json(users)
       },
-      (e) => {
+      e => {
         res.status(500).json(error.parse('users-04', e))
       }
     )
@@ -83,14 +85,14 @@ module.exports = (app) => {
 
   api.specific = (req, res) => {
     models.User.findById(req.params.id).then(
-      (user) => {
+      user => {
         if (!user) res.status(400).json(error.parse('users-05', {}))
         else {
           models.Person.findOne({
             where: {
-              user_id: user.id,
-            },
-          }).then((person) => {
+              user_id: user.id
+            }
+          }).then(person => {
             if (person) {
               user = user.toJSON()
               user.Person = person.toJSON()
@@ -99,7 +101,7 @@ module.exports = (app) => {
           })
         }
       },
-      (e) => {
+      e => {
         res.status(500).json(error.parse('users-04', e))
       }
     )
@@ -107,22 +109,22 @@ module.exports = (app) => {
 
   api.update = (req, res) => {
     models.User.findById(req.params.id).then(
-      (user) => {
+      user => {
         user
           .update(req.body, {
-            fields: Object.keys(req.body),
+            fields: Object.keys(req.body)
           })
           .then(
-            (updatedUser) => {
+            updatedUser => {
               res.json(updatedUser)
             },
-            (e) => {
+            e => {
               if (e.name === 'SequelizeUniqueConstraintError') res.status(400).json(error.parse('users-06', e))
               else res.status(500).json(error.parse('users-04', e))
             }
           )
       },
-      (e) => res.status(500).json(error.parse('users-04', e))
+      e => res.status(500).json(error.parse('users-04', e))
     )
   }
 
@@ -151,9 +153,7 @@ module.exports = (app) => {
 
     //try to delete
     try {
-      await models.User.destroy({ where: { id: req.params.id }, individualHooks: true }).then((_) =>
-        res.sendStatus(204)
-      )
+      await models.User.destroy({ where: { id: req.params.id }, individualHooks: true }).then(_ => res.sendStatus(204))
     } catch (e) {
       if (e.name === 'ForbbidenDeletionError') return res.status(403).json(error.parse('user-403', e))
       return res.status(500).json(error.parse('user-500', e))

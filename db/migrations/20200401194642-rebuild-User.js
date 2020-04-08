@@ -1,8 +1,10 @@
+/** @format */
+
 'use strict'
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.sequelize.transaction((t) => {
+    return queryInterface.sequelize.transaction(t => {
       return Promise.all([
         //id ok
 
@@ -37,17 +39,17 @@ module.exports = {
               ['login', 'isActive'],
               {
                 type: 'unique',
-                name: 'unique_login_isActive',
+                name: 'unique_login_isActive'
               },
               { transaction: t }
             )
-          }),
+          })
       ])
     })
   },
 
   down: (queryInterface, Sequelize) => {
-    return queryInterface.sequelize.transaction((t) => {
+    return queryInterface.sequelize.transaction(t => {
       return Promise.all([
         //id ok
 
@@ -76,8 +78,8 @@ module.exports = {
         queryInterface.removeConstraint('Users', 'unique_login_isActive', { transaction: t }).then(() => {
           //isActive
           return queryInterface.removeColumn('Users', 'isActive', { transaction: t })
-        }),
+        })
       ])
     })
-  },
+  }
 }

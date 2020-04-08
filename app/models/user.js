@@ -15,27 +15,27 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.UUID,
         allowNull: false,
         primaryKey: true,
-        defaultValue: DataTypes.UUIDV4,
+        defaultValue: DataTypes.UUIDV4
       },
       login: {
         type: DataTypes.STRING,
         validate: {
-          len: [4, 80],
+          len: [4, 80]
         },
-        allowNull: false,
+        allowNull: false
       },
       password: DataTypes.STRING,
       userType: {
         type: DataTypes.ENUM('ufes', 'sead'),
         validate: {
-          isIn: [['ufes', 'sead']],
-        },
+          isIn: [['ufes', 'sead']]
+        }
       },
       authorized: DataTypes.BOOLEAN,
       verifiedAt: {
         type: DataTypes.DATE,
-        allowNull: true,
-      },
+        allowNull: true
+      }
     },
     { timestamps: true, paranoid: true }
   )
@@ -49,11 +49,11 @@ module.exports = (sequelize, DataTypes) => {
   User.beforeCreate((user, _) => {
     return bcrypt
       .hash(user.password, 10)
-      .then((hash) => {
+      .then(hash => {
         user.password = hash
         user.id = uuid()
       })
-      .catch((e) => {
+      .catch(e => {
         throw new Error()
       })
   })
@@ -62,8 +62,8 @@ module.exports = (sequelize, DataTypes) => {
     if (user._changed.password) {
       return bcrypt
         .hash(user.password, 10)
-        .then((hash) => (user.password = hash))
-        .catch((e) => {
+        .then(hash => (user.password = hash))
+        .catch(e => {
           throw new Error()
         })
     } else {
@@ -91,7 +91,7 @@ module.exports = (sequelize, DataTypes) => {
 
     values.link = {
       rel: 'user',
-      href: apiRoutes.find((r) => r.key === 'userApiRoute').value + '/' + values.id,
+      href: apiRoutes.find(r => r.key === 'userApiRoute').value + '/' + values.id
     }
 
     delete values.createdAt
