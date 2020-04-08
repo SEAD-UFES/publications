@@ -5,7 +5,7 @@ module.exports = app => {
     let message = {};
 
     switch(code) {
-      case 'selectiveProcesses-01' :
+      case 'selectiveProcesses-400' :
         message = {
           code,
           userMessage: 'Requisição inválida.',
@@ -13,7 +13,7 @@ module.exports = app => {
         };
         break;
 
-      case 'selectiveProcesses-02' :
+      case 'selectiveProcesses-409' :
         message = {
           code,
           userMessage: 'Já há um processo seletivo com esse numero cadastrado.', 
@@ -21,7 +21,7 @@ module.exports = app => {
         };
         break;
 
-      case 'selectiveProcesses-03' :
+      case 'selectiveProcesses-406' :
         message = {
           code,
           userMessage: 'Ocorreu um erro na verificação dos dados. Tente novamente.',
@@ -29,21 +29,20 @@ module.exports = app => {
         };
         break;
 
-      case 'selectiveProcesses-04' :
-        message = {
-          code,
-          userMessage: 'Ocorreu um erro interno. Contate os administradores.',
-          devMessage: e
-        };
-        break;
-
-      case 'selectiveProcesses-05' :
+      case 'selectiveProcesses-404' :
         message = {
           code,
           userMessage: 'Requisição inválida: não há nenhum Processo Seletivo com o id informado.',
           devMessage: e
         };
         break;
+
+      default: // case 'selectiveProcesses-500' :
+        message = {
+          code,
+          userMessage: 'Ocorreu um erro interno. Contate os administradores.',
+          devMessage: e
+        };
 
     }
 

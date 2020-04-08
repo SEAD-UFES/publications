@@ -221,7 +221,7 @@ module.exports = app => {
           selectiveProcesses: selectiveProcesses.rows.map(injectAssignmentAndRemoveVacancies)
         }),
       e => {
-        res.status(500).json(error.parse('selectiveProcesses-01', e))
+        res.status(400).json(error.parse('selectiveProcesses-400', e))
       }
     )
   }
@@ -231,7 +231,7 @@ module.exports = app => {
     try {
       errors = await validate(req)
     } catch (e) {
-      res.status(400).json(error.parse('selectiveProcesses-04', 'Error during validation'))
+      res.status(500).json(error.parse('selectiveProcesses-500', 'Error during validation'))
     }
 
     if (isEmpty(errors)) {
@@ -239,10 +239,10 @@ module.exports = app => {
         const createdProcess = await models.SelectiveProcess.create(req.body)
         res.status(201).json({ id: createdProcess.id })
       } catch (e) {
-        res.status(400).json(error.parse('selectiveProcesses-04', 'Error trying to create new Selective Process.'))
+        res.status(500).json(error.parse('selectiveProcesses-500', 'Error trying to create new Selective Process.'))
       }
     } else {
-      res.status(400).json(error.parse('selectiveProcesses-03', { errors }))
+      res.status(406).json(error.parse('selectiveProcesses-406', { errors }))
     }
   }
 
@@ -257,7 +257,7 @@ module.exports = app => {
         distinct: true
       })
     } catch (e) {
-      res.status(500).json(error.parse('selectiveProcesses-04', e))
+      res.status(500).json(error.parse('selectiveProcesses-500', e))
     }
 
     try {
@@ -265,7 +265,7 @@ module.exports = app => {
         attributes: ['id', 'name']
       })
     } catch (e) {
-      res.status(500).json(error.parse('selectiveProcesses-04', e))
+      res.status(500).json(error.parse('selectiveProcesses-500', e))
     }
 
     const years = [...new Set(selectiveProcesses.map(x => x.year))].sort()
@@ -301,7 +301,7 @@ module.exports = app => {
     }).then(
       selectiveProcess => {
         if (!selectiveProcess) {
-          res.status(400).json(error.parse('selectiveProcesses-05', {}))
+          res.status(404).json(error.parse('selectiveProcesses-404', {}))
         } else {
           let process = selectiveProcess.toJSON()
           process.Assignments = getRelatedAssignments(selectiveProcess)
@@ -312,7 +312,7 @@ module.exports = app => {
         }
       },
       e => {
-        res.status(500).json(error.parse('selectiveProcesses-05', e))
+        res.status(404).json(error.parse('selectiveProcesses-404', e))
       }
     )
   }
@@ -322,7 +322,7 @@ module.exports = app => {
     try {
       errors = await validate(req)
     } catch (e) {
-      res.status(400).json(error.parse('selectiveProcesses-04', e))
+      res.status(500).json(error.parse('selectiveProcesses-500', e))
     }
 
     if (isEmpty(errors)) {
@@ -332,10 +332,10 @@ module.exports = app => {
 
         res.json(updatedSelectiveProcess)
       } catch (e) {
-        res.status(400).json(error.parse('updatedSelectiveProcess-04', 'Error updating Process'))
+        res.status(500).json(error.parse('selectiveProcesses-500', 'Error updating Process'))
       }
     } else {
-      res.status(500).json(error.parse('selectiveProcesses-03', { errors }))
+      res.status(406).json(error.parse('selectiveProcesses-406', { errors }))
     }
   }
 
@@ -349,7 +349,7 @@ module.exports = app => {
         res.sendStatus(204)
       },
       e => {
-        res.status(500).json(error.parse('selectiveProcesseses-04'))
+        res.status(500).json(error.parse('selectiveProcesseses-500'))
       }
     )
   }
@@ -434,7 +434,7 @@ module.exports = app => {
             selectiveProcesses: selectiveProcesses.rows.map(injectAssignmentAndRemoveVacancies)
           }),
         e => {
-          res.status(500).json(error.parse('selectiveProcesses-01', e))
+          res.status(400).json(error.parse('selectiveProcesses-400', e))
         }
       )
     } // end-else
@@ -450,7 +450,7 @@ module.exports = app => {
       }).then(
         selectiveProcess => {
           if (!selectiveProcess || !selectiveProcess.visible) {
-            res.status(400).json(error.parse('selectiveProcesses-05', {}))
+            res.status(404).json(error.parse('selectiveProcesses-404', {}))
           } else {
             const process = injectAssignmentAndRemoveVacancies(selectiveProcess)
 
@@ -458,7 +458,7 @@ module.exports = app => {
           }
         },
         e => {
-          res.status(500).json(error.parse('selectiveProcesses-05', e))
+          res.status(404).json(error.parse('selectiveProcesses-404', e))
         }
       )
     }
