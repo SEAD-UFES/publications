@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
   //   return passwordRecover
   // })
 
-  User.beforeDestroy(async (user, _) => {
+  PasswordRecover.beforeDestroy(async (user, _) => {
     //validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
     //vazio
     //operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
