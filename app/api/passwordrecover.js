@@ -107,7 +107,7 @@ module.exports = app => {
     try {
       const user = await models.User.findByPk(passwordRecover.User.id)
       const updatedUser = await user.update(req.body, { fields: ['password'] })
-      await models.PasswordRecover.destroy({ where: { user_id: [updatedUser.id] } })
+      await models.PasswordRecover.destroy({ where: { user_id: [updatedUser.id], individualHooks: true } })
       return res.json({ updated: true, message: `Senha de ${updatedUser.login} alterada com sucesso.` })
     } catch (e) {
       return res.status(500).json(error.parse('recover-500', { updated: false, message: 'Falha ao atualizar senha.' }))
