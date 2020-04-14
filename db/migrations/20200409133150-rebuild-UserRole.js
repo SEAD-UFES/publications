@@ -2,15 +2,7 @@
 
 'use strict'
 
-const {
-  createDataFolderIfNeeded,
-  checkFile,
-  writeJsonToFile,
-  readJsonFromFile,
-  deleteFile
-} = require('../../app/helpers/fileHelpers')
-
-const userRoleTable = 'userroles'
+const userRoleTable = 'UserRoles'
 
 const getDeletedLines = async queryInterface => {
   try {
@@ -28,28 +20,6 @@ const truncateDeletedLines = async queryInterface => {
     return await queryInterface.sequelize.query(`DELETE FROM ${userRoleTable} WHERE isActive IS NULL`, {
       type: queryInterface.sequelize.QueryTypes.DELETE
     })
-  } catch (error) {
-    console.log('Erro na função: ', error)
-    throw error
-  }
-}
-
-const insertDeletedLines = async (queryInterface, lines) => {
-  try {
-    const dataHeaders = '(`id`, `roleType_id`, `user_id`, `createdAt`, `updatedAt`, `course_id`, `deletedAt`)'
-
-    const dataLines = lines
-      .map(ln => {
-        const course_id = ln.course_id ? `\'${ln.course_id}\'` : null
-        const deletedAt = ln.deletedAt ? `\'${ln.deletedAt}\'` : null
-        return `(\'${ln.id}\', \'${ln.roleType_id}\', \'${ln.user_id}\', \'${ln.createdAt}\', \'${ln.updatedAt}\', ${course_id}, ${deletedAt}),`
-      })
-      .reduce((acc, item) => acc + item, '')
-      .slice(0, -1)
-
-    const insertQuery = `INSERT INTO ${userRoleTable} ${dataHeaders} VALUES ${dataLines}`
-
-    return await queryInterface.sequelize.query(insertQuery, { type: queryInterface.sequelize.QueryTypes.INSERT })
   } catch (error) {
     console.log('Erro na função: ', error)
     throw error
@@ -97,10 +67,10 @@ module.exports = {
       //add index paranoid
       await queryInterface.addIndex(
         'UserRoles',
-        ['user_id', 'roleType_id', 'isActive'],
+        ['user_id', 'roleType_id', 'course_id', 'isActive'],
         {
           type: 'unique',
-          name: 'unique_user_role_isActive'
+          name: 'unique_user_role_course_isActive'
         },
         { transaction: t }
       )
@@ -117,15 +87,6 @@ module.exports = {
 
       //restore FK
       await queryInterface.sequelize.query(restoreUserIdFK, { transaction: t })
-
-      //Restaurando linhas deletadas do arquivo se houver
-      const dataPath = `${__dirname}/data/UserRole-deletedLines.json`
-      if (checkFile(dataPath)) {
-        console.log('Arquivo de dados existe...')
-        const linesToInsert = await readJsonFromFile(dataPath)
-        await insertDeletedLines(queryInterface, linesToInsert)
-        await deleteFile(dataPath)
-      }
     } catch (error) {
       console.log('Erro em up: ', error)
       t.rollback()
@@ -136,16 +97,9 @@ module.exports = {
   down: async (queryInterface, Sequelize) => {
     const t = await queryInterface.sequelize.transaction()
     try {
-      //salvar dados da migration em arquivo se necessário.
-      const linesToSave = await getDeletedLines(queryInterface)
-      if (linesToSave.length > 0) {
-        console.log('Tenho dados para salvar...')
-        const dataFolder = `${__dirname}/data`
-        createDataFolderIfNeeded(dataFolder)
-        const dataPath = `${__dirname}/data/UserRole-deletedLines.json`
-        await writeJsonToFile(dataPath, linesToSave)
-        await truncateDeletedLines(queryInterface)
-      }
+      //deletar dados da migration para evitar errors de consistencia.
+      const linesToDelete = await getDeletedLines(queryInterface)
+      if (linesToDelete.length > 0) await truncateDeletedLines(queryInterface)
 
       //id ok
       //roleType_id ok
@@ -157,7 +111,7 @@ module.exports = {
       await queryInterface.sequelize.query(removeUserIdFK, { transaction: t })
 
       //remover indexes
-      await queryInterface.removeIndex('UserRoles', 'unique_user_role_isActive', { transaction: t })
+      await queryInterface.removeIndex('UserRoles', 'unique_user_role_course_isActive', { transaction: t })
       await queryInterface.removeIndex('UserRoles', 'user_id', { transaction: t })
 
       //restore index (não pergunte...)

@@ -66,6 +66,4 @@ config/mail.js
 config/site.js
 config/apiRoutes.json
 
-db/migrations/data
-
 .vscode
