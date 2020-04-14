@@ -2,7 +2,7 @@
 
 'use strict'
 
-const userRoleTable = '`selecao_development`.`UserRoles`'
+const userRoleTable = 'UserRoles'
 
 const getDeletedLines = async queryInterface => {
   try {
