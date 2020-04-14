@@ -2,7 +2,7 @@
 
 'use strict'
 
-const userRoleTable = 'UserRoles'
+const userRoleTable = '`selecao_development`.`UserRoles`'
 
 const getDeletedLines = async queryInterface => {
   try {
@@ -26,8 +26,8 @@ const truncateDeletedLines = async queryInterface => {
   }
 }
 
-const removeUserIdFK = `ALTER TABLE ${userRoleTable} DROP FOREIGN KEY \`userroles_ibfk_2\``
-const restoreUserIdFK = `ALTER TABLE ${userRoleTable} ADD CONSTRAINT \`userroles_ibfk_2\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`)  ON DELETE RESTRICT ON UPDATE RESTRICT`
+const removeUserIdFK = `ALTER TABLE ${userRoleTable} DROP FOREIGN KEY \`UserRoles_ibfk_2\``
+const restoreUserIdFK = `ALTER TABLE ${userRoleTable} ADD CONSTRAINT \`UserRoles_ibfk_2\` FOREIGN KEY (\`user_id\`) REFERENCES \`Users\` (\`id\`)  ON DELETE RESTRICT ON UPDATE RESTRICT`
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
