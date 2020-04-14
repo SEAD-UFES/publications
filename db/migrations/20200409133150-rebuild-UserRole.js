@@ -10,9 +10,11 @@ const {
   deleteFile
 } = require('../../app/helpers/fileHelpers')
 
+const userRoleTable = 'userroles'
+
 const getDeletedLines = async queryInterface => {
   try {
-    return await queryInterface.sequelize.query('SELECT * from userroles WHERE isActive IS NULL', {
+    return await queryInterface.sequelize.query(`SELECT * from ${userRoleTable} WHERE isActive IS NULL`, {
       type: queryInterface.sequelize.QueryTypes.SELECT
     })
   } catch (error) {
@@ -23,7 +25,7 @@ const getDeletedLines = async queryInterface => {
 
 const truncateDeletedLines = async queryInterface => {
   try {
-    return await queryInterface.sequelize.query('DELETE FROM userroles WHERE isActive IS NULL;', {
+    return await queryInterface.sequelize.query(`DELETE FROM ${userRoleTable} WHERE isActive IS NULL`, {
       type: queryInterface.sequelize.QueryTypes.DELETE
     })
   } catch (error) {
@@ -45,7 +47,7 @@ const insertDeletedLines = async (queryInterface, lines) => {
       .reduce((acc, item) => acc + item, '')
       .slice(0, -1)
 
-    const insertQuery = `INSERT INTO userroles ${dataHeaders} VALUES ${dataLines}`
+    const insertQuery = `INSERT INTO ${userRoleTable} ${dataHeaders} VALUES ${dataLines}`
 
     return await queryInterface.sequelize.query(insertQuery, { type: queryInterface.sequelize.QueryTypes.INSERT })
   } catch (error) {
@@ -54,9 +56,8 @@ const insertDeletedLines = async (queryInterface, lines) => {
   }
 }
 
-const removeUserIdFK = 'ALTER TABLE `database_development`.`userroles` DROP FOREIGN KEY `userroles_ibfk_2`'
-const restoreUserIdFK =
-  'ALTER TABLE `database_development`.`userroles` ADD CONSTRAINT `userroles_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `database_development`.`users` (`id`)  ON DELETE RESTRICT ON UPDATE RESTRICT'
+const removeUserIdFK = `ALTER TABLE ${userRoleTable} DROP FOREIGN KEY \`userroles_ibfk_2\``
+const restoreUserIdFK = `ALTER TABLE ${userRoleTable} ADD CONSTRAINT \`userroles_ibfk_2\` FOREIGN KEY (\`user_id\`) REFERENCES \`users\` (\`id\`)  ON DELETE RESTRICT ON UPDATE RESTRICT`
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
