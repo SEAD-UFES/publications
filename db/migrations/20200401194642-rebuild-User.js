@@ -2,84 +2,94 @@
 
 'use strict'
 
+const { getDeletedLines, truncateDeletedLines } = require('../helpers/migrationHelpers')
+
 module.exports = {
-  up: (queryInterface, Sequelize) => {
-    return queryInterface.sequelize.transaction(t => {
-      return Promise.all([
-        //id ok
+  up: async (queryInterface, Sequelize) => {
+    const t = await queryInterface.sequelize.transaction()
+    try {
+      //id ok
 
-        //login
-        queryInterface.removeConstraint('Users', 'login', { transaction: t }),
+      //login
+      await queryInterface.removeConstraint('Users', 'login', { transaction: t })
 
-        //password ok
+      //password ok
 
-        // userType (manter por enquanto)
-        //queryInterface.removeColumn('Users', 'userType', { transaction: t }),
+      // userType (manter por enquanto)
+      //queryInterface.removeColumn('Users', 'userType', { transaction: t }),
 
-        //authorized ok
+      //authorized ok
 
-        //createdAt ok
+      //createdAt ok
 
-        //updatedAt ok
+      //updatedAt ok
 
-        //deletedAt ok
+      //deletedAt ok
 
-        //isActive
-        queryInterface
-          .addColumn(
-            'Users',
-            'isActive',
-            { type: 'INT(1) GENERATED ALWAYS AS (IF(deletedAt IS NULL,  1, NULL)) VIRTUAL' },
-            { transaction: t }
-          )
-          .then(() => {
-            //uniqueKeys
-            return queryInterface.addConstraint(
-              'Users',
-              ['login', 'isActive'],
-              {
-                type: 'unique',
-                name: 'unique_login_isActive'
-              },
-              { transaction: t }
-            )
-          })
-      ])
-    })
+      //isActive
+      await queryInterface.addColumn(
+        'Users',
+        'isActive',
+        { type: 'INT(1) GENERATED ALWAYS AS (IF(deletedAt IS NULL,  1, NULL)) VIRTUAL' },
+        { transaction: t }
+      )
+
+      //uniqueKeys
+      await queryInterface.addConstraint(
+        'Users',
+        ['login', 'isActive'],
+        {
+          type: 'unique',
+          name: 'unique_login_isActive'
+        },
+        { transaction: t }
+      )
+    } catch (error) {
+      console.log('Erro em up: ', error)
+      t.rollback()
+      throw error
+    }
   },
 
-  down: (queryInterface, Sequelize) => {
-    return queryInterface.sequelize.transaction(t => {
-      return Promise.all([
-        //id ok
+  down: async (queryInterface, Sequelize) => {
+    const t = await queryInterface.sequelize.transaction()
+    try {
+      //deletar dados da migration para evitar errors de consistencia.
+      const linesToDelete = await getDeletedLines(queryInterface, 'Users')
+      if (linesToDelete.length > 0) await truncateDeletedLines(queryInterface, 'Users')
 
-        //login
-        queryInterface.addConstraint('Users', ['login'], { type: 'unique', name: 'login' }, { transaction: t }),
+      //id ok
 
-        //password ok
+      //login
+      await queryInterface.addConstraint('Users', ['login'], { type: 'unique', name: 'login' }, { transaction: t })
 
-        // userType (manter por enquanto)
-        // queryInterface.addColumn(
-        //   'Users',
-        //   'userType',
-        //   { type: Sequelize.ENUM('ufes', 'sead'), allowNull: false, defaultValue: 'sead' },
-        //   { transaction: t }
-        // ),
+      //password ok
 
-        //authorized ok
+      // userType (manter por enquanto)
+      // queryInterface.addColumn(
+      //   'Users',
+      //   'userType',
+      //   { type: Sequelize.ENUM('ufes', 'sead'), allowNull: false, defaultValue: 'sead' },
+      //   { transaction: t }
+      // ),
 
-        //createdAt ok
+      //authorized ok
 
-        //updatedAt ok
+      //createdAt ok
 
-        //deletedAt ok
+      //updatedAt ok
 
-        //uniqueKeys
-        queryInterface.removeConstraint('Users', 'unique_login_isActive', { transaction: t }).then(() => {
-          //isActive
-          return queryInterface.removeColumn('Users', 'isActive', { transaction: t })
-        })
-      ])
-    })
+      //deletedAt ok
+
+      //uniqueKeys
+      await queryInterface.removeConstraint('Users', 'unique_login_isActive', { transaction: t })
+
+      //isActive
+      await queryInterface.removeColumn('Users', 'isActive', { transaction: t })
+    } catch (error) {
+      console.log('Erro em down: ', error)
+      t.rollback()
+      throw error
+    }
   }
 }
