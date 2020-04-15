@@ -2,30 +2,9 @@
 
 'use strict'
 
+const { getDeletedLines, truncateDeletedLines } = require('../helpers/migrationHelpers')
+
 const userRoleTable = 'UserRoles'
-
-const getDeletedLines = async queryInterface => {
-  try {
-    return await queryInterface.sequelize.query(`SELECT * from ${userRoleTable} WHERE isActive IS NULL`, {
-      type: queryInterface.sequelize.QueryTypes.SELECT
-    })
-  } catch (error) {
-    console.log('Erro na função: ', error)
-    throw error
-  }
-}
-
-const truncateDeletedLines = async queryInterface => {
-  try {
-    return await queryInterface.sequelize.query(`DELETE FROM ${userRoleTable} WHERE isActive IS NULL`, {
-      type: queryInterface.sequelize.QueryTypes.DELETE
-    })
-  } catch (error) {
-    console.log('Erro na função: ', error)
-    throw error
-  }
-}
-
 const removeUserIdFK = `ALTER TABLE ${userRoleTable} DROP FOREIGN KEY \`UserRoles_ibfk_2\``
 const restoreUserIdFK = `ALTER TABLE ${userRoleTable} ADD CONSTRAINT \`UserRoles_ibfk_2\` FOREIGN KEY (\`user_id\`) REFERENCES \`Users\` (\`id\`)  ON DELETE RESTRICT ON UPDATE RESTRICT`
 
@@ -98,8 +77,8 @@ module.exports = {
     const t = await queryInterface.sequelize.transaction()
     try {
       //deletar dados da migration para evitar errors de consistencia.
-      const linesToDelete = await getDeletedLines(queryInterface)
-      if (linesToDelete.length > 0) await truncateDeletedLines(queryInterface)
+      const linesToDelete = await getDeletedLines(queryInterface, 'UserRoles')
+      if (linesToDelete.length > 0) await truncateDeletedLines(queryInterface, 'UserRoles')
 
       //id ok
       //roleType_id ok
