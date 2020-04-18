@@ -12,9 +12,9 @@ module.exports = (sequelize, DataTypes) => {
       name: DataTypes.STRING,
       description: DataTypes.STRING
     },
-    {}
+    { timestamps: true }
   )
-  Assignment.associate = function(models) {
+  Assignment.associate = function (models) {
     // associations can be defined here
   }
 
@@ -23,7 +23,7 @@ module.exports = (sequelize, DataTypes) => {
     return assignment
   })
 
-  Assignment.prototype.toJSON = function() {
+  Assignment.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
     values.link = {
