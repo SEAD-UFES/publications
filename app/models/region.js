@@ -10,16 +10,19 @@ module.exports = (sequelize, DataTypes) => {
       name: DataTypes.STRING,
       description: DataTypes.STRING
     },
-    {}
+    { timestamps: true }
   )
-  Region.associate = function(models) {
+
+  Region.associate = function (models) {
     Region.hasMany(models.Vacancy, { foreignKey: 'region_id' })
   }
+
   Region.beforeCreate((region, _) => {
     region.id = uuid()
     return region
   })
-  Region.prototype.toJSON = function() {
+
+  Region.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
     values.link = {
