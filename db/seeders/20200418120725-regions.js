@@ -42,12 +42,12 @@ module.exports = {
         {
           id: uuid(),
           name: 'Cariacica',
-          description: 'Polo presencial de Cariacica'
+          description: 'Polo presencial de Cariacica.'
         },
         {
           id: uuid(),
           name: 'Castelo',
-          description: 'Polo presencial de Castelo'
+          description: 'Polo presencial de Castelo.'
         },
         {
           id: uuid(),
