@@ -4,7 +4,10 @@ module.exports = app => {
   const api = app.api.vacancies
   const authApi = app.api.auth
 
-  app.route(app.get('vacancyApiRoute')).post(authApi.authenticationRequired, authApi.checkAccessLevel, api.create)
+  app
+    .route(app.get('vacancyApiRoute'))
+    .get(authApi.authenticationRequired, authApi.checkAccessLevel, api.list)
+    .post(authApi.authenticationRequired, authApi.checkAccessLevel, api.create)
 
   app
     .route(app.get('vacancyApiRoute') + '/:id')
