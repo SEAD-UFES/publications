@@ -11,7 +11,7 @@ module.exports = app => {
 
   app
     .route(app.get('assignmentApiRoute') + '/:id')
-    .get(uthApi.authenticationRequired, authApi.adminRequired, api.read)
+    .get(authApi.authenticationRequired, authApi.adminRequired, api.read)
     .put(authApi.authenticationRequired, authApi.adminRequired, api.update)
     .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete)
 }
