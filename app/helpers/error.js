@@ -7,4 +7,11 @@ const idNotFoundDevMessage = () => {
   }
 }
 
-module.exports = { idNotFoundDevMessage }
+const validationDevMessage = e => {
+  return {
+    name: 'ValidationError',
+    errors: e
+  }
+}
+
+module.exports = { idNotFoundDevMessage, validationDevMessage }
