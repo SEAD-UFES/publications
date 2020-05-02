@@ -20,15 +20,18 @@ module.exports = app => {
     }
   }
 
-  api.list = (req, res) => {
-    models.Region.findAll({}).then(
-      regions => {
-        res.json(regions)
-      },
-      e => {
-        res.status(500).json(error.parse('regions-02', e))
-      }
-    )
+  api.read = async (req, res) => {
+    try {
+      const toRead = await models.Region.findByPk(req.params.id)
+
+      //check if exists
+      if (!toRead) return res.status(400).json(error.parse('regions-03', {}))
+
+      //return result
+      return res.json(toRead)
+    } catch (error) {
+      return res.status(500).json(error.parse('regions-02', error))
+    }
   }
 
   api.update = (req, res) => {
@@ -36,9 +39,10 @@ module.exports = app => {
       region => {
         if (!region) res.status(400).json(error.parse('regions-03', {}))
         else
-          region
-            .update(req.body, { fields: Object.keys(req.body) })
-            .then(updated => res.json(updated), e => res.status(500).json(error.parse('regions-02', e)))
+          region.update(req.body, { fields: Object.keys(req.body) }).then(
+            updated => res.json(updated),
+            e => res.status(500).json(error.parse('regions-02', e))
+          )
       },
       e => res.status(500).json(error.parse('regions-02', e))
     )
@@ -48,6 +52,17 @@ module.exports = app => {
     models.Region.destroy({ where: { id: req.params.id } }).then(
       _ => res.sendStatus(204),
       e => res.status(500).json(error.parse('regions-02', e))
+    )
+  }
+
+  api.list = (req, res) => {
+    models.Region.findAll({}).then(
+      regions => {
+        res.json(regions)
+      },
+      e => {
+        res.status(500).json(error.parse('regions-02', e))
+      }
     )
   }
 
