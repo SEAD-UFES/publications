@@ -4,20 +4,25 @@ module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.vacancies
-  const { validationDevMessage } = require('../helpers/error')
+  const { validationDevMessage, unknownDevMessage } = require('../helpers/error')
+  const { validateBody } = require('../validators/vacancy')
 
-  api.create = (req, res) => {
-    if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !req.body.qtd || !req.body.reserve) {
-      res.status(400).json(error.parse('vacancies-01', {}))
-    } else {
-      models.Vacancy.create(req.body).then(
-        _ => {
-          res.sendStatus(201)
-        },
-        e => {
-          res.status(500).json(error.parse('vacancies-02', e))
-        }
-      )
+  //Vacancy create
+  api.create = async (req, res) => {
+    try {
+      //validation
+      const errors = await validateBody(req.body, models, 'create')
+      if (errors) {
+        return res.status(400).json(error.parse('vacancy-400', validationDevMessage(errors)))
+      }
+
+      //try to create
+      const created = await models.Vacancy.create(req.body)
+      return res.status(201).json(created)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('vacancy-500', unknownDevMessage(err)))
     }
   }
 
