@@ -1,3 +1,5 @@
+/** @format */
+
 module.exports = app => {
   const api = app.api.assignments
   const authApi = app.api.auth
@@ -9,6 +11,7 @@ module.exports = app => {
 
   app
     .route(app.get('assignmentApiRoute') + '/:id')
+    .get(authApi.authenticationRequired, authApi.adminRequired, api.read)
     .put(authApi.authenticationRequired, authApi.adminRequired, api.update)
     .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete)
 }
