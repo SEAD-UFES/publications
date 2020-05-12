@@ -56,6 +56,14 @@ module.exports = (sequelize, DataTypes) => {
 
   Calendar.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
+
+    //Adicionando campos vazios no objecto (para devolver todos os valores no create)
+    const allValueNames = Object.keys(this._previousDataValues)
+    allValueNames.map(valueName => {
+      if (!values.hasOwnProperty(valueName)) values[valueName] = null
+    })
+
+    //"follow your nose..."
     values.link = {
       rel: 'calendar',
       href: apiRoutes.find(r => r.key === 'calendarApiRoute').value + '/' + values.id

@@ -9,8 +9,9 @@ module.exports = app => {
     //.get(authApi.authenticationRequired, authApi.checkAccessLevel, api.list)
     .post(authApi.authenticationRequired, authApi.checkAccessLevel, api.create)
 
-  app.route(app.get('calendarApiRoute') + '/:id')
-  //.put(authApi.authenticationRequired, authApi.checkAccessLevel, api.update)
-  //.get(authApi.authenticationRequired, authApi.checkAccessLevel, api.specific)
+  app
+    .route(app.get('calendarApiRoute') + '/:id')
+    //.put(authApi.authenticationRequired, authApi.checkAccessLevel, api.update)
+    .get(authApi.authenticationRequired, authApi.checkAccessLevel, api.read)
   //.delete(authApi.authenticationRequired, authApi.checkAccessLevel, api.delete)
 }

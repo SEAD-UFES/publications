@@ -79,12 +79,12 @@ const validateStart = (value, db, mode, item) => {
 
 const validateEnd = (value, db, mode, item) => {
   //value is valid
-  if (typeof value !== 'undefined' && (value === null || value === '')) {
+  if (typeof value !== 'undefined' && value === '') {
     return 'Este campo é requerido.'
   }
 
   //value is a date
-  if (typeof value !== 'undefined' && !isISO8601(value)) {
+  if (typeof value !== 'undefined' && value !== null && !isISO8601(value)) {
     return 'Formato de data inválido.'
   }
 }
