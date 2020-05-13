@@ -4,6 +4,8 @@
 
 const { isISO8601 } = require('validator')
 const { isEmpty } = require('lodash')
+const { findCourseIdByCallId } = require('../helpers/courseInfo')
+const { isAdmin, hasAnyPermission } = require('../helpers/permissionCheck')
 
 const validateCallId = async (value, db, mode, item) => {
   //value exists and its necessary
@@ -49,6 +51,11 @@ const validateName = (value, db, mode, item) => {
 }
 
 const validateReady = (value, db, mode, item) => {
+  //value exists and its necessary
+  if (typeof value === 'undefined' && mode === 'create') {
+    return 'Este campo é necessário.'
+  }
+
   //value is valid
   if (typeof value !== 'undefined' && (value === null || value === '')) {
     return 'Este campo é requerido.'
@@ -113,4 +120,50 @@ const validateBody = async (body, db, mode, item) => {
   return !isEmpty(errors) ? errors : null
 }
 
-module.exports = { validateBody }
+const validatePermission = async (req, db, item) => {
+  let errors = {}
+
+  if (isAdmin(req.user)) return null
+
+  //create case
+  if (req.method === 'POST') {
+    const permission = 'calendar_create'
+    const courseId = (await findCourseIdByCallId(req.body.call_id, db)) || ''
+    const errorMessage = 'O usuário não tem permissão para criar um calendário dessa chamada.'
+
+    if (hasAnyPermission(req.user, permission, courseId)) return null
+
+    errors.message = errorMessage
+  }
+
+  //update case
+  if (req.method === 'PUT') {
+    const permission = 'calendar_update'
+    const courseIdAtual = (await findCourseIdByCallId(item.call_id, db)) || ''
+    const courseIdNovo = (await findCourseIdByCallId(req.body.call_id ? req.body.call_id : item.call_id, db)) || ''
+    const errorMessage = 'O usuário não tem permissão para atualizar um calendário dessa chamada.'
+
+    //deve possuir permissão nos dois cursos para fazer a alteração. (update call_id case)
+    const havePermissionAtual = hasAnyPermission(req.user, permission, courseIdAtual)
+    const havePermissionNovo = hasAnyPermission(req.user, permission, courseIdNovo)
+
+    if (havePermissionAtual && havePermissionNovo) return null
+
+    errors.message = errorMessage
+  }
+
+  //delete case
+  if (req.method === 'DELETE') {
+    const permission = 'calendar_delete'
+    const courseId = (await findCourseIdByCallId(item.call_id, db)) || ''
+    const errorMessage = 'O usuário não tem permissão para deletar um calendário dessa chamada.'
+
+    if (hasAnyPermission(req.user, permission, courseId)) return null
+
+    errors.message = errorMessage
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = { validateBody, validatePermission }

@@ -14,6 +14,13 @@ const validationDevMessage = e => {
   }
 }
 
+const unauthorizedDevMessage = e => {
+  return {
+    name: 'unauthorizedError',
+    errors: { message: e.message }
+  }
+}
+
 const unknownDevMessage = e => {
   return {
     name: 'unknownError',
@@ -21,4 +28,4 @@ const unknownDevMessage = e => {
   }
 }
 
-module.exports = { idNotFoundDevMessage, validationDevMessage, unknownDevMessage }
+module.exports = { idNotFoundDevMessage, validationDevMessage, unauthorizedDevMessage, unknownDevMessage }

@@ -9,8 +9,8 @@ module.exports = (sequelize, DataTypes) => {
     {
       id: {
         type: DataTypes.UUID,
-        primaryKey: true,
         defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
         allowNull: false
       },
       call_id: {
@@ -19,6 +19,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       calendar_id: {
         type: DataTypes.UUID,
+        defaultValue: null,
         allowNull: true
       },
       name: {
@@ -27,8 +28,8 @@ module.exports = (sequelize, DataTypes) => {
       },
       ready: {
         type: DataTypes.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
+        defaultValue: false,
+        allowNull: false
       },
       start: {
         type: DataTypes.DATE,
@@ -36,6 +37,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       end: {
         type: DataTypes.DATE,
+        defaultValue: null,
         allowNull: true
       }
     },
@@ -57,11 +59,8 @@ module.exports = (sequelize, DataTypes) => {
   Calendar.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
-    //Adicionando campos vazios no objecto (para devolver todos os valores no create)
-    const allValueNames = Object.keys(this._previousDataValues)
-    allValueNames.map(valueName => {
-      if (!values.hasOwnProperty(valueName)) values[valueName] = null
-    })
+    //remove fields
+    delete values.deletedAt
 
     //"follow your nose..."
     values.link = {

@@ -20,6 +20,7 @@ module.exports = {
       },
       calendar_id: {
         type: Sequelize.UUID,
+        defaultValue: null,
         allowNull: true,
         references: {
           model: 'Calendars',
@@ -32,8 +33,8 @@ module.exports = {
       },
       ready: {
         type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false
+        defaultValue: false,
+        allowNull: false
       },
       start: {
         type: Sequelize.DATE,
@@ -41,6 +42,7 @@ module.exports = {
       },
       end: {
         type: Sequelize.DATE,
+        defaultValue: null,
         allowNull: true
       },
       createdAt: {
@@ -55,6 +57,7 @@ module.exports = {
       },
       deletedAt: {
         type: Sequelize.DATE,
+        defaultValue: null,
         allowNull: true
       }
     })
