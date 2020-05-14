@@ -11,7 +11,7 @@ module.exports = app => {
 
   app
     .route(app.get('calendarApiRoute') + '/:id')
-    //.put(authApi.authenticationRequired, authApi.checkAccessLevel, api.update)
+    .put(authApi.authenticationRequired, authApi.checkAccessLevel, api.update)
     .get(api.read)
-  //.delete(authApi.authenticationRequired, authApi.checkAccessLevel, api.delete)
+    .delete(authApi.authenticationRequired, authApi.checkAccessLevel, api.delete)
 }

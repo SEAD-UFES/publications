@@ -27,14 +27,31 @@ const validateCallId = async (value, db, mode, item) => {
 
 const validateCalendarId = async (value, db, mode, item) => {
   //value is valid
-  if (typeof value !== 'undefined' && (value === null || value === '')) {
-    return 'Este campo é requerido.'
+  if (typeof value !== 'undefined' && value === '') {
+    return 'Valor inválido.'
   }
 
-  //calendar exists
-  if (typeof value !== 'undefined') {
-    const call = await db.Calendar.findByPk(value)
-    if (!call) return 'O item de calendário não existe.'
+  //Dado necessário para as proximas validações
+  const calendar = await db.Calendar.findByPk(value)
+
+  //if not null, calendar_id must exist
+  if (typeof value !== 'undefined' && value !== null && !calendar) {
+    return 'O item de calendário não existe.'
+  }
+
+  //calendar_id informada não pode criar uma dependencia circular
+  if (typeof value !== 'undefined' && calendar && mode === 'update') {
+    let fatherId = calendar.id
+    let dependencyChain = [item.id]
+
+    while (fatherId) {
+      const isOnDependencyChain = dependencyChain.find(id => id === fatherId)
+      if (!isOnDependencyChain) {
+        dependencyChain = [...dependencyChain, fatherId]
+        const nextCalendar = await db.Calendar.findByPk(fatherId)
+        fatherId = nextCalendar ? nextCalendar.calendar_id : null
+      } else return 'Dependecia circular detectada.'
+    }
   }
 }
 
@@ -96,6 +113,25 @@ const validateEnd = (value, db, mode, item) => {
   }
 }
 
+const validateTimePeriod = (body, db, mode, item, startError, endError) => {
+  let errors = {}
+
+  //Executar somente se não houver erro nos campos envolvidos.
+  if (!startError && !endError) {
+    const start = body.start ? body.start : item.start
+    const end = body.end ? body.end : item.end ? item.end : start
+
+    console.log(typeof start)
+    console.log(typeof end)
+
+    console.log(end > start)
+
+    if (end < start) errors.end = 'Final do periodo deve ocorrer depois do início.'
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
 const validateBody = async (body, db, mode, item) => {
   let errors = {}
 
@@ -116,6 +152,8 @@ const validateBody = async (body, db, mode, item) => {
 
   const endError = validateEnd(body.end, db, mode, item)
   if (endError) errors.end = endError
+
+  validateTimePeriod(body, db, mode, item, startError, endError)
 
   return !isEmpty(errors) ? errors : null
 }

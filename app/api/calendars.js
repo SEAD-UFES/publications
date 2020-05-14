@@ -77,7 +77,7 @@ module.exports = app => {
       }
 
       //validation
-      const validationErrors = await validateBody(req.body, models, 'update')
+      const validationErrors = await validateBody(req.body, models, 'update', toUpdate)
       if (validationErrors) {
         return res.status(400).json(error.parse('calendar-400', validationDevMessage(validationErrors)))
       }
@@ -89,11 +89,12 @@ module.exports = app => {
       }
 
       //try to create
-      const created = await models.Calendar.create(req.body)
-      return res.status(201).json(created)
+      const updated = await toUpdate.update(req.body)
+      return res.status(201).json(updated)
 
       //if error
     } catch (err) {
+      console.log('Erro:', err)
       return res.status(500).json(error.parse('calendar-500', unknownDevMessage(err)))
     }
   }

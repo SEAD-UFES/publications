@@ -9,12 +9,12 @@ const { isEmpty } = require('lodash')
 const { findCourseIdBySelectiveProcessId } = require('../helpers/courseInfo')
 const { isAdmin, hasAnyPermission } = require('../helpers/permissionCheck')
 
-const validate = async ({ body, method, params }) => {
+const validate = async ({ body, method, params }, models) => {
   try {
     if (method === 'PUT')
       return {
-        ...(await validateId(params.id)),
-        ...(await validateBody(body, params.id))
+        ...(await validateId(params.id, models)),
+        ...(await validateBody(body, params.id, models))
       }
     else return await validateBody(body)
   } catch (e) {
@@ -23,7 +23,7 @@ const validate = async ({ body, method, params }) => {
   }
 }
 
-const validateId = async id => {
+const validateId = async (id, models) => {
   const errors = {}
 
   if (isUUID(id)) {
@@ -39,7 +39,12 @@ const validateId = async id => {
   return errors
 }
 
-const validateBody = async ({ selectiveProcess_id, number, openingDate, endingDate }, hasId) => {
+const validateBody = async ({ selectiveProcess_id, number, openingDate, endingDate }, hasId, models) => {
+  console.log(selectiveProcess_id)
+  console.log(number)
+  console.log(openingDate)
+  console.log(endingDate)
+
   const ignoreOwnId = hasId ? { id: { [Sequelize.Op.not]: hasId } } : {}
   const errors = {}
 
@@ -61,12 +66,15 @@ const validateBody = async ({ selectiveProcess_id, number, openingDate, endingDa
   if (!errors.openingDate && !errors.closingDate && openingDate >= endingDate)
     errors.openingDate = errors.endingDate = 'A data de fechamento da chamada precisa ser posterior a data de abertura.'
 
+  console.log('errors:', errors)
   // validade server params
   /* does the selective process exist ? */
   if (!errors.selectiveProcess_id) {
     let selectiveProcess
     try {
+      console.log(models)
       selectiveProcess = await models.SelectiveProcess.findById(selectiveProcess_id)
+      console.log('selctiveProcess:', selectiveProcess)
     } catch (e) {
       errors.selectiveProcess_id = 'Não foi possível confirmar a existência do processo seletivo associado.'
     }
