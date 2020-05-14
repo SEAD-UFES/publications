@@ -64,6 +64,8 @@ module.exports = {
         { transaction: t }
       )
 
+      //commit transaction
+
       //restore FK
       await queryInterface.sequelize.query(restoreUserIdFK, { transaction: t })
     } catch (error) {
