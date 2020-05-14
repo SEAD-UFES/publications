@@ -8,7 +8,8 @@ module.exports = app => {
     validationDevMessage,
     unknownDevMessage,
     idNotFoundDevMessage,
-    unauthorizedDevMessage
+    unauthorizedDevMessage,
+    forbbidenDeletionDevMessage
   } = require('../helpers/error')
   const { validateBody, validatePermission } = require('../validators/calendar')
   const { findUserByToken } = require('../helpers/userHelpers')
@@ -121,8 +122,9 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      if (err.name === 'ForbbidenDeletionError') return res.status(403).json(error.parse('calendar-403', err))
-      return res.status(500).json(error.parse('calendar-500', err))
+      if (err.name === 'ForbbidenDeletionError')
+        return res.status(403).json(error.parse('calendar-403', forbbidenDeletionDevMessage(err)))
+      return res.status(500).json(error.parse('calendar-500', unknownDevMessage(err)))
     }
   }
 
@@ -146,7 +148,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      return res.status(500).json(error.parse('calendar-500', err))
+      return res.status(500).json(error.parse('calendar-500', unknownDevMessage(err)))
     }
   }
 

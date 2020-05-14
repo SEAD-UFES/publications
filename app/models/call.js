@@ -2,8 +2,8 @@
 
 'use strict'
 
-const uuid = require('uuid/v4')
 const apiRoutes = require('../../config/apiRoutes.json')
+const { validateDelete } = require('../validators/calls')
 
 module.exports = (sequelize, DataTypes) => {
   const Call = sequelize.define(
@@ -41,7 +41,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   )
 
-  Call.associate = function(models) {
+  Call.associate = function (models) {
     Call.belongsTo(models.SelectiveProcess, {
       sourceKey: 'id',
       foreignKey: 'selectiveProcess_id'
@@ -49,9 +49,21 @@ module.exports = (sequelize, DataTypes) => {
     Call.hasMany(models.Step, { foreignKey: 'call_id' })
     Call.hasMany(models.Vacancy, { foreignKey: 'call_id' })
     Call.hasMany(models.Publication, { foreignKey: 'call_id' })
+    Call.hasMany(models.Calendar, { foreignKey: 'call_id' })
   }
 
-  Call.prototype.toJSON = function() {
+  Call.beforeDestroy(async (call, _) => {
+    //validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
+    const errors = await validateDelete(call, sequelize.models)
+    if (errors) {
+      throw { name: 'ForbbidenDeletionError', traceback: 'Call', errors: errors }
+    }
+
+    //operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
+    //sem modelos associados para deletar
+  })
+
+  Call.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
     values.link = {

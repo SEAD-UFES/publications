@@ -17,8 +17,12 @@ const validationDevMessage = e => {
 const unauthorizedDevMessage = e => {
   return {
     name: 'unauthorizedError',
-    errors: { message: e.message }
+    errors: e
   }
+}
+
+const forbbidenDeletionDevMessage = e => {
+  return e
 }
 
 const unknownDevMessage = e => {
@@ -28,4 +32,10 @@ const unknownDevMessage = e => {
   }
 }
 
-module.exports = { idNotFoundDevMessage, validationDevMessage, unauthorizedDevMessage, unknownDevMessage }
+module.exports = {
+  idNotFoundDevMessage,
+  validationDevMessage,
+  unauthorizedDevMessage,
+  unknownDevMessage,
+  forbbidenDeletionDevMessage
+}

@@ -6,6 +6,8 @@ const Sequelize = require('sequelize')
 const models = require('../models')
 const { isUUID, isNumeric, isISO8601 } = require('validator')
 const { isEmpty } = require('lodash')
+const { findCourseIdBySelectiveProcessId } = require('../helpers/courseInfo')
+const { isAdmin, hasAnyPermission } = require('../helpers/permissionCheck')
 
 const validate = async ({ body, method, params }) => {
   try {
@@ -132,4 +134,76 @@ const getFormatedDate = dateString => {
   return `${day}/${month}/${year}`
 }
 
-module.exports = { validate }
+//validate Permission
+const validatePermission = async (req, db, item) => {
+  let errors = {}
+
+  if (isAdmin(req.user)) return null
+
+  //create case
+  if (req.method === 'POST') {
+    const permission = 'call_create'
+    const courseId = (await findCourseIdBySelectiveProcessId(req.body.selectiveProcess_id, db)) || ''
+    const errorMessage = 'O usuário não tem permissão para criar uma chamada desse processo.'
+
+    if (hasAnyPermission(req.user, permission, courseId)) return null
+
+    errors.message = errorMessage
+  }
+
+  //update case
+  if (req.method === 'PUT') {
+    const permission = 'call_update'
+    const courseIdAtual = (await findCourseIdBySelectiveProcessId(item.selectiveProcess_id, db)) || ''
+    const courseIdNovo =
+      (await findCourseIdBySelectiveProcessId(
+        req.body.selectiveProcess_id ? req.body.selectiveProcess_id : item.selectiveProcess_id,
+        db
+      )) || ''
+    const errorMessage = 'O usuário não tem permissão para atualizar uma chamada desse processo.'
+
+    //deve possuir permissão nos dois cursos para fazer a alteração. (update call_id case)
+    const havePermissionAtual = hasAnyPermission(req.user, permission, courseIdAtual)
+    const havePermissionNovo = hasAnyPermission(req.user, permission, courseIdNovo)
+
+    if (havePermissionAtual && havePermissionNovo) return null
+
+    errors.message = errorMessage
+  }
+
+  //delete case
+  if (req.method === 'DELETE') {
+    const permission = 'call_delete'
+    const courseId = (await findCourseIdBySelectiveProcessId(item.selectiveProcess_id, db)) || ''
+    const errorMessage = 'O usuário não tem permissão para deletar uma chamada desse processo.'
+
+    if (hasAnyPermission(req.user, permission, courseId)) return null
+
+    errors.message = errorMessage
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+//Validate delete
+const validateDelete = async (call, models) => {
+  const errors = {}
+
+  //Call não pode ser deletado se ele tiver um calendar
+  const childCalendars = await models.Calendar.count({ where: { call_id: call.id } })
+  if (childCalendars > 0) {
+    errors.id = 'Esta Chamada está associada a itens de calendário ativos.'
+    return errors
+  }
+
+  //Call não pode ser deletado se ele tiver um vacancy
+  const childVacancies = await models.Vacancy.count({ where: { call_id: call.id } })
+  if (childVacancies > 0) {
+    errors.id = 'Esta Chamada está associada a ofertas de vaga ativas.'
+    return errors
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = { validate, validateDelete, validatePermission }

@@ -43,6 +43,34 @@ module.exports = app => {
           devMessage: e
         }
         break
+      case 'call-400':
+        message = {
+          code,
+          userMessage: 'Requisição inválida.',
+          devMessage: e
+        }
+        break
+      case 'call-401':
+        message = {
+          code,
+          userMessage: 'Operação não autorizada.',
+          devMessage: e
+        }
+        break
+      case 'call-403':
+        message = {
+          code,
+          userMessage: 'Operação proibida.',
+          devMessage: e
+        }
+        break
+      case 'call-500':
+        message = {
+          code,
+          userMessage: 'Erro interno do servidor.',
+          devMessage: e
+        }
+        break
     }
 
     return message
