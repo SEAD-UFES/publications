@@ -11,13 +11,13 @@ module.exports = app => {
     unauthorizedDevMessage,
     forbbidenDeletionDevMessage
   } = require('../helpers/error')
-  const { validate } = require('../validators/calls.js')
+  const { validate, validatePermission } = require('../validators/calls.js')
   const { isEmpty } = require('lodash')
 
   api.create = async (req, res) => {
     let errors
     try {
-      errors = await validate(req)
+      errors = await validate(req, models)
     } catch (e) {
       res.status(400).json(error.parse('calls-02', 'Error during validation.'))
     }
@@ -76,7 +76,7 @@ module.exports = app => {
     let errors
 
     try {
-      errors = await validate(req)
+      errors = await validate(req, models)
     } catch (e) {
       res.status(500).json(error.parse('calls-02', e))
     }
