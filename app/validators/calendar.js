@@ -4,6 +4,8 @@
 
 const { isISO8601 } = require('validator')
 const { isEmpty } = require('lodash')
+const moment = require('moment')
+
 const { findCourseIdByCallId } = require('../helpers/courseInfo')
 const { isAdmin, hasAnyPermission } = require('../helpers/permissionCheck')
 
@@ -114,22 +116,19 @@ const validateEnd = (value, db, mode, item) => {
 }
 
 const validateTimePeriod = (body, db, mode, item, startError, endError) => {
-  let errors = {}
-
   //Executar somente se não houver erro nos campos envolvidos.
   if (!startError && !endError) {
+    //set date values
     const start = body.start ? body.start : item.start
     const end = body.end ? body.end : item.end ? item.end : start
 
-    console.log(typeof start)
-    console.log(typeof end)
+    //convert to moment objects
+    const startDate = moment(start).locale('pt-br')
+    const endDate = moment(end).locale('pt-br')
 
-    console.log(end > start)
-
-    if (end < start) errors.end = 'Final do periodo deve ocorrer depois do início.'
+    //Início deve ocorrer antes do fim.
+    if (endDate < startDate) return 'Final do periodo deve ocorrer depois do início.'
   }
-
-  return !isEmpty(errors) ? errors : null
 }
 
 const validateBody = async (body, db, mode, item) => {
@@ -153,7 +152,8 @@ const validateBody = async (body, db, mode, item) => {
   const endError = validateEnd(body.end, db, mode, item)
   if (endError) errors.end = endError
 
-  validateTimePeriod(body, db, mode, item, startError, endError)
+  const timePeriodError = validateTimePeriod(body, db, mode, item, startError, endError)
+  if (timePeriodError) errors.end = timePeriodError
 
   return !isEmpty(errors) ? errors : null
 }

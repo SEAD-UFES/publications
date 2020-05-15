@@ -1,9 +1,8 @@
 /** @format */
 
 module.exports = app => {
-  const Sequelize = require('sequelize')
-  const models = require('../models')
   const api = {}
+  const models = require('../models')
   const error = app.errors.calls
   const {
     unknownDevMessage,
