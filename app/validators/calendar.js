@@ -120,14 +120,10 @@ const validateTimePeriod = (body, db, mode, item, startError, endError) => {
   if (!startError && !endError) {
     //set date values
     const start = body.start ? body.start : item.start
-    const end = body.end ? body.end : item.end ? item.end : start
-
-    //convert to moment objects
-    const startDate = moment(start).locale('pt-br')
-    const endDate = moment(end).locale('pt-br')
+    const end = body.end ? body.end : body.end !== null && item.end ? item.end : start
 
     //Início deve ocorrer antes do fim.
-    if (endDate < startDate) return 'Final do periodo deve ocorrer depois do início.'
+    if (moment(start) < moment(end)) return 'Final do periodo deve ocorrer depois do início.'
   }
 }
 
