@@ -222,7 +222,7 @@ const validateDelete = async (calendar, models) => {
   //Não pode ser deletado se for "evento pai" de outro calendar
   const childCalendars = await models.Calendar.count({ where: { calendar_id: calendar.id } })
   if (childCalendars > 0) {
-    errors.id = 'Este item de calendário é dependência de outros item de calendário ativos.'
+    errors.id = 'Este item de calendário é dependência de outros itens de calendário ativos.'
     return errors
   }
 
