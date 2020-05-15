@@ -134,6 +134,8 @@ const validateTimePeriod = (body, db, mode, item, startError, endError) => {
 const validateBody = async (body, db, mode, item) => {
   let errors = {}
 
+  //validações dos campos
+
   const callIdError = await validateCallId(body.call_id, db, mode, item)
   if (callIdError) errors.call_id = callIdError
 
@@ -151,6 +153,8 @@ const validateBody = async (body, db, mode, item) => {
 
   const endError = validateEnd(body.end, db, mode, item)
   if (endError) errors.end = endError
+
+  //validações do modelo
 
   const timePeriodError = validateTimePeriod(body, db, mode, item, startError, endError)
   if (timePeriodError) errors.end = timePeriodError

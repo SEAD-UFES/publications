@@ -32,6 +32,7 @@ module.exports = app => {
 
       //try to create
       const created = await models.Calendar.create(req.body)
+      await created.reload() //para que o retorno seja igual ao de api.read.
       return res.status(201).json(created)
 
       //if error
@@ -90,6 +91,7 @@ module.exports = app => {
 
       //try to create
       const updated = await toUpdate.update(req.body)
+      await updated.reload() //para que o retorno seja igual ao de api.read.
       return res.status(201).json(updated)
 
       //if error
