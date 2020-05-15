@@ -2,6 +2,7 @@
 'use strict'
 
 const apiRoutes = require('../../config/apiRoutes.json')
+const { validateDelete } = require('../validators/calendar')
 
 module.exports = (sequelize, DataTypes) => {
   const Calendar = sequelize.define(
@@ -49,9 +50,13 @@ module.exports = (sequelize, DataTypes) => {
     Calendar.belongsTo(models.Calendar, { foreignKey: 'calendar_id', targetKey: 'id' })
   }
 
-  Calendar.beforeDestroy((calendar, _) => {
+  Calendar.beforeDestroy(async (calendar, _) => {
     //validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
-    //sem restrições para conferir
+    const errors = await validateDelete(calendar, sequelize.models)
+    if (errors) {
+      throw { name: 'ForbbidenDeletionError', traceback: 'Calendar', errors: errors }
+    }
+
     //operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
     //sem modelos associados para deletar
   })

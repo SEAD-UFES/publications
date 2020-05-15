@@ -123,7 +123,7 @@ const validateTimePeriod = (body, db, mode, item, startError, endError) => {
     const end = body.end ? body.end : body.end !== null && item.end ? item.end : start
 
     //Início deve ocorrer antes do fim.
-    if (moment(start) < moment(end)) return 'Final do periodo deve ocorrer depois do início.'
+    if (moment(end) < moment(start)) return 'Final do periodo deve ocorrer depois do início.'
   }
 }
 
@@ -204,4 +204,18 @@ const validatePermission = async (req, db, item) => {
   return !isEmpty(errors) ? errors : null
 }
 
-module.exports = { validateBody, validatePermission }
+//Validate delete
+const validateDelete = async (calendar, models) => {
+  const errors = {}
+
+  //Não pode ser deletado se for "evento pai" de outro calendar
+  const childCalendars = await models.Calendar.count({ where: { calendar_id: calendar.id } })
+  if (childCalendars > 0) {
+    errors.id = 'Este item de calendário é dependência de outros item de calendário ativos.'
+    return errors
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = { validateBody, validatePermission, validateDelete }
