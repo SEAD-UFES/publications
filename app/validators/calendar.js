@@ -8,6 +8,7 @@ const moment = require('moment')
 
 const { findCourseIdByCallId } = require('../helpers/courseInfo')
 const { isAdmin, hasAnyPermission } = require('../helpers/permissionCheck')
+const { isFullDateTime } = require('../helpers/validatorHelpers')
 
 const validateCallId = async (value, db, mode, item) => {
   //value exists and its necessary
@@ -101,6 +102,11 @@ const validateStart = (value, db, mode, item) => {
   if (typeof value !== 'undefined' && !isISO8601(value)) {
     return 'Formato de data inválido.'
   }
+
+  //value is fullDatetime (YYYY:MM:DD HH:mm:ss)
+  if (typeof value !== 'undefined' && !isFullDateTime(value)) {
+    return 'Formato da data deve ser (YYYY-MM-DD HH:mm:ss).'
+  }
 }
 
 const validateEnd = (value, db, mode, item) => {
@@ -112,6 +118,11 @@ const validateEnd = (value, db, mode, item) => {
   //value is a date
   if (typeof value !== 'undefined' && value !== null && !isISO8601(value)) {
     return 'Formato de data inválido.'
+  }
+
+  //value is fullDatetime (YYYY:MM:DD HH:mm:ss)
+  if (typeof value !== 'undefined' && !isFullDateTime(value)) {
+    return 'Formato da data deve ser (YYYY-MM-DD HH:mm:ss).'
   }
 }
 
