@@ -121,7 +121,7 @@ const validateEnd = (value, db, mode, item) => {
   }
 
   //value is fullDatetime (YYYY:MM:DD HH:mm:ss)
-  if (typeof value !== 'undefined' && !isFullDateTime(value)) {
+  if (typeof value !== 'undefined' && value !== null && !isFullDateTime(value)) {
     return 'Formato da data deve ser (YYYY-MM-DD HH:mm:ss).'
   }
 }
