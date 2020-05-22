@@ -35,40 +35,37 @@ module.exports = app => {
     }
   }
 
-  api.specific = (req, res) => {
-    const vacancy_structure = {
+  //Call read
+  api.specific = async (req, res) => {
+    const assignmentInclude = { model: models.Assignment, required: false }
+
+    const regionInclude = { model: models.Region, required: false }
+
+    const restrictionInclude = { model: models.Restriction, required: false }
+
+    const vacancyInclude = {
       model: models.Vacancy,
       required: false,
-      include: [
-        {
-          model: models.Assignment,
-          required: false
-        },
-        {
-          model: models.Restriction,
-          required: false
-        },
-        {
-          model: models.Region,
-          required: false
-        }
-      ]
+      include: [assignmentInclude, regionInclude, restrictionInclude]
     }
 
-    const call_structure = {
-      include: [vacancy_structure],
-      order: [[models.Vacancy, 'createdAt', 'ASC']]
-    }
+    const callInclude = { include: [vacancyInclude], order: [[models.Vacancy, 'createdAt', 'ASC']] }
 
-    //Find and return call
-    models.Call.findById(req.params.id, call_structure).then(
-      call => {
-        res.json(call)
-      },
-      e => {
-        res.status(500).json(error.parse('calls-02', e))
+    try {
+      const toRead = await models.Call.findByPk(req.params.id, callInclude)
+
+      //verify valid id
+      if (!toRead) {
+        return res.status(400).json(error.parse('call-400', idNotFoundDevMessage()))
       }
-    )
+
+      //return result
+      return res.json(toRead)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('call-500', unknownDevMessage(err)))
+    }
   }
 
   api.update = async (req, res) => {
