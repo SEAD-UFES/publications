@@ -71,6 +71,8 @@ module.exports = (sequelize, DataTypes) => {
       href: apiRoutes.find(r => r.key === 'callApiRoute').value + '/' + values.id
     }
 
+    delete values.enrollmentOpeningDate
+    delete values.enrollmentClosingDate
     delete values.createdAt
     delete values.updatedAt
     delete values.deletedAt

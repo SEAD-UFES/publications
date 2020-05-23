@@ -5,6 +5,7 @@ module.exports = app => {
   const models = require('../models')
   const error = app.errors.calls
   const {
+    validationDevMessage,
     unknownDevMessage,
     idNotFoundDevMessage,
     unauthorizedDevMessage,
@@ -13,25 +14,23 @@ module.exports = app => {
   const { validate, validatePermission } = require('../validators/calls.js')
   const { isEmpty } = require('lodash')
 
+  //Call create
   api.create = async (req, res) => {
-    let errors
     try {
-      errors = await validate(req, models)
-    } catch (e) {
-      res.status(400).json(error.parse('calls-02', 'Error during validation.'))
-    }
-
-    if (isEmpty(errors)) {
-      try {
-        const createdCall = await models.Call.create(req.body)
-
-        res.status(201).json({ id: createdCall.id })
-      } catch (e) {
-        res.status(400).json(error.parse('calls-05', 'Error trying to create new Call.'))
+      //validation
+      const errors = await validate(req, models)
+      if (!isEmpty(errors)) {
+        return res.status(400).json(error.parse('call-400', validationDevMessage(errors)))
       }
-    } else {
-      /* fail, send validation errors */
-      res.status(400).json(error.parse('calls-01', { errors }))
+
+      //try to create
+      const created = await models.Call.create(req.body)
+      await created.reload() //to format dates and model correctly
+      return res.status(201).json(created)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('call-500', unknownDevMessage(err)))
     }
   }
 
@@ -69,25 +68,28 @@ module.exports = app => {
   }
 
   api.update = async (req, res) => {
-    let errors
-
     try {
-      errors = await validate(req, models)
-    } catch (e) {
-      res.status(500).json(error.parse('calls-02', e))
-    }
+      const toUpdate = await models.Call.findByPk(req.params.id)
 
-    if (isEmpty(errors)) {
-      try {
-        const call = await models.Call.findById(req.params.id)
-        const updatedCall = await call.update(req.body, { fields: Object.keys(req.body) })
-
-        res.json(updatedCall)
-      } catch (e) {
-        res.status(500).json(error.parse('calls-02', 'Error updating call.'))
+      //verify valid id
+      if (!toUpdate) {
+        return res.status(400).json(error.parse('call-400', idNotFoundDevMessage()))
       }
-    } else {
-      res.status(400).json(error.parse('calls-01', { errors }))
+
+      //validation
+      const errors = await validate(req, models)
+      if (!isEmpty(errors)) {
+        return res.status(400).json(error.parse('call-400', validationDevMessage(errors)))
+      }
+
+      //try to update
+      const updated = await toUpdate.update(req.body, { fields: Object.keys(req.body) })
+      await updated.reload() //to format dates and model correctly
+      return res.status(201).json(updated)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('call-500', unknownDevMessage(err)))
     }
   }
 
