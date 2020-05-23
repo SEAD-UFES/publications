@@ -15,7 +15,7 @@ const findCourseIdByCallId = async call_id => {
   const call = await models.Call.findByPk(call_id)
   if (!call) return null
 
-  return findCourseIdBySelectiveProcessId(call.process_id)
+  return await findCourseIdBySelectiveProcessId(call.process_id)
 }
 
 const paramRoute = async url => {
