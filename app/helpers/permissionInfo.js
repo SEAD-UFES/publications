@@ -1,3 +1,5 @@
+/** @format */
+
 const models = require('../models')
 
 const getPermission = options => {
@@ -101,6 +103,21 @@ const getPermission = options => {
       },
       DELETE: {
         delete: 'vacancy_delete'
+      }
+    },
+    calendars: {
+      GET: {
+        read: 'calendar_read',
+        list: 'calendar_read'
+      },
+      POST: {
+        create: 'calendar_create'
+      },
+      PUT: {
+        update: 'calendar_update'
+      },
+      DELETE: {
+        delete: 'calendar_delete'
       }
     },
     notices: {
