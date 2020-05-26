@@ -95,7 +95,7 @@ module.exports = app => {
   // temporary polyfill for flaMap
   // the function is not yet supported by Node 10.16 LTS
   if (!Array.prototype.flatMap) {
-    Array.prototype.flatMap = function(lambda) {
+    Array.prototype.flatMap = function (lambda) {
       return Array.prototype.concat.apply([], this.map(lambda))
     }
   }

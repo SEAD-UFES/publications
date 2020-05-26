@@ -1,6 +1,22 @@
+/** @format */
+
 const models = require('../models')
 const error = require('../errors/auth')
 const api = {}
+
+const findCourseIdBySelectiveProcessId = async selectiveProcess_id => {
+  const process = await models.SelectiveProcess.findByPk(selectiveProcess_id)
+  if (!process) return null
+
+  return process.course_id
+}
+
+const findCourseIdByCallId = async call_id => {
+  const call = await models.Call.findByPk(call_id)
+  if (!call) return null
+
+  return await findCourseIdBySelectiveProcessId(call.process_id)
+}
 
 const paramRoute = async url => {
   const params = url.split('/')
@@ -131,4 +147,4 @@ const getCourseId = async req => {
   return target_course_id
 }
 
-module.exports = { paramRoute, bodyRoute, getCourseId }
+module.exports = { paramRoute, bodyRoute, getCourseId, findCourseIdBySelectiveProcessId, findCourseIdByCallId }

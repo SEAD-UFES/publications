@@ -27,5 +27,6 @@
   { "key": "noticeApiRoute", "value": "/v1/notices" },
   { "key": "recoverApiRoute", "value": "/v1/recover" },
   { "key": "userVerificationTokenApiRoute", "value": "/v1/verify" },
-  { "key": "inscriptionEventApiRoute", "value": "/v1/inscriptionevents" }
+  { "key": "inscriptionEventApiRoute", "value": "/v1/inscriptionevents" },
+  { "key": "calendarApiRoute", "value": "/v1/calendars" }
 ]
