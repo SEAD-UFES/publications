@@ -69,7 +69,7 @@ const validateQtd = (value, db, mode, item) => {
   }
 
   //value is a number
-  if (typeof value !== 'undefined' && !isNumeric(value)) {
+  if (typeof value !== 'undefined' && !(Number.isInteger(value) || isNumeric(value))) {
     return 'Deve ser um número.'
   }
 }
