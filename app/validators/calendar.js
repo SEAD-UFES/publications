@@ -131,7 +131,15 @@ const validateTimePeriod = (body, db, mode, item, startError, endError) => {
   if (!startError && !endError) {
     //set date values
     const start = body.start ? body.start : item.start
-    const end = body.end ? body.end : body.end !== null && item.end ? item.end : start
+
+    let end = null
+    if (mode === 'create') end = body.end ? body.end : start
+    if (mode === 'update') {
+      if (!end && body.end) end = body.end
+      if (!end && body.end === null) end = start
+      if (!end && typeof body.end === 'undefined' && item.end) end == item.end
+      if (!end && typeof body.end === 'undefined' && item.end === null) end = start
+    }
 
     //Início deve ocorrer antes do fim.
     if (moment(end) < moment(start)) return 'Final do periodo deve ocorrer depois do início.'
