@@ -81,15 +81,6 @@ const paramRoute = async url => {
       }
       break
 
-    case 'notices':
-      try {
-        query = await models.Notice.findById(id, eagerLoad)
-        return query.SelectiveProcess.course_id
-      } catch (e) {
-        throw new Error('Unable to find Course related to this Notice.')
-      }
-      break
-
     default:
       throw new Error('Unable to find any Course related to this route.')
   }
@@ -101,7 +92,7 @@ const bodyRoute = async body => {
       let query = await models.SelectiveProcess.findById(body.selectiveProcess_id)
       return query.course_id
     } catch (e) {
-      throw new Error('Unable to find Course related to this Call/Publication/Notice.')
+      throw new Error('Unable to find Course related to this Call/Publication.')
     }
   } else if (body.call_id) {
     try {
