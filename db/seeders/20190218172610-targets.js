@@ -1,3 +1,5 @@
+/** @format */
+
 'use strict'
 
 const uuid = require('uuid/v4')
@@ -19,9 +21,6 @@ module.exports = {
 
         { id: uuid(), name: 'call api (general)', urn: '/v1/calls' },
         { id: uuid(), name: 'call api (specific)', urn: '/v1/calls/:id' },
-
-        { id: uuid(), name: 'notice api (general)', urn: '/v1/notices' },
-        { id: uuid(), name: 'notice api (specific)', urn: '/v1/notices/:id' },
 
         { id: uuid(), name: 'step api (general)', urn: '/v1/steps' },
         { id: uuid(), name: 'step api (specific)', urn: '/v1/steps/:id' },

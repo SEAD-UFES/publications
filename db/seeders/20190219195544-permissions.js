@@ -1,3 +1,5 @@
+/** @format */
+
 'use strict'
 const uuid = require('uuid/v4')
 
@@ -322,42 +324,6 @@ module.exports = {
                   description: 'descrição',
                   action_id: action_ids['GET'],
                   target_id: target_ids['/v1/courses']
-                },
-                //notice
-                {
-                  id: uuid(),
-                  name: 'notice_create',
-                  description: 'Criar notícia',
-                  action_id: action_ids['POST'],
-                  target_id: target_ids['/v1/notices']
-                },
-                {
-                  id: uuid(),
-                  name: 'notice_read',
-                  description: 'Editar notícia',
-                  action_id: action_ids['GET'],
-                  target_id: target_ids['/v1/notices/:id']
-                },
-                {
-                  id: uuid(),
-                  name: 'notice_update',
-                  description: 'Atualizar notícia',
-                  action_id: action_ids['PUT'],
-                  target_id: target_ids['/v1/notices/:id']
-                },
-                {
-                  id: uuid(),
-                  name: 'notice_delete',
-                  description: 'Excluir notícia',
-                  action_id: action_ids['DELETE'],
-                  target_id: target_ids['/v1/notices/:id']
-                },
-                {
-                  id: uuid(),
-                  name: 'notice_list',
-                  description: 'Listar notícias',
-                  action_id: action_ids['GET'],
-                  target_id: target_ids['/v1/notices']
                 }
               ],
               {}

@@ -1,8 +1,6 @@
 /** @format */
 'use strict'
 
-const uuid = require('uuid/v4')
-const models = require('../models')
 const apiRoutes = require('../../config/apiRoutes.json')
 
 module.exports = (sequelize, DataTypes) => {
@@ -48,16 +46,15 @@ module.exports = (sequelize, DataTypes) => {
     }
   )
 
-  SelectiveProcess.associate = function(models) {
+  SelectiveProcess.associate = function (models) {
     SelectiveProcess.hasMany(models.Call, { foreignKey: 'selectiveProcess_id' })
     SelectiveProcess.hasMany(models.Publication, { foreignKey: 'selectiveProcess_id' })
-    SelectiveProcess.hasMany(models.Notice, { foreignKey: 'selectiveProcess_id' })
     SelectiveProcess.belongsTo(models.Course, { foreignKey: 'course_id' })
 
     return SelectiveProcess
   }
 
-  SelectiveProcess.prototype.toJSON = function() {
+  SelectiveProcess.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
     values.link = {
