@@ -28,6 +28,34 @@ module.exports = app => {
           devMessage: e
         }
         break
+      case 'inscriptionEvent-400':
+        message = {
+          code,
+          userMessage: 'Requisição inválida.',
+          devMessage: e
+        }
+        break
+      case 'inscriptionEvent-401':
+        message = {
+          code,
+          userMessage: 'Operação não autorizada.',
+          devMessage: e
+        }
+        break
+      case 'inscriptionEvent-403':
+        message = {
+          code,
+          userMessage: 'Operação proibida.',
+          devMessage: e
+        }
+        break
+      case 'inscriptionEvent-500':
+        message = {
+          code,
+          userMessage: 'Erro interno do servidor.',
+          devMessage: e
+        }
+        break
     }
 
     return message

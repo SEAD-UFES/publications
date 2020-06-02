@@ -4,16 +4,7 @@
 
 const uuidByString = require('uuid-by-string')
 
-const createActionIdsByName = async queryInterface => {
-  const actionLines = await queryInterface.sequelize.query(`SELECT id, name FROM Actions`, {
-    type: queryInterface.sequelize.QueryTypes.SELECT
-  })
-
-  let idsByName = {}
-  for (const el of actionLines) idsByName[el.name] = el.id
-
-  return idsByName
-}
+const { createActionIdsByName } = require('../helpers/actionHelpers')
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -104,11 +95,11 @@ module.exports = {
         uuidByString('calendar_list')
       ]
 
-      //delete targets
-      await queryInterface.bulkDelete('Targets', { id: { [Op.in]: targetIds } }, { transaction: t })
-
       //delete permissions
       await queryInterface.bulkDelete('Permissions', { id: { [Op.in]: permissionIds } }, { transaction: t })
+
+      //delete targets
+      await queryInterface.bulkDelete('Targets', { id: { [Op.in]: targetIds } }, { transaction: t })
 
       //commit transaction
       await t.commit()

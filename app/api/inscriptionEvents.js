@@ -4,31 +4,43 @@ module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.inscriptionEvents
-  const { validate } = require('../validators/inscriptionevents.js')
+  const {
+    validationDevMessage,
+    unknownDevMessage,
+    idNotFoundDevMessage,
+    unauthorizedDevMessage,
+    forbbidenDeletionDevMessage
+  } = require('../helpers/error')
+  const { validate, validateBodyV2, validatePermission } = require('../validators/inscriptionevents.js')
   const { isEmpty } = require('../helpers/is-empty.js')
 
+  //InscriptionEvent create
   api.create = async (req, res) => {
-    // should validate input before trying to create
-    let errors
     try {
-      errors = await validate(req)
-    } catch (e) {
-      res.status(400).json(error.parse('inscriptionEvents-02', 'Error during validation'))
-    }
-
-    if (isEmpty(errors)) {
-      try {
-        const createdInscriptionEvent = await models.InscriptionEvent.create(req.body)
-        res.status(201).json(createdInscriptionEvent)
-      } catch (e) {
-        res.status(400).json(error.parse('inscriptionEvents-02', 'Error trying to create new Inscription Event.'))
+      //validation
+      const validationErrors = await validateBodyV2(req.body, models, 'create')
+      if (validationErrors) {
+        return res.status(400).json(error.parse('calendar-400', validationDevMessage(validationErrors)))
       }
-    } else {
-      res.status(400).json(error.parse('inscriptionEvents-02', { errors }))
+
+      //permission
+      const permissionErrors = await validatePermission(req, models, null)
+      if (permissionErrors) {
+        return res.status(401).json(error.parse('calendar-401', unauthorizedDevMessage(permissionErrors)))
+      }
+
+      //try to create
+      const created = await models.InscriptionEvent.create(req.body)
+      await created.reload() //para que o retorno seja igual ao de api.read.
+      return res.status(201).json(created)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('calendar-500', unknownDevMessage(err)))
     }
   }
 
-  api.specific = async (req, res) => {
+  api.read = async (req, res) => {
     try {
       const inscriptionEvent = await models.InscriptionEvent.findById(req.params.id)
 
