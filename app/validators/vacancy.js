@@ -104,7 +104,7 @@ const validateReserve = (value, db, mode, item) => {
 }
 
 const validateUnique = async (body, db, mode, item, errors) => {
-  if (!errors.callIdError && !errors.assignmentIdError && !errors.regionIdError && !errors.restrictionIdError) {
+  if (!errors.call_id && !errors.assignment_id && !errors.region_id && !errors.restriction_id) {
     const whereIgnoreOwnId = mode === 'update' ? { id: { [db.Sequelize.Op.not]: item.id } } : {}
 
     const call_id = body.call_id || item.call_id
