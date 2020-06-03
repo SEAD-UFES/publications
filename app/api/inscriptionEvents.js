@@ -20,13 +20,13 @@ module.exports = app => {
       //validation
       const validationErrors = await validateBodyV2(req.body, models, 'create')
       if (validationErrors) {
-        return res.status(400).json(error.parse('calendar-400', validationDevMessage(validationErrors)))
+        return res.status(400).json(error.parse('inscriptionEvent-400', validationDevMessage(validationErrors)))
       }
 
       //permission
       const permissionErrors = await validatePermission(req, models, null)
       if (permissionErrors) {
-        return res.status(401).json(error.parse('calendar-401', unauthorizedDevMessage(permissionErrors)))
+        return res.status(401).json(error.parse('inscriptionEvent-401', unauthorizedDevMessage(permissionErrors)))
       }
 
       //try to create
@@ -36,7 +36,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      return res.status(500).json(error.parse('calendar-500', unknownDevMessage(err)))
+      return res.status(500).json(error.parse('inscriptionEvent-500', unknownDevMessage(err)))
     }
   }
 

@@ -49,6 +49,9 @@ module.exports = (sequelize, DataTypes) => {
   InscriptionEvent.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
+    //remove fields
+    delete values.deletedAt
+
     values.link = {
       rel: 'inscriptionEvent',
       href: apiRoutes.find(r => r.key === 'inscriptionEventApiRoute').value + '/' + values.id

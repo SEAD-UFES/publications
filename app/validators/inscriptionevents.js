@@ -189,7 +189,12 @@ const validateBodyV2 = async (body, db, mode, item) => {
   const calendarIdError = await validateCalendarId(body.calendar_id, db, mode, item)
   if (calendarIdError) errors.calendar_id = calendarIdError
 
-  const numberOfInscriptionsAllowedError = validateNumberOfInscriptionsAllowed(body.calendar_id, db, mode, item)
+  const numberOfInscriptionsAllowedError = validateNumberOfInscriptionsAllowed(
+    body.numberOfInscriptionsAllowed,
+    db,
+    mode,
+    item
+  )
   if (numberOfInscriptionsAllowedError) errors.numberOfInscriptionsAllowed = numberOfInscriptionsAllowedError
 
   const allowMultipleAssignmentsError = validateAllowMultipleAssignments(body.allowMultipleAssignments, db, mode, item)
