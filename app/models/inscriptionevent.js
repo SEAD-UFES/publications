@@ -2,41 +2,57 @@
 
 'use strict'
 
-const uuid = require('uuid/v4')
 const apiRoutes = require('../../config/apiRoutes.json')
 
 module.exports = (sequelize, DataTypes) => {
   const InscriptionEvent = sequelize.define(
     'InscriptionEvent',
     {
-      startDate: DataTypes.DATE,
-      endDate: DataTypes.DATE,
-      numberOfInscriptionsAllowed: DataTypes.INTEGER,
-      allowMultipleAssignments: DataTypes.BOOLEAN,
-      allowMultipleRegions: DataTypes.BOOLEAN,
-      allowMultipleRestrictions: DataTypes.BOOLEAN
+      id: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false
+      },
+      calendar_id: {
+        type: DataTypes.UUID,
+        allowNull: false
+      },
+      numberOfInscriptionsAllowed: {
+        type: DataTypes.INTEGER,
+        defaultValue: 0,
+        allowNull: false
+      },
+      allowMultipleAssignments: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
+      },
+      allowMultipleRegions: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
+      },
+      allowMultipleRestrictions: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
+      }
     },
-    {}
+    { timestamps: true, paranoid: true }
   )
-  InscriptionEvent.associate = function(models) {
-    // associations can be defined here
+
+  InscriptionEvent.associate = function (models) {
+    InscriptionEvent.belongsTo(models.Calendar, { foreignKey: 'calendar_id', targetKey: 'id' })
   }
 
-  InscriptionEvent.beforeCreate((inscriptionEvent, _) => {
-    inscriptionEvent.id = uuid()
-    return inscriptionEvent
-  })
-
-  InscriptionEvent.prototype.toJSON = function() {
+  InscriptionEvent.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
     values.link = {
       rel: 'inscriptionEvent',
       href: apiRoutes.find(r => r.key === 'inscriptionEventApiRoute').value + '/' + values.id
     }
-
-    delete values.createdAt
-    delete values.updatedAt
 
     return values
   }
