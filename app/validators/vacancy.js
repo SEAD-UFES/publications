@@ -77,7 +77,7 @@ const validateQtd = (value, db, mode, item) => {
   }
 
   //value is a number
-  if (typeof value !== 'undefined' && !(Number.isInteger(value) || isNumeric(value))) {
+  if (typeof value !== 'undefined' && !Number.isInteger(Number(value)) ) {
     return 'Deve ser um número.'
   }
 
@@ -104,19 +104,26 @@ const validateReserve = (value, db, mode, item) => {
 }
 
 const validateUnique = async (body, db, mode, item, errors) => {
+
+  console.log(body)
+
   if (!errors.call_id && !errors.assignment_id && !errors.region_id && !errors.restriction_id) {
-    const whereIgnoreOwnId = mode === 'update' ? { id: { [db.Sequelize.Op.not]: item.id } } : {}
+    
+    // req.params.id está sendo passado em item, o ideal é que o nome fosse mais descritivo, item podem ser qualquer coisa 
+    const whereIgnoreOwnId = mode === 'update' ? { id: { [db.Sequelize.Op.not]: item } } : {} 
 
-    const call_id = body.call_id || item.call_id
-    const assignment_id = body.assignment_id || item.assignment_id
+    const { call_id, assignment_id } = body
+    const region_id =      body && body.region_id         ? body.region_id      : null
+    const restriction_id = body && body.resctriction_id   ? body.restriction_id : null
 
-    const region_id = (typeof body !== 'undefined' && body.region_id) 
-      || (typeof item !== 'undefined' && item.region_id) 
-      || null
-
-    const restriction_id = (typeof body !== 'undefined' && body.restriction_id) 
-      || (typeof item !== 'undefined' && item.restriction_id)
-      || null
+    console.log({
+      where: {
+        ...whereIgnoreOwnId,
+        call_id,
+        assignment_id,
+        region_id,
+        restriction_id
+    }})
 
     const duplicate = await db.Vacancy.findOne({
       where: {
