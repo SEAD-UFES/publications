@@ -3,7 +3,7 @@
 'use strict'
 
 const Sequelize = require('sequelize')
-const { isUUID, isNumeric, isISO8601, isInt } = require('validator')
+const { isUUID, isISO8601, isInt } = require('validator')
 
 const models = require('../models')
 const { findCourseIdByCalendarId } = require('../helpers/courseInfo')
@@ -86,7 +86,7 @@ const validateCalendarId = async (value, db, mode, item) => {
   }
 
   //value have to be valid
-  if (typeof value !== 'undefined' && (value === null || value === '')) {
+  if (typeof value !== 'undefined' && (value === null || value === '' || !isUUID(value))) {
     return 'Valor inválido.'
   }
 
@@ -113,7 +113,7 @@ const validateNumberOfInscriptionsAllowed = (value, db, mode, item) => {
 
   //value have to be a number
   if (typeof value === 'number') value = value.toString()
-  if (!isInt(value)) {
+  if (typeof value !== 'undefined' && !isInt(value)) {
     return 'Este campo deve ser um número inteiro.'
   }
 

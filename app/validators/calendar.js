@@ -137,7 +137,7 @@ const validateTimePeriod = (body, db, mode, item, startError, endError) => {
     if (mode === 'update') {
       if (!end && body.end) end = body.end
       if (!end && body.end === null) end = start
-      if (!end && typeof body.end === 'undefined' && item.end) end == item.end
+      if (!end && typeof body.end === 'undefined' && item.end) end = item.end
       if (!end && typeof body.end === 'undefined' && item.end === null) end = start
     }
 

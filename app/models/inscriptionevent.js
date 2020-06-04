@@ -46,6 +46,13 @@ module.exports = (sequelize, DataTypes) => {
     InscriptionEvent.belongsTo(models.Calendar, { foreignKey: 'calendar_id', targetKey: 'id' })
   }
 
+  InscriptionEvent.beforeDestroy(async (inscriptionEvent, _) => {
+    //Validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
+    //sem restrições para verificar
+    //Operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
+    //sem modelos associados para deletar
+  })
+
   InscriptionEvent.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
