@@ -68,17 +68,22 @@ module.exports = app => {
     )
   }
 
-  api.update = (req, res) => {
-    models.Vacancy.findById(req.params.id).then(vacancy => {
-      if (!vacancy) res.status(400).json(error.parse('vacancies-03', {}))
-      else
-        vacancy.update(req.body).then(
-          updatedVacancy => {
-            res.json(updatedVacancy)
-          },
-          e => res.status(500).json(error.parse('vacancies-02', e))
-        )
-    })
+  api.update = async (req, res) => {
+
+    try {
+      const errors = await validateBody(req.body, models, 'update', req.params.id)
+      if (errors) {
+        return res.status(400).json(error.parse('vacancy-400', validationDevMessage(errors)))
+      }
+
+      const vacancy = await models.Vacancy.findByPk(req.params.id)
+      const updated = await vacancy.update(req.body)
+
+      return res.json(updated)
+    } catch (err) {
+      return res.status(500).json(error.parse('vacancy-500', unknownDevMessage(err)))
+    } 
+
   }
 
   api.delete = (req, res) => {
