@@ -23,4 +23,25 @@ const filterVisibleByCallIds = async (callIds, user, db) => {
   )
 }
 
-module.exports = { filterVisibleByCallId, filterVisibleByCallIds }
+const filterVisibleByCalendarId = async (calendarId, user, db) => {
+  const calendar = await db.Calendar.findByPk(calendarId)
+  if (!calendar) return null
+
+  const callId = await filterVisibleByCallId(calendar.call_id, user, db)
+  if (!callId) return null
+
+  return calendarId
+}
+
+const filterVisibleByCalendarIds = async (calendarIds, user, db) => {
+  return Promise.all(calendarIds.map(id => filterVisibleByCalendarId(id, user, db))).then(new_list =>
+    new_list.filter(item => item !== null)
+  )
+}
+
+module.exports = {
+  filterVisibleByCallId,
+  filterVisibleByCallIds,
+  filterVisibleByCalendarId,
+  filterVisibleByCalendarIds
+}

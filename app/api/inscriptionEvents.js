@@ -11,8 +11,9 @@ module.exports = app => {
     unauthorizedDevMessage,
     forbbidenDeletionDevMessage
   } = require('../helpers/error')
-  const { validate, validateBodyV2, validatePermission } = require('../validators/inscriptionevents.js')
-  const { isEmpty } = require('../helpers/is-empty.js')
+  const { validateBodyV2, validatePermission } = require('../validators/inscriptionevents.js')
+  const { findUserByToken } = require('../helpers/userHelpers')
+  const { filterVisibleByCalendarId, filterVisibleByCalendarIds } = require('../helpers/selectiveProcessHelpers')
 
   //InscriptionEvent create
   api.create = async (req, res) => {
@@ -40,57 +41,116 @@ module.exports = app => {
     }
   }
 
+  //InscriptionEvent read
   api.read = async (req, res) => {
     try {
-      const inscriptionEvent = await models.InscriptionEvent.findById(req.params.id)
+      const toRead = await models.InscriptionEvent.findByPk(req.params.id)
 
-      if (inscriptionEvent) {
-        res.json(inscriptionEvent)
-      } else {
-        res.status(500).json(error.parse('inscriptionEvents-03'))
+      //verify valid id
+      if (!toRead) {
+        return res.status(400).json(error.parse('inscriptionEvent-400', idNotFoundDevMessage()))
       }
-    } catch (e) {
-      res.status(500).json(error.parse('inscriptionEvents-02', e))
+
+      //checar visibilidade do processo
+      const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
+      const visibleCalendarId = await filterVisibleByCalendarId(toRead.calendar_id, user, models)
+      if (!visibleCalendarId) {
+        return res.status(400).json(error.parse('inscriptionEvent-400', idNotFoundDevMessage()))
+      }
+
+      //return result
+      return res.json(toRead)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('inscriptionEvent-500', unknownDevMessage(err)))
+    }
+  }
+
+  //InscriptionEvent update
+  api.update = async (req, res) => {
+    try {
+      const toUpdate = await models.InscriptionEvent.findByPk(req.params.id)
+
+      //verify valid id
+      if (!toUpdate) {
+        return res.status(400).json(error.parse('inscriptionEvent-400', idNotFoundDevMessage()))
+      }
+
+      //validation
+      const validationErrors = await validateBodyV2(req.body, models, 'update', toUpdate)
+      if (validationErrors) {
+        return res.status(400).json(error.parse('inscriptionEvent-400', validationDevMessage(validationErrors)))
+      }
+
+      //permission
+      const permissionErrors = await validatePermission(req, models, toUpdate)
+      if (permissionErrors) {
+        return res.status(401).json(error.parse('inscriptionEvent-401', unauthorizedDevMessage(permissionErrors)))
+      }
+
+      //try to update
+      const updated = await toUpdate.update(req.body)
+      await updated.reload() //para que o retorno seja igual ao de api.read.
+      return res.status(201).json(updated)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('inscriptionEvent-500', unknownDevMessage(err)))
+    }
+  }
+
+  //InscriptionEvent delete
+  api.delete = async (req, res) => {
+    try {
+      const toDelete = await models.InscriptionEvent.findByPk(req.params.id)
+
+      //verify valid id
+      if (!toDelete) {
+        return res.status(400).json(error.parse('inscriptionEvent-400', idNotFoundDevMessage()))
+      }
+
+      //permission
+      const permissionErrors = await validatePermission(req, models, toDelete)
+      if (permissionErrors) {
+        return res.status(401).json(error.parse('inscriptionEvent-401', unauthorizedDevMessage(permissionErrors)))
+      }
+
+      //try to delete
+      await models.InscriptionEvent.destroy({
+        where: { id: req.params.id },
+        individualHooks: true
+      }).then(_ => res.sendStatus(204))
+
+      //if error
+    } catch (err) {
+      if (err.name === 'ForbbidenDeletionError')
+        return res.status(403).json(error.parse('inscriptionEvent-403', forbbidenDeletionDevMessage(err)))
+      return res.status(500).json(error.parse('inscriptionEvent-500', unknownDevMessage(err)))
     }
   }
 
   api.list = async (req, res) => {
+    const calendarIds = req.query.calendar_ids ? req.query.calendar_ids : []
     try {
-      const inscriptionEvents = await models.InscriptionEvent.findAll({})
-      res.json(inscriptionEvents)
-    } catch (e) {
-      res.status(500).json(error.parse('inscriptionEvents-02', e))
-    }
-  }
-
-  api.update = async (req, res) => {
-    let errors
-    try {
-      errors = await validate(req)
-    } catch (e) {
-      res.status(500).json(error.parse('inscriptionEvents-02', 'Error during validation'))
-    }
-
-    if (isEmpty(errors)) {
-      try {
-        const inscriptionEvent = await models.InscriptionEvent.findById(req.params.id)
-        const updatedInscriptionEvent = await inscriptionEvent.update(req.body, { fields: Object.keys(req.body) })
-        res.json(updatedInscriptionEvent)
-      } catch (e) {
-        res.status(500).json(error.parse('inscriptionEvents-02', e))
+      //validation
+      if (calendarIds.length === 0) {
+        const errors = { message: 'Array de pesquisa (calendar_ids) deve ser enviado.' }
+        return res.status(400).json(error.parse('inscriptionEvent-400', validationDevMessage(errors)))
       }
-    } else {
-      res.status(400).json(error.parse('inscriptionEvents-02', { errors }))
-    }
-  }
 
-  // should this respond with an error when the id does not exist?
-  api.delete = async (req, res) => {
-    try {
-      const inscriptionEvent = await models.InscriptionEvent.destroy({ where: { id: req.params.id } })
-      res.sendStatus(204)
-    } catch (e) {
-      res.status(500).json(error.parse('inscriptionEvents-02', e))
+      //checar visibilidade dos processos (e remover não autorizados da pesquisa)
+      const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
+      const filtredCldIds = await filterVisibleByCalendarIds(calendarIds, user, models)
+
+      //query and send
+      const whereCalendarIds = filtredCldIds.length > 0 ? { calendar_id: filtredCldIds } : { calendar_id: null }
+      const IEs = await models.InscriptionEvent.findAll({ where: { ...whereCalendarIds } })
+      return res.json(IEs)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('inscriptionEvent-500', unknownDevMessage(err)))
     }
   }
 
