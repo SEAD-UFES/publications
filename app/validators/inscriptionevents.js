@@ -90,10 +90,17 @@ const validateCalendarId = async (value, db, mode, item) => {
     return 'Valor inválido.'
   }
 
-  //calendar must exists
+  //validations (calendar and uniqueChild)
   if (typeof value !== 'undefined') {
     const calendar = await db.Calendar.findByPk(value)
+
+    //calendar must exists
     if (!calendar) return 'O item de calendário não existe.'
+
+    //IE have to be unique child of calendar
+    const whereIgnoreOwnId = mode === 'update' ? { id: { [db.Sequelize.Op.not]: item.id } } : {}
+    const IEs = await db.InscriptionEvent.findAll({ where: { calendar_id: calendar.id, ...whereIgnoreOwnId } })
+    if (IEs.length > 0) return 'O item de calendário já possui evento de inscrição associado.'
   }
 
   //no errors
