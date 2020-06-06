@@ -234,6 +234,12 @@ const validateDelete = async (calendar, models) => {
     return errors
   }
 
+  //Não pode ser deletado se tiver um inscriptionEvent associado.
+  const inscriptionEvents = await models.InscriptionEvent.count({ where: { calendar_id: calendar.id } })
+  if (inscriptionEvents > 0) {
+    errors.id = 'Este item de calendário é dependência de eventos de inscrição ativos.'
+  }
+
   return !isEmpty(errors) ? errors : null
 }
 
