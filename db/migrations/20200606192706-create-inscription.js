@@ -37,7 +37,8 @@ module.exports = {
         },
         number: {
           type: Sequelize.INTEGER,
-          allowNull: false
+          allowNull: false,
+          unique: true
         },
         createdAt: {
           type: Sequelize.DATE,
@@ -61,7 +62,8 @@ module.exports = {
       {
         uniqueKeys: {
           unique_inscriptionevent_person_vacancy_isActive: {
-            fields: ['inscriptionEvent_id', 'person_id', 'vacancy_id', 'isActive']
+            fields: ['inscriptionEvent_id', 'person_id', 'vacancy_id', 'isActive'],
+            customIndex: true
           }
         }
       }

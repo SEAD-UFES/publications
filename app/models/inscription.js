@@ -1,6 +1,9 @@
 /** @format */
 
 'use strict'
+
+const apiRoutes = require('../../config/apiRoutes.json')
+
 module.exports = (sequelize, DataTypes) => {
   const Inscription = sequelize.define(
     'Inscription',
@@ -21,7 +24,8 @@ module.exports = (sequelize, DataTypes) => {
       },
       vacancy_id: {
         type: DataTypes.UUID,
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
       number: {
         type: DataTypes.INTEGER,
@@ -35,12 +39,15 @@ module.exports = (sequelize, DataTypes) => {
     Inscription.belongsTo(models.InscriptionEvent, { foreignKey: 'inscriptionEvent_id', targetKey: 'id' })
   }
 
-  Inscription.beforeCreate(async (inscription, _) => {
-    //Gerar numero de inscrição.
-  })
-
-  Inscription.beforeUpdate(async (inscription, _) => {
-    //Proibir atualização do numero de inscrição.
+  Inscription.beforeValidate(async (inscription, _) => {
+    //gerar numero de inscrição
+    const maxQuery = await sequelize.models.Inscription.findAll({
+      attributes: [[sequelize.fn('MAX', sequelize.col('number')), 'maxNumber']],
+      paranoid: false,
+      where: { inscriptionEvent_id: inscription.inscriptionEvent_id }
+    })
+    const maxNumber = maxQuery[0].dataValues.maxNumber
+    inscription.number = maxNumber ? maxNumber + 1 : 1
   })
 
   Inscription.beforeDestroy(async (inscription, _) => {
@@ -58,7 +65,7 @@ module.exports = (sequelize, DataTypes) => {
 
     //"follow your nose..."
     values.link = {
-      rel: 'calendar',
+      rel: 'inscription',
       href: apiRoutes.find(r => r.key === 'inscriptionApiRoute').value + '/' + values.id
     }
     return values

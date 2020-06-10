@@ -39,9 +39,27 @@ const filterVisibleByCalendarIds = async (calendarIds, user, db) => {
   )
 }
 
+const filterVisibleByInscriptionEventId = async (inscriptionEventId, user, db) => {
+  const inscriptionEvent = await db.InscriptionEvent.findByPk(inscriptionEventId)
+  if (!inscriptionEvent) return null
+
+  const calendarId = await filterVisibleByCalendarId(inscriptionEvent.calendar_id, user, db)
+  if (!calendarId) return null
+
+  return inscriptionEventId
+}
+
+const filterVisibleByInscriptionEventIds = async (inscriptionEventIds, user, db) => {
+  return Promise.all(inscriptionEventIds.map(id => filterVisibleByInscriptionEventId(id, user, db))).then(new_list =>
+    new_list.filter(item => item !== null)
+  )
+}
+
 module.exports = {
   filterVisibleByCallId,
   filterVisibleByCallIds,
   filterVisibleByCalendarId,
-  filterVisibleByCalendarIds
+  filterVisibleByCalendarIds,
+  filterVisibleByInscriptionEventId,
+  filterVisibleByInscriptionEventIds
 }

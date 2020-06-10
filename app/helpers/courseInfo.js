@@ -22,7 +22,14 @@ const findCourseIdByCalendarId = async (calendar_id, db) => {
   const calendar = await db.Calendar.findByPk(calendar_id)
   if (!calendar) return null
 
-  return await findCourseIdCallId(calendar.call_id, db)
+  return await findCourseIdByCallId(calendar.call_id, db)
+}
+
+const findCourseIdByInscriptionEventId = async (inscriptionEvent_id, db) => {
+  const inscriptionEvent = await db.InscriptionEvent.findByPk(inscriptionEvent_id)
+  if (!inscriptionEvent) return null
+
+  return findCourseIdByCalendarId(inscriptionEvent.calendar_id, db)
 }
 
 const paramRoute = async url => {
@@ -151,5 +158,6 @@ module.exports = {
   getCourseId,
   findCourseIdBySelectiveProcessId,
   findCourseIdByCallId,
-  findCourseIdByCalendarId
+  findCourseIdByCalendarId,
+  findCourseIdByInscriptionEventId
 }
