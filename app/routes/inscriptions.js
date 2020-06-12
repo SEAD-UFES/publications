@@ -6,11 +6,11 @@ module.exports = app => {
 
   app
     .route(app.get('inscriptionApiRoute'))
-    .post(authApi.authenticationRequired, authApi.adminRequired, api.create)
+    .post(authApi.authenticationRequired, api.create)
     .get(authApi.authenticationRequired, api.list)
 
   app
     .route(app.get('inscriptionApiRoute') + '/:id')
-    .get(authApi.authenticationRequired, authApi.adminRequired, api.read)
-    .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete)
+    .get(authApi.authenticationRequired, api.read)
+    .delete(authApi.authenticationRequired, api.delete)
 }

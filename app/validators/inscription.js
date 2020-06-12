@@ -8,6 +8,8 @@ const { isUUID } = require('validator')
 const { isEmpty } = require('../helpers/is-empty.js')
 const { isAdmin, hasGlobalPermission, hasCoursePermission, hasAnyPermission } = require('../helpers/permissionCheck')
 const { findCourseIdByInscriptionEventId } = require('../helpers/courseHelpers')
+const { filterVisibleByInscriptionEventId } = require('../helpers/selectiveProcessHelpers')
+const { checkIsUserInscription } = require('../helpers/inscriptionHelpers')
 
 const validateInscriptionEventId = async (value, db, mode, item) => {
   //value mandatory on create
@@ -162,17 +164,12 @@ const validatePermission = async (req, db, item) => {
 
   //delete case
   if (req.method === 'DELETE') {
-    const permission = 'inscription_delete'
-    const courseId = (await findCourseIdByInscriptionEventId(item.inscriptionEvent_id, db)) || ''
     const errorMessage = 'O usuário não tem permissão para deletar essa inscrição.'
 
-    //if have permission
-    if (hasAnyPermission(req.user, permission, courseId)) return null
-
-    //Or if the inscription is mine
-    const isVisible = await filterVisibleByInscriptionEventId(item.inscriptionEvent_id, user, db)
-    const isMyInscription = checkIsUserInscription(inscription, user, db)
-    if (isVisible && isMyInscription) return null
+    //Only owner can delete his inscription
+    const isVisible = await filterVisibleByInscriptionEventId(item.inscriptionEvent_id, req.user, db)
+    const isOwner = await checkIsUserInscription(item, req.user, db)
+    if (isVisible && isOwner) return null
 
     errors.message = errorMessage
   }
