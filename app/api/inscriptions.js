@@ -91,6 +91,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
+      console.log(err)
       if (err.name === 'ForbbidenDeletionError')
         return res.status(403).json(error.parse('inscription-403', forbbidenDeletionDevMessage(err)))
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))

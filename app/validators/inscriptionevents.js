@@ -6,7 +6,7 @@ const Sequelize = require('sequelize')
 const { isUUID, isISO8601, isInt } = require('validator')
 
 const models = require('../models')
-const { findCourseIdByCalendarId } = require('../helpers/courseInfo')
+const { findCourseIdByCalendarId } = require('../helpers/courseHelpers')
 const { isAdmin, hasAnyPermission } = require('../helpers/permissionCheck')
 const { isEmpty } = require('../helpers/is-empty.js')
 

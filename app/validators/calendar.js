@@ -6,7 +6,7 @@ const { isISO8601 } = require('validator')
 const { isEmpty } = require('lodash')
 const moment = require('moment')
 
-const { findCourseIdByCallId } = require('../helpers/courseInfo')
+const { findCourseIdByCallId } = require('../helpers/courseHelpers')
 const { isAdmin, hasAnyPermission } = require('../helpers/permissionCheck')
 const { isFullDateTime } = require('../helpers/validatorHelpers')
 

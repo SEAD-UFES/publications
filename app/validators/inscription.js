@@ -7,7 +7,7 @@ const { isUUID } = require('validator')
 
 const { isEmpty } = require('../helpers/is-empty.js')
 const { isAdmin, hasGlobalPermission, hasCoursePermission, hasAnyPermission } = require('../helpers/permissionCheck')
-const { findCourseIdByInscriptionEventId } = require('../helpers/courseInfo')
+const { findCourseIdByInscriptionEventId } = require('../helpers/courseHelpers')
 
 const validateInscriptionEventId = async (value, db, mode, item) => {
   //value mandatory on create
@@ -201,4 +201,24 @@ const validatePermissionRead = async (inscription, user, db) => {
   return { message: 'O usuário não tem permissão para acessar esse recurso.' }
 }
 
-module.exports = { validateBody, validatePermission, validatePermissionRead }
+//Validate delete
+const validateDelete = async (inscription, db) => {
+  const errors = {}
+
+  //Não pode ser deletado se estiver fora do periodo de inscrição.
+  const inscriptionEvent = await db.InscriptionEvent.findByPk(inscription.inscriptionEvent_id)
+  const calendar = await db.Calendar.findByPk(inscriptionEvent.calendar_id)
+  const calendarStatus = await calendar.calculateStatus()
+  const status = {
+    ag: 'Aguardando',
+    atd: 'Atrasado por dependência',
+    at: 'Atrasado',
+    ad: 'Em andamento',
+    cc: 'Concluído!'
+  }
+  if (calendarStatus !== status['ad']) errors.id = 'Não é possivel excluir inscrições fora do periodo de inscrição.'
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = { validateBody, validatePermission, validatePermissionRead, validateDelete }
