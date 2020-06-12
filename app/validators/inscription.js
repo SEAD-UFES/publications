@@ -92,6 +92,35 @@ const validateUnique_IEv_Per_Vac = async (body, db, mode, item, errors) => {
   return null
 }
 
+const validatePossibleInscription = async (body, db, mode, item, errors) => {
+  if (!errors.inscriptionEventIdError) {
+    const inscriptionEvent = await db.InscriptionEvent.findByPk(body.inscriptionEvent_id)
+    const calendar = await db.Calendar.findByPk(inscriptionEvent.calendar_id)
+    const calendarStatus = await calendar.calculateStatus()
+
+    const status = {
+      ag: 'Aguardando',
+      atd: 'Atrasado por dependência',
+      at: 'Atrasado',
+      ad: 'Em andamento',
+      cc: 'Concluído!'
+    }
+
+    if (calendarStatus === status['ag']) return 'O período de inscrição não começou.'
+
+    if (calendarStatus === status['atd']) return 'O evento de inscrição está atrasado por uma dependência.'
+
+    if (calendarStatus === status['at']) return 'O evento de inscrição está atrasado.'
+
+    //if (calendarStatus === status['ad']) Evento em andamento, sem problemas para se inscrever.
+
+    if (calendarStatus === status['cc']) return 'O evento de inscrição já terminou.'
+
+    //no errors
+    return null
+  }
+}
+
 const validateBody = async (body, db, mode, item) => {
   let errors = {}
 
@@ -109,7 +138,16 @@ const validateBody = async (body, db, mode, item) => {
   //validações de modelo
 
   const uniqueError = await validateUnique_IEv_Per_Vac(body, db, mode, item, errors)
-  if (uniqueError) errors.message = uniqueError
+  if (uniqueError) {
+    errors.message = uniqueError
+    return errors
+  }
+
+  const possibleInscriptionError = await validatePossibleInscription(body, db, mode, item, errors)
+  if (possibleInscriptionError) {
+    errors.message = possibleInscriptionError
+    return errors
+  }
 
   return !isEmpty(errors) ? errors : null
 }

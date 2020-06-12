@@ -1,6 +1,8 @@
 /** @format */
 'use strict'
 
+const moment = require('moment')
+
 const apiRoutes = require('../../config/apiRoutes.json')
 const { validateDelete } = require('../validators/calendar')
 
@@ -60,6 +62,38 @@ module.exports = (sequelize, DataTypes) => {
     //operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
     //sem modelos associados para deletar
   })
+
+  Calendar.prototype.calculateStatus = async function () {
+    const status = {
+      ag: 'Aguardando',
+      atd: 'Atrasado por dependência',
+      at: 'Atrasado',
+      ad: 'Em andamento',
+      cc: 'Concluído!'
+    }
+
+    const ready = this.ready
+    const now = moment()
+    const startDate = moment(this.start)
+    const endDate = this.end ? moment(this.end) : startDate
+
+    //Aguardando
+    if (now < startDate) return status['ag']
+
+    //Atrasado por dependencia
+    const fatherCalendar = this.calendar_id ? await sequelize.models.Calendar.findByPk(this.calendar_id) : null
+    const fatherStatus = fatherCalendar ? await fatherCalendar.calculateStatus() : null
+    if (fatherStatus === status['atd'] || fatherStatus === status['at']) return status['atd']
+
+    //Atrasado
+    if (ready === false && now > startDate) return status['at']
+
+    //Em andamento
+    if (ready === true && now > startDate && now < endDate) return status['ad']
+
+    //Concluído
+    return status['cc']
+  }
 
   Calendar.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
