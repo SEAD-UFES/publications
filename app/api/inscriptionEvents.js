@@ -11,7 +11,7 @@ module.exports = app => {
     unauthorizedDevMessage,
     forbbidenDeletionDevMessage
   } = require('../helpers/error')
-  const { validateBodyV2, validatePermission } = require('../validators/inscriptionevents.js')
+  const { validateBody, validatePermission } = require('../validators/inscriptionevents.js')
   const { findUserByToken } = require('../helpers/userHelpers')
   const { filterVisibleByCalendarId, filterVisibleByCalendarIds } = require('../helpers/selectiveProcessHelpers')
 
@@ -19,7 +19,7 @@ module.exports = app => {
   api.create = async (req, res) => {
     try {
       //validation
-      const validationErrors = await validateBodyV2(req.body, models, 'create')
+      const validationErrors = await validateBody(req.body, models, 'create')
       if (validationErrors) {
         return res.status(400).json(error.parse('inscriptionEvent-400', validationDevMessage(validationErrors)))
       }
@@ -78,7 +78,7 @@ module.exports = app => {
       }
 
       //validation
-      const validationErrors = await validateBodyV2(req.body, models, 'update', toUpdate)
+      const validationErrors = await validateBody(req.body, models, 'update', toUpdate)
       if (validationErrors) {
         return res.status(400).json(error.parse('inscriptionEvent-400', validationDevMessage(validationErrors)))
       }

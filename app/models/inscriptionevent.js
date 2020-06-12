@@ -3,6 +3,7 @@
 'use strict'
 
 const apiRoutes = require('../../config/apiRoutes.json')
+const { validateDelete } = require('../validators/inscriptionevents')
 
 module.exports = (sequelize, DataTypes) => {
   const InscriptionEvent = sequelize.define(
@@ -48,7 +49,11 @@ module.exports = (sequelize, DataTypes) => {
 
   InscriptionEvent.beforeDestroy(async (inscriptionEvent, _) => {
     //Validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
-    //sem restrições para verificar
+    const errors = await validateDelete(inscriptionEvent, sequelize.models)
+    if (errors) {
+      throw { name: 'ForbbidenDeletionError', traceback: 'Calendar', errors: errors }
+    }
+
     //Operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
     //sem modelos associados para deletar
   })

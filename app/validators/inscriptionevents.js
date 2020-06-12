@@ -10,75 +10,6 @@ const { findCourseIdByCalendarId } = require('../helpers/courseInfo')
 const { isAdmin, hasAnyPermission } = require('../helpers/permissionCheck')
 const { isEmpty } = require('../helpers/is-empty.js')
 
-const validBool = value => [true, false, 0, 1].includes(value)
-
-const validate = async ({ body, method, params }) => {
-  try {
-    if (method === 'PUT')
-      return {
-        ...(await validateId(params.id)),
-        ...(await validateBody(body, params.id))
-      }
-    else return await validateBody(body)
-  } catch (e) {
-    console.log('Error in InscrptionEvent validation.')
-    throw e
-  }
-}
-
-const validateId = async id => {
-  const errors = {}
-
-  if (isUUID(id)) {
-    try {
-      const foundInscription = await models.InscriptionEvent.findById(id)
-      if (isEmpty(foundInscription)) errors.id = 'Não há inscrições correspondentes a esse identificador.'
-    } catch (e) {
-      errors.id = 'Não foi possível encontrar essa inscrição no banco de dados.'
-    }
-  } else errors.id = 'A inscrição enviada não tem um identificador válido.'
-
-  return errors
-}
-
-const validateBody = async (
-  {
-    startDate,
-    endDate,
-    numberOfInscriptionsAllowed,
-    allowMultipleAssignments,
-    allowMultipleRegions,
-    allowMultipleRestrictions
-  },
-  hasId
-) => {
-  const ignoreOwnId = hasId ? { id: { [Sequelize.Op.not]: hasId } } : {}
-  const errors = {}
-
-  if (!startDate || !isISO8601(startDate))
-    errors.startDate = 'A inscrição precisa de uma data de abertura válida, posterior a data atual.' // onde eu checo ser posterior ????
-
-  if (!endDate || !isISO8601(endDate))
-    errors.endDate = 'A inscrição precisa de uma data de fechamento válida, posterior a data atual.' // onde eu checo ser posterior ????
-
-  if (!errors.startDate && !errors.endDate && startDate >= endDate)
-    errors.startDate = errors.endDate = 'A data de fechamento da inscrição precisa ser posterior a data de abertura.'
-
-  if (typeof numberOfInscriptionsAllowed !== 'undefined' && !Number.isInteger(numberOfInscriptionsAllowed))
-    errors.numberOfInscriptionsAllowed = 'O número de inscrições permitidas precisa ser um número inteiro.'
-
-  if (typeof allowMultipleAssignments !== 'undefined' && !validBool(allowMultipleAssignments))
-    errors.allowMultipleAssignments = 'É necessário definir se é permitido fazer mais de uma inscrição por atribuição.'
-
-  if (typeof allowMultipleRegions !== 'undefined' && !validBool(allowMultipleRegions))
-    errors.allowMultipleRegions = 'É necessário definir se é permitido fazer mais de uma inscrição por região.'
-
-  if (typeof allowMultipleRestrictions !== 'undefined' && !validBool(allowMultipleRestrictions))
-    errors.allowMultipleRestrictions = 'É necessário definir se é permitido fazer mais de uma inscrição por restrição.'
-
-  return errors
-}
-
 const validateCalendarId = async (value, db, mode, item) => {
   //value mandatory on create
   if (typeof value === 'undefined' && mode === 'create') {
@@ -188,7 +119,7 @@ const validateAllowMultipleRestrictions = (value, db, mode, item) => {
   return null
 }
 
-const validateBodyV2 = async (body, db, mode, item) => {
+const validateBody = async (body, db, mode, item) => {
   let errors = {}
 
   //validações de campo
@@ -270,4 +201,18 @@ const validatePermission = async (req, db, item) => {
   return !isEmpty(errors) ? errors : null
 }
 
-module.exports = { validate, validateBodyV2, validatePermission }
+//Validate delete
+const validateDelete = async (inscriptionEvent, models) => {
+  const errors = {}
+
+  //Não pode ser deletado se tiver uma inscription associada.
+  const inscriptions = await models.Inscription.count({ where: { inscriptionEvent_id: inscriptionEvent.id } })
+  if (inscriptions > 0) {
+    errors.id = 'Este evento de inscrição é dependência de inscrições ativas.'
+    return errors
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = { validateBody, validatePermission, validateDelete }
