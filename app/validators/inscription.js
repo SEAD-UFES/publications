@@ -216,7 +216,16 @@ const validatePermission = async (req, db, item) => {
 
   //create case
   if (req.method === 'POST') {
-    //Para criar inscrição é necessário apenas esar logado. (Caso coberto pelo middleware)
+    const errorMessage = 'O usuário não tem permissão para criar essa inscrição.'
+    const inscriptionEvent_id = req.body.inscriptionEvent_id
+    const person_id = req.body.person_id
+
+    //Only owner can create his inscription
+    const isVisible = await filterVisibleByInscriptionEventId(inscriptionEvent_id, req.user, db)
+    const isOwner = await checkIsUserInscription({ person_id: person_id }, req.user, db)
+    if (isVisible && isOwner) return null
+
+    errors.message = errorMessage
   }
 
   //delete case
