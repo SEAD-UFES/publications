@@ -38,6 +38,8 @@ module.exports = (sequelize, DataTypes) => {
 
   Inscription.associate = function (models) {
     Inscription.belongsTo(models.InscriptionEvent, { foreignKey: 'inscriptionEvent_id', targetKey: 'id' })
+    Inscription.belongsTo(models.Person, { foreignKey: 'person_id', targetKey: 'id' })
+    Inscription.belongsTo(models.Vacancy, { foreignKey: 'vacancy_id', targetKey: 'id' })
   }
 
   Inscription.beforeValidate(async (inscription, _) => {

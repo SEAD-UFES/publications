@@ -94,7 +94,58 @@ const validateUnique_IEv_Per_Vac = async (body, db, mode, item, errors) => {
   return null
 }
 
-const validatePossibleInscription = async (body, db, mode, item, errors) => {
+const validateEventRestrictions = async (body, db, mode, item, errors) => {
+  if (!errors.inscriptionEventIdError && !errors.personIdError) {
+    const vacancyInclude = { model: db.Vacancy, required: false }
+    const inscriptionEvent = await db.InscriptionEvent.findByPk(body.inscriptionEvent_id)
+
+    const brotherInscriptions = await db.Inscription.findAll({
+      where: { person_id: body.person_id },
+      include: [vacancyInclude]
+    })
+
+    //validate numberOfInscriptionsAllowed
+    if (inscriptionEvent.numberOfInscriptionsAllowed > 0) {
+      if (brotherInscriptions.length >= inscriptionEvent.numberOfInscriptionsAllowed) {
+        return 'Não é possivel se inscrever em mais vagas.'
+      }
+    }
+
+    //Selecionando a oferta de vaga para as proximas validações.
+    const vacancy = await db.Vacancy.findByPk(body.vacancy_id)
+
+    //validate allowMultipleAssignments
+    if (!inscriptionEvent.allowMultipleAssignments) {
+      const filterOtherInscByAssigId = assignment_id => inscription =>
+        inscription.Vacancy.assignment_id !== assignment_id ? true : false
+
+      const otherAssigIns = brotherInscriptions.filter(filterOtherInscByAssigId(vacancy.assignment_id))
+      if (otherAssigIns.length > 0) return 'Não é possivel se inscrever em múltiplos cargos.'
+    }
+
+    //validate allowMultipleRegions
+    if (!inscriptionEvent.allowMultipleRegions) {
+      const filterOtherInsByRegionId = region_id => inscription =>
+        inscription.Vacancy.region_id !== region_id ? true : false
+
+      const otherRegionIns = brotherInscriptions.filter(filterOtherInsByRegionId(vacancy.region_id))
+      if (otherRegionIns.length > 0) return 'Não é possivel se inscrever em múltiplas regiões.'
+    }
+
+    //validate allowMultipleRestrictions
+    if (!inscriptionEvent.allowMultipleRestrictions) {
+      const filterOtherInsByRestrictionId = restriction_id => inscription =>
+        inscription.Vacancy.restriction_id !== restriction_id ? true : false
+
+      const otherRestrictionIns = brotherInscriptions.filter(filterOtherInsByRestrictionId(vacancy.restrction_id))
+      if (otherRestrictionIns.length > 0) return 'Não é possivel se inscrever em múltiplas restrições.'
+    }
+
+    return null
+  }
+}
+
+const validateCalendarRestrictions = async (body, db, mode, item, errors) => {
   if (!errors.inscriptionEventIdError) {
     const inscriptionEvent = await db.InscriptionEvent.findByPk(body.inscriptionEvent_id)
     const calendar = await db.Calendar.findByPk(inscriptionEvent.calendar_id)
@@ -145,9 +196,15 @@ const validateBody = async (body, db, mode, item) => {
     return errors
   }
 
-  const possibleInscriptionError = await validatePossibleInscription(body, db, mode, item, errors)
-  if (possibleInscriptionError) {
-    errors.message = possibleInscriptionError
+  const eventRestrictionsError = await validateEventRestrictions(body, db, mode, item, errors)
+  if (eventRestrictionsError) {
+    errors.message = eventRestrictionsError
+    return errors
+  }
+
+  const calendarRestrictionsError = await validateCalendarRestrictions(body, db, mode, item, errors)
+  if (calendarRestrictionsError) {
+    errors.message = calendarRestrictionsError
     return errors
   }
 
