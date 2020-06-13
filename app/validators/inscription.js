@@ -6,7 +6,7 @@ const Sequelize = require('sequelize')
 const { isUUID } = require('validator')
 
 const { isEmpty } = require('../helpers/is-empty.js')
-const { isAdmin, hasGlobalPermission, hasCoursePermission, hasAnyPermission } = require('../helpers/permissionCheck')
+const { isAdmin, hasGlobalPermission, hasCoursePermission } = require('../helpers/permissionCheck')
 const { findCourseIdByInscriptionEventId } = require('../helpers/courseHelpers')
 const { filterVisibleByInscriptionEventId } = require('../helpers/selectiveProcessHelpers')
 const { checkIsUserInscription } = require('../helpers/inscriptionHelpers')
