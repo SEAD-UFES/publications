@@ -284,4 +284,34 @@ const validateDelete = async (inscription, db) => {
   return !isEmpty(errors) ? errors : null
 }
 
-module.exports = { validateBody, validatePermission, validatePermissionRead, validateDelete }
+//validateDeleteBody
+const validateDeleteBody = (body, db) => {
+  let errors = {}
+
+  const descriptionError = validateDescription(body.description, db)
+  if (descriptionError) errors.description = descriptionError
+
+  return !isEmpty(errors) ? errors : null
+}
+
+const validateDescription = (value, db) => {
+  //value is necessary
+  if (typeof value === 'undefined') {
+    return 'Este campo é necessário.'
+  }
+
+  //value is valid
+  if (typeof value !== 'undefined' && (value === null || value === '')) {
+    return 'Este campo é requerido.'
+  }
+
+  //tamanho mínimo
+  if (typeof value !== 'undefined' && (typeof value !== 'string' || value.length <= 20 || value.length >= 255)) {
+    return 'A justificativa precisa ter entre 20 e 255 caracteres.'
+  }
+
+  //no errors
+  return null
+}
+
+module.exports = { validateBody, validatePermission, validatePermissionRead, validateDelete, validateDeleteBody }

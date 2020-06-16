@@ -11,7 +11,12 @@ module.exports = app => {
     unauthorizedDevMessage,
     forbbidenDeletionDevMessage
   } = require('../helpers/error')
-  const { validateBody, validatePermission, validatePermissionRead } = require('../validators/inscription.js')
+  const {
+    validateBody,
+    validatePermission,
+    validatePermissionRead,
+    validateDeleteBody
+  } = require('../validators/inscription.js')
   const { filterVisibleByInscriptionEventIds } = require('../helpers/selectiveProcessHelpers')
 
   //Inscription create
@@ -69,6 +74,8 @@ module.exports = app => {
 
   //Inscription delete
   api.delete = async (req, res) => {
+    console.log('DELETING...')
+    const t = await models.sequelize.transaction()
     try {
       const toDelete = await models.Inscription.findByPk(req.params.id)
 
@@ -77,21 +84,35 @@ module.exports = app => {
         return res.status(400).json(error.parse('inscription-400', idNotFoundDevMessage()))
       }
 
+      //validate Justification
+      const validationErrors = validateDeleteBody(req.body, models)
+      if (validationErrors) {
+        return res.status(400).json(error.parse('inscription-400', validationDevMessage(validationErrors)))
+      }
+
       //permission
       const permissionErrors = await validatePermission(req, models, toDelete)
       if (permissionErrors) {
         return res.status(401).json(error.parse('inscription-401', unauthorizedDevMessage(permissionErrors)))
       }
 
+      //create justification
+      const justification = { inscription_id: toDelete.id, description: req.body.description }
+      await models.Justification.create(justification, { transaction: t })
+
       //try to delete
       await models.Inscription.destroy({
         where: { id: req.params.id },
-        individualHooks: true
+        individualHooks: true,
+        transaction: t
       }).then(_ => res.sendStatus(204))
+
+      //commit transaction
+      await t.commit()
 
       //if error
     } catch (err) {
-      console.log(err)
+      await t.rollback()
       if (err.name === 'ForbbidenDeletionError')
         return res.status(403).json(error.parse('inscription-403', forbbidenDeletionDevMessage(err)))
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
@@ -123,7 +144,6 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      console.log('err', err)
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
     }
   }
