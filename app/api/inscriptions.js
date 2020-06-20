@@ -1,5 +1,7 @@
 /** @format */
 
+const { Op } = require('sequelize')
+
 module.exports = app => {
   const models = require('../models')
   const api = {}
@@ -18,6 +20,7 @@ module.exports = app => {
     validateDeleteBody
   } = require('../validators/inscription.js')
   const { filterVisibleByInscriptionEventIds } = require('../helpers/selectiveProcessHelpers')
+  const { findCourseIdByInscriptionEventId } = require('../helpers/courseHelpers')
 
   //Inscription create
   api.create = async (req, res) => {
@@ -129,17 +132,37 @@ module.exports = app => {
       }
 
       //Checar visibilidade dos processos (e remover não autorizados da pesquisa).
-      //Tenho req.user pois estar logado é obrigatório nesse caso.
+      //Tenho req.user pois estar logado é obrigatório nesse caso. WRONG!!!
       const user = req.user
       const filtredInscriptionEventIds = await filterVisibleByInscriptionEventIds(inscriptionEventIds, user, models)
-      console.log('filtredInscriptionEventIds', filtredInscriptionEventIds)
+
+      const filterReadPermissionId = async (user, ieId, db) => {
+        const courseId = await findCourseIdByInscriptionEventId(ieId, db)
+        const havePermission = hasAnyPermission(user, 'inscription_read', courseId)
+        return havePermission ? ieId : null
+      }
+
+      const filterReadPermissionIds = async (ieIds, user, db) => {
+        return Promise.all(ieIds.map(id => filterReadPermissionId(id, user, db))).then(new_list =>
+          new_list.filter(item => item !== null)
+        )
+      }
+
+      const eventsWithFullPermissionIds = await filterReadPermissionIds(filtredInscriptionEventIds, user, models)
+      const eventsWithOwnerPermissionIds = filtredInscriptionEventIds.filter(
+        ieId => !eventsWithFullPermissionIds.includes(ieId)
+      )
 
       //query and send
-      const whereInscriptionEventIds =
-        filtredInscriptionEventIds.length > 0
-          ? { inscriptionEvent_id: filtredInscriptionEventIds }
-          : { inscriptionEvent_id: null }
-      const inscriptions = await models.Inscription.findAll({ where: { ...whereInscriptionEventIds } })
+      const inscriptions = await models.Inscription.findAll({
+        where: {
+          [Op.and]: [
+            { inscriptionEvent_id: eventsWithFullPermissionIds },
+            { inscriptionEvent_id: eventsWithOwnerPermissionIds, personId: person_id }
+          ]
+        }
+      })
+
       return res.json(inscriptions)
 
       //if error
