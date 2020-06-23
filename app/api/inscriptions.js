@@ -21,6 +21,7 @@ module.exports = app => {
   } = require('../validators/inscription.js')
   const { filterVisibleByInscriptionEventIds } = require('../helpers/selectiveProcessHelpers')
   const { findCourseIdByInscriptionEventId } = require('../helpers/courseHelpers')
+  const { hasAnyPermission } = require('../helpers/permissionCheck')
 
   //Inscription create
   api.create = async (req, res) => {
@@ -132,8 +133,9 @@ module.exports = app => {
       }
 
       //Checar visibilidade dos processos (e remover não autorizados da pesquisa).
-      //Tenho req.user pois estar logado é obrigatório nesse caso. WRONG!!!
+      //Se o usuário deve estar logado para requisitar
       const user = req.user
+      const person = user ? await user.getPerson() : null
       const filtredInscriptionEventIds = await filterVisibleByInscriptionEventIds(inscriptionEventIds, user, models)
 
       const filterReadPermissionId = async (user, ieId, db) => {
@@ -142,13 +144,13 @@ module.exports = app => {
         return havePermission ? ieId : null
       }
 
-      const filterReadPermissionIds = async (ieIds, user, db) => {
-        return Promise.all(ieIds.map(id => filterReadPermissionId(id, user, db))).then(new_list =>
+      const filterReadPermissionIds = async (user, ieIds, db) => {
+        return Promise.all(ieIds.map(id => filterReadPermissionId(user, id, db))).then(new_list =>
           new_list.filter(item => item !== null)
         )
       }
 
-      const eventsWithFullPermissionIds = await filterReadPermissionIds(filtredInscriptionEventIds, user, models)
+      const eventsWithFullPermissionIds = await filterReadPermissionIds(user, filtredInscriptionEventIds, models)
       const eventsWithOwnerPermissionIds = filtredInscriptionEventIds.filter(
         ieId => !eventsWithFullPermissionIds.includes(ieId)
       )
@@ -156,9 +158,9 @@ module.exports = app => {
       //query and send
       const inscriptions = await models.Inscription.findAll({
         where: {
-          [Op.and]: [
+          [Op.or]: [
             { inscriptionEvent_id: eventsWithFullPermissionIds },
-            { inscriptionEvent_id: eventsWithOwnerPermissionIds, personId: person_id }
+            { inscriptionEvent_id: eventsWithOwnerPermissionIds, person_id: person ? person.id : null }
           ]
         }
       })
