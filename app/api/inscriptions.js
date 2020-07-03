@@ -78,7 +78,6 @@ module.exports = app => {
 
   //Inscription delete
   api.delete = async (req, res) => {
-    console.log('DELETING...')
     const t = await models.sequelize.transaction()
     try {
       const toDelete = await models.Inscription.findByPk(req.params.id)
