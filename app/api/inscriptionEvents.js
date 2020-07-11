@@ -131,17 +131,33 @@ module.exports = app => {
   }
 
   api.list = async (req, res) => {
+    const call_id = req.query.call_id ? req.query.call_id : null
     const calendarIds = req.query.calendar_ids ? req.query.calendar_ids : []
+
     try {
       //validation
-      if (calendarIds.length === 0) {
-        const errors = { message: 'Array de pesquisa (calendar_ids) deve ser enviado.' }
+      if (calendarIds.length === 0 && call_id === null) {
+        const errors = { message: 'Array de pesquisa (calendar_ids) ou call_id deve ser enviado.' }
         return res.status(400).json(error.parse('inscriptionEvent-400', validationDevMessage(errors)))
       }
 
+      //extraindo as calendarIds a partir de call_id
+      let callCalendarIds = []
+      if (call_id) {
+        const calendars = await models.Calendar.findAll({ where: { call_id: call_id } })
+        callCalendarIds = calendars.map(cld => cld.id)
+      }
+
+      //Decidindo o set de calendarIds que será usado
+      const newCalendarIds = call_id
+        ? calendarIds.length === 0
+          ? callCalendarIds
+          : callCalendarIds.filter(id => calendarIds.includes(id))
+        : calendarIds
+
       //checar visibilidade dos processos (e remover não autorizados da pesquisa)
       const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
-      const filtredCldIds = await filterVisibleByCalendarIds(calendarIds, user, models)
+      const filtredCldIds = await filterVisibleByCalendarIds(newCalendarIds, user, models)
 
       //query and send
       const whereCalendarIds = filtredCldIds.length > 0 ? { calendar_id: filtredCldIds } : { calendar_id: null }

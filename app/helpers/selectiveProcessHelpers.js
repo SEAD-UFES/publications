@@ -4,6 +4,16 @@
 
 const { hasAnyPermission } = require('./permissionCheck')
 
+const filterVisibleByProcessId = async (processId, user, db) => {
+  const process = await db.SelectiveProcess.findByPk(processId)
+  if (!process) return null
+
+  const haveProcessPermission = user ? hasAnyPermission(user, 'selectiveprocess_read', process.course_id) : false
+  if (!process.visible && !haveProcessPermission) return null
+
+  return processId
+}
+
 const filterVisibleByCallId = async (callId, user, db) => {
   const call = await db.Call.findByPk(callId)
   if (!call) return null
@@ -56,6 +66,7 @@ const filterVisibleByInscriptionEventIds = async (inscriptionEventIds, user, db)
 }
 
 module.exports = {
+  filterVisibleByProcessId,
   filterVisibleByCallId,
   filterVisibleByCallIds,
   filterVisibleByCalendarId,

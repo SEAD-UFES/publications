@@ -22,6 +22,7 @@ module.exports = app => {
   const { filterVisibleByInscriptionEventIds } = require('../helpers/selectiveProcessHelpers')
   const { findCourseIdByInscriptionEventId } = require('../helpers/courseHelpers')
   const { hasAnyPermission } = require('../helpers/permissionCheck')
+  const { findUserByToken } = require('../helpers/userHelpers')
 
   //Inscription create
   api.create = async (req, res) => {
@@ -132,14 +133,13 @@ module.exports = app => {
       }
 
       //Checar visibilidade dos processos (e remover não autorizados da pesquisa).
-      //Se o usuário deve estar logado para requisitar
-      const user = req.user
+      const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
       const person = user ? await user.getPerson() : null
       const filtredInscriptionEventIds = await filterVisibleByInscriptionEventIds(inscriptionEventIds, user, models)
 
       const filterReadPermissionId = async (user, ieId, db) => {
         const courseId = await findCourseIdByInscriptionEventId(ieId, db)
-        const havePermission = hasAnyPermission(user, 'inscription_read', courseId)
+        const havePermission = user ? hasAnyPermission(user, 'inscription_read', courseId) : null
         return havePermission ? ieId : null
       }
 
@@ -168,6 +168,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
+      console.log(err)
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
     }
   }

@@ -1,5 +1,7 @@
 /** @format */
 
+const { findUserByToken } = require('../helpers/userHelpers')
+
 module.exports = app => {
   const api = {}
   const models = require('../models')
@@ -13,6 +15,8 @@ module.exports = app => {
   } = require('../helpers/error')
   const { validate, validatePermission } = require('../validators/calls.js')
   const { isEmpty } = require('lodash')
+  const { findUserByToken } = require('../helpers/userHelpers')
+  const { filterVisibleByProcessId } = require('../helpers/selectiveProcessHelpers')
 
   //Call create
   api.create = async (req, res) => {
@@ -55,6 +59,13 @@ module.exports = app => {
 
       //verify valid id
       if (!toRead) {
+        return res.status(400).json(error.parse('call-400', idNotFoundDevMessage()))
+      }
+
+      //checar visibilidade da chamada
+      const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
+      const visibleProcessId = await filterVisibleByProcessId(toRead.selectiveProcess_id, user, models)
+      if (!visibleProcessId) {
         return res.status(400).json(error.parse('call-400', idNotFoundDevMessage()))
       }
 
