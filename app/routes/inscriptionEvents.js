@@ -7,7 +7,7 @@ module.exports = app => {
   app
     .route(app.get('inscriptionEventApiRoute'))
     .post(authApi.authenticationRequired, authApi.adminRequired, api.create)
-    .get(authApi.authenticationRequired, api.list)
+    .get(api.list)
 
   app
     .route(app.get('inscriptionEventApiRoute') + '/:id')
