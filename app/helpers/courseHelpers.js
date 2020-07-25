@@ -11,21 +11,24 @@ const findCourseIdByCallId = async (call_id, db) => {
   const call = await db.Call.findByPk(call_id)
   if (!call) return null
 
-  return await findCourseIdBySelectiveProcessId(call.process_id, db)
+  const courseIdBySelectiveProcessId = await findCourseIdBySelectiveProcessId(call.selectiveProcess_id, db)
+  return courseIdBySelectiveProcessId
 }
 
 const findCourseIdByCalendarId = async (calendar_id, db) => {
   const calendar = await db.Calendar.findByPk(calendar_id)
   if (!calendar) return null
 
-  return await findCourseIdByCallId(calendar.call_id, db)
+  const courseIdByCallId = await findCourseIdByCallId(calendar.call_id, db)
+  return courseIdByCallId
 }
 
 const findCourseIdByInscriptionEventId = async (inscriptionEvent_id, db) => {
   const inscriptionEvent = await db.InscriptionEvent.findByPk(inscriptionEvent_id)
   if (!inscriptionEvent) return null
 
-  return findCourseIdByCalendarId(inscriptionEvent.calendar_id, db)
+  const courseIdByCalendarId = await findCourseIdByCalendarId(inscriptionEvent.calendar_id, db)
+  return courseIdByCalendarId
 }
 
 module.exports = {

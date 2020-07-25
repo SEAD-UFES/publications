@@ -139,6 +139,7 @@ module.exports = app => {
 
       const filterReadPermissionId = async (user, ieId, db) => {
         const courseId = await findCourseIdByInscriptionEventId(ieId, db)
+        console.log('courseId', courseId)
         const havePermission = user ? hasAnyPermission(user, 'inscription_read', courseId) : null
         return havePermission ? ieId : null
       }
@@ -168,7 +169,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      console.log(err)
+      console.log('\n', err, '\n')
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
     }
   }

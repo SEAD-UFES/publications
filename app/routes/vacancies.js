@@ -6,8 +6,8 @@ module.exports = app => {
 
   app
     .route(app.get('vacancyApiRoute'))
-    .get(authApi.authenticationRequired, authApi.checkAccessLevel, api.list)
     .post(authApi.authenticationRequired, authApi.checkAccessLevel, api.create)
+    .get(api.list)
 
   app
     .route(app.get('vacancyApiRoute') + '/:id')

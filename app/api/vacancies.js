@@ -27,37 +27,15 @@ module.exports = app => {
   }
 
   api.specific = (req, res) => {
+    const includeRegion = { model: models.Region, required: false }
+    const includeAssignment = { model: models.Assignment, required: false }
+    const includeRestriction = { model: models.Restriction, required: false }
+    const includeCourse = { model: models.Course, required: false }
+    const includeProcess = { model: models.SelectiveProcess, required: false, include: [includeCourse] }
+    const includeCall = { model: models.Call, required: false, include: [includeProcess] }
+
     models.Vacancy.findById(req.params.id, {
-      include: [
-        {
-          model: models.Call,
-          required: false,
-          include: [
-            {
-              model: models.SelectiveProcess,
-              required: false,
-              include: [
-                {
-                  model: models.Course,
-                  required: false
-                }
-              ]
-            }
-          ]
-        },
-        {
-          model: models.Region,
-          required: false
-        },
-        {
-          model: models.Assignment,
-          required: false
-        },
-        {
-          model: models.Restriction,
-          required: false
-        }
-      ]
+      include: [includeCall, includeRegion, includeAssignment, includeRestriction]
     }).then(
       vacancy => {
         res.json(vacancy)
