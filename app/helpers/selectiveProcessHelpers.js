@@ -14,6 +14,12 @@ const filterVisibleByProcessId = async (processId, user, db) => {
   return processId
 }
 
+const filterVisibleByProcessIds = async (selectiveProcessIds, user, db) => {
+  return Promise.all(selectiveProcessIds.map(id => filterVisibleByProcessId(id, user, db))).then(new_list =>
+    new_list.filter(item => item !== null)
+  )
+}
+
 const filterVisibleByCallId = async (callId, user, db) => {
   const call = await db.Call.findByPk(callId)
   if (!call) return null
@@ -67,6 +73,7 @@ const filterVisibleByInscriptionEventIds = async (inscriptionEventIds, user, db)
 
 module.exports = {
   filterVisibleByProcessId,
+  filterVisibleByProcessIds,
   filterVisibleByCallId,
   filterVisibleByCallIds,
   filterVisibleByCalendarId,
