@@ -10,6 +10,6 @@ module.exports = app => {
 
   app
     .route(app.get('personApiRoute') + '/:id')
-    .get(authApi.authenticationRequired, authApi.checkAccessLevel, api.specific)
+    .get(authApi.authenticationRequired, api.read)
     .put(authApi.authenticationRequired, authApi.checkAccessLevel, api.update)
 }
