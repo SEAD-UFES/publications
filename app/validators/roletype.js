@@ -2,8 +2,16 @@
 
 'use strict'
 
+const { isUUID } = require('validator')
 const { isValidBool } = require('../helpers/validatorHelpers')
 const { isEmpty } = require('../helpers/is-empty.js')
+
+const validateId = value => {
+  //value must be valid
+  if (typeof value !== 'undefined' && (value === null || value === '' || !isUUID(value))) {
+    return 'Valor inválido.'
+  }
+}
 
 const validateName = async (value, db, mode, item) => {
   //Mandatory on create
@@ -54,6 +62,9 @@ const validateGlobal = value => {
 const validateBody = async (body, db, mode, item) => {
   let errors = {}
 
+  const idError = await validateId(body.id)
+  if (idError) errors.id = idError
+
   const nameError = await validateName(body.name, db, mode, item)
   if (nameError) errors.name = nameError
 
@@ -68,6 +79,11 @@ const validateBody = async (body, db, mode, item) => {
 
 const validateDelete = async (roleType, models) => {
   const errors = {}
+
+  //Não pode ser deletado se for "Administrador".
+  if (roleType.name === 'Administrador') {
+    errors.name = 'Não é possivel apagar o papel Administrador'
+  }
 
   //Não pode ser deletado se estiver sendo usado por um UserRole
   const userRoles = await models.UserRole.count({ where: { roleType_id: roleType.id } })
