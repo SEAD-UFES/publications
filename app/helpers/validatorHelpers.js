@@ -9,4 +9,6 @@ const isFullDateTime = value => {
   return matches(value, datetimeRegex)
 }
 
-module.exports = { isFullDateTime }
+const isValidBool = value => [true, false, 0, 1].includes(value)
+
+module.exports = { isFullDateTime, isValidBool }

@@ -17,50 +17,58 @@ module.exports = {
       await queryInterface.bulkInsert(
         'Targets',
         [
-          { id: uuidByString('calendar-target-id-1'), name: 'calendar api (general)', urn: '/v1/calendars' },
-          { id: uuidByString('calendar-target-id-2'), name: 'calendar api (specific)', urn: '/v1/calendars/:id' }
+          {
+            id: uuidByString('inscription-target-id-1'),
+            name: 'inscription api (general)',
+            urn: '/v1/inscriptions'
+          },
+          {
+            id: uuidByString('inscription-target-id-2'),
+            name: 'inscription api (specific)',
+            urn: '/v1/inscriptions/:id'
+          }
         ],
         { transaction: t }
       )
 
-      //insert calendar permissions
+      //insert Inscription permissions
       await queryInterface.bulkInsert(
         'Permissions',
         [
           {
-            id: uuidByString('calendar_create'),
-            name: 'calendar_create',
-            description: 'Criar item de calendário.',
+            id: uuidByString('inscription_create'),
+            name: 'inscription_create',
+            description: 'Criar inscrição.',
             action_id: actionIds['POST'],
-            target_id: uuidByString('calendar-target-id-1')
+            target_id: uuidByString('inscription-target-id-1')
           },
           {
-            id: uuidByString('calendar_read'),
-            name: 'calendar_read',
-            description: 'Ler item de calendário.',
+            id: uuidByString('inscription_read'),
+            name: 'inscription_read',
+            description: 'Ler inscrição.',
             action_id: actionIds['GET'],
-            target_id: uuidByString('calendar-target-id-2')
+            target_id: uuidByString('inscription-target-id-2')
           },
           {
-            id: uuidByString('calendar_update'),
-            name: 'calendar_update',
-            description: 'Atualizar item de calendário.',
+            id: uuidByString('inscription_update'),
+            name: 'inscription_update',
+            description: 'Atualizar inscrição.',
             action_id: actionIds['PUT'],
-            target_id: uuidByString('calendar-target-id-2')
+            target_id: uuidByString('inscription-target-id-2')
           },
           {
-            id: uuidByString('calendar_delete'),
-            name: 'calendar_delete',
-            description: 'Excluir item de calendário.',
+            id: uuidByString('inscription_delete'),
+            name: 'inscription_delete',
+            description: 'Excluir inscrição.',
             action_id: actionIds['DELETE'],
-            target_id: uuidByString('calendar-target-id-2')
+            target_id: uuidByString('inscription-target-id-2')
           },
           {
-            id: uuidByString('calendar_list'),
-            name: 'calendar_list',
-            description: 'Listar itens de calendário.',
+            id: uuidByString('inscription_list'),
+            name: 'inscription_list',
+            description: 'Listar inscrições.',
             action_id: actionIds['GET'],
-            target_id: uuidByString('calendar-target-id-1')
+            target_id: uuidByString('inscription-target-id-1')
           }
         ],
         { transaction: t }
@@ -84,15 +92,15 @@ module.exports = {
       const Op = Sequelize.Op
 
       //generate target ids to delete
-      const targetIds = [uuidByString('calendar-target-id-1'), uuidByString('calendar-target-id-2')]
+      const targetIds = [uuidByString('inscription-target-id-1'), uuidByString('inscription-target-id-2')]
 
       //generate permission ids to delete
       const permissionIds = [
-        uuidByString('calendar_create'),
-        uuidByString('calendar_read'),
-        uuidByString('calendar_update'),
-        uuidByString('calendar_delete'),
-        uuidByString('calendar_list')
+        uuidByString('inscription_create'),
+        uuidByString('inscription_read'),
+        uuidByString('inscription_update'),
+        uuidByString('inscription_delete'),
+        uuidByString('inscription_list')
       ]
 
       //delete permissions

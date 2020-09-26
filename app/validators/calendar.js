@@ -6,7 +6,7 @@ const { isISO8601 } = require('validator')
 const { isEmpty } = require('lodash')
 const moment = require('moment')
 
-const { findCourseIdByCallId } = require('../helpers/courseInfo')
+const { findCourseIdByCallId } = require('../helpers/courseHelpers')
 const { isAdmin, hasAnyPermission } = require('../helpers/permissionCheck')
 const { isFullDateTime } = require('../helpers/validatorHelpers')
 
@@ -137,7 +137,7 @@ const validateTimePeriod = (body, db, mode, item, startError, endError) => {
     if (mode === 'update') {
       if (!end && body.end) end = body.end
       if (!end && body.end === null) end = start
-      if (!end && typeof body.end === 'undefined' && item.end) end == item.end
+      if (!end && typeof body.end === 'undefined' && item.end) end = item.end
       if (!end && typeof body.end === 'undefined' && item.end === null) end = start
     }
 
@@ -231,6 +231,13 @@ const validateDelete = async (calendar, models) => {
   const childCalendars = await models.Calendar.count({ where: { calendar_id: calendar.id } })
   if (childCalendars > 0) {
     errors.id = 'Este item de calendário é dependência de outros itens de calendário ativos.'
+    return errors
+  }
+
+  //Não pode ser deletado se tiver um inscriptionEvent associado.
+  const inscriptionEvents = await models.InscriptionEvent.count({ where: { calendar_id: calendar.id } })
+  if (inscriptionEvents > 0) {
+    errors.id = 'Este item de calendário é dependência de eventos de inscrição ativos.'
     return errors
   }
 

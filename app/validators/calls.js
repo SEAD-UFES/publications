@@ -5,7 +5,7 @@
 const Sequelize = require('sequelize')
 const { isUUID, isNumeric, isISO8601 } = require('validator')
 const { isEmpty } = require('lodash')
-const { findCourseIdBySelectiveProcessId } = require('../helpers/courseInfo')
+const { findCourseIdBySelectiveProcessId } = require('../helpers/courseHelpers')
 const { isAdmin, hasAnyPermission } = require('../helpers/permissionCheck')
 
 const validate = async ({ body, method, params }, models) => {

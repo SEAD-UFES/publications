@@ -4,8 +4,10 @@ module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.vacancies
-  const { validationDevMessage, unknownDevMessage } = require('../helpers/error')
+  const { validationDevMessage, unknownDevMessage, idNotFoundDevMessage } = require('../helpers/error')
   const { validateBody } = require('../validators/vacancy')
+  const { findUserByToken } = require('../helpers/userHelpers')
+  const { filterVisibleByCallId } = require('../helpers/selectiveProcessHelpers')
 
   //Vacancy create
   api.create = async (req, res) => {
@@ -26,46 +28,38 @@ module.exports = app => {
     }
   }
 
-  api.specific = (req, res) => {
-    models.Vacancy.findById(req.params.id, {
-      include: [
-        {
-          model: models.Call,
-          required: false,
-          include: [
-            {
-              model: models.SelectiveProcess,
-              required: false,
-              include: [
-                {
-                  model: models.Course,
-                  required: false
-                }
-              ]
-            }
-          ]
-        },
-        {
-          model: models.Region,
-          required: false
-        },
-        {
-          model: models.Assignment,
-          required: false
-        },
-        {
-          model: models.Restriction,
-          required: false
-        }
-      ]
-    }).then(
-      vacancy => {
-        res.json(vacancy)
-      },
-      e => {
-        res.status(500).json(error.parse('vacancies-02', e))
+  api.read = async (req, res) => {
+    const includeRegion = { model: models.Region, required: false }
+    const includeAssignment = { model: models.Assignment, required: false }
+    const includeRestriction = { model: models.Restriction, required: false }
+    const includeCourse = { model: models.Course, required: false }
+    const includeProcess = { model: models.SelectiveProcess, required: false, include: [includeCourse] }
+    const includeCall = { model: models.Call, required: false, include: [includeProcess] }
+
+    try {
+      const toRead = await models.Vacancy.findByPk(req.params.id, {
+        include: [includeCall, includeRegion, includeAssignment, includeRestriction]
+      })
+
+      //verify valid id
+      if (!toRead) {
+        return res.status(400).json(error.parse('vacancy-400', idNotFoundDevMessage()))
       }
-    )
+
+      //validar visibilidade/acesso a vacancy
+      const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
+      const visibleCallId = filterVisibleByCallId(toRead.call_id, user, models)
+      if (!visibleCallId) {
+        return res.status(400).json(error.parse('vacancy-400', idNotFoundDevMessage()))
+      }
+
+      //return result
+      return res.json(toRead)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('vacancy-500', unknownDevMessage(err)))
+    }
   }
 
   api.update = (req, res) => {

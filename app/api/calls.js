@@ -1,5 +1,7 @@
 /** @format */
 
+const { findUserByToken } = require('../helpers/userHelpers')
+
 module.exports = app => {
   const api = {}
   const models = require('../models')
@@ -13,6 +15,8 @@ module.exports = app => {
   } = require('../helpers/error')
   const { validate, validatePermission } = require('../validators/calls.js')
   const { isEmpty } = require('lodash')
+  const { findUserByToken } = require('../helpers/userHelpers')
+  const { filterVisibleByProcessId, filterVisibleByProcessIds } = require('../helpers/selectiveProcessHelpers')
 
   //Call create
   api.create = async (req, res) => {
@@ -55,6 +59,13 @@ module.exports = app => {
 
       //verify valid id
       if (!toRead) {
+        return res.status(400).json(error.parse('call-400', idNotFoundDevMessage()))
+      }
+
+      //checar visibilidade da chamada
+      const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
+      const visibleProcessId = await filterVisibleByProcessId(toRead.selectiveProcess_id, user, models)
+      if (!visibleProcessId) {
         return res.status(400).json(error.parse('call-400', idNotFoundDevMessage()))
       }
 
@@ -119,6 +130,31 @@ module.exports = app => {
     } catch (err) {
       if (err.name === 'ForbbidenDeletionError')
         return res.status(403).json(error.parse('call-403', forbbidenDeletionDevMessage(err)))
+      return res.status(500).json(error.parse('call-500', unknownDevMessage(err)))
+    }
+  }
+
+  //Call List
+  api.list = async (req, res) => {
+    const selectiveProcessIds = req.query.selectiveProcess_ids ? req.query.selectiveProcess_ids : []
+    try {
+      //validation
+      if (selectiveProcessIds.length === 0) {
+        const errors = { message: 'Array de pesquisa (selectiveProcess_ids) deve ser enviado.' }
+        return res.status(400).json(error.parse('call-400', validationDevMessage(errors)))
+      }
+
+      //checar visibilidade dos processos (e remover não autorizados da pesquisa)
+      const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
+      const filtredSelectiveProcessIds = await filterVisibleByProcessIds(selectiveProcessIds, user, models)
+
+      const whereSelectiveProcessIds =
+        filtredSelectiveProcessIds.length > 0
+          ? { selectiveProcess_id: filtredSelectiveProcessIds }
+          : { selectiveProcess_id: null }
+      const processes = await models.Call.findAll({ where: { ...whereSelectiveProcessIds } })
+      return res.json(processes)
+    } catch (err) {
       return res.status(500).json(error.parse('call-500', unknownDevMessage(err)))
     }
   }
