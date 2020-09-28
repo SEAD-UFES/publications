@@ -8,16 +8,10 @@ module.exports = app => {
     validationDevMessage,
     unknownDevMessage,
     idNotFoundDevMessage,
-    unauthorizedDevMessage,
     forbbidenDeletionDevMessage
   } = require('../helpers/error')
 
-  const {
-    validateBody,
-    validatePermission,
-    validatePermissionRead,
-    validateDeleteBody
-  } = require('../validators/roleType.js')
+  const { validateBody } = require('../validators/roleType.js')
 
   //RoleType create
   api.create = async (req, res) => {
