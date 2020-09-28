@@ -2,7 +2,6 @@
 
 'use strict'
 
-const uuid = require('uuid/v4')
 const apiRoutes = require('../../config/apiRoutes.json')
 
 module.exports = (sequelize, DataTypes) => {
@@ -11,37 +10,45 @@ module.exports = (sequelize, DataTypes) => {
     {
       id: {
         type: DataTypes.UUID,
-        primaryKey: true
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false
       },
-      roleType_id: DataTypes.UUID,
-      permission_id: DataTypes.UUID
+      roleType_id: {
+        type: DataTypes.UUID,
+        allowNull: false
+      },
+      permission_id: {
+        type: DataTypes.UUID,
+        allowNull: false
+      }
     },
-    {}
+    { timestamps: true, paranoid: true }
   )
 
-  RolePermission.associate = function(models) {
-    RolePermission.belongsTo(models.Permission, { foreignKey: 'permission_id' })
+  RolePermission.associate = function (models) {
     RolePermission.belongsTo(models.RoleType, { foreignKey: 'roleType_id' })
-
-    return RolePermission
+    RolePermission.belongsTo(models.Permission, { foreignKey: 'permission_id' })
   }
 
-  RolePermission.beforeCreate((rolePermission, _) => {
-    rolePermission.id = uuid()
-
-    return rolePermission
+  RolePermission.beforeDestroy(async (rolePermission, _) => {
+    //Validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
+    //Sem retrições para verificar.
+    //Operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
+    //sem modelos associados para deletar.
   })
 
-  RolePermission.prototype.toJSON = function() {
+  RolePermission.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
+    //remove fields
+    delete values.deletedAt
+
+    //"follow your nose..."
     values.link = {
       rel: 'rolePermission',
       href: apiRoutes.find(r => r.key === 'rolePermissionApiRoute').value + '/' + values.id
     }
-
-    delete values.createdAt
-    delete values.updatedAt
 
     return values
   }
