@@ -34,6 +34,13 @@ module.exports = (sequelize, DataTypes) => {
     Permission.belongsToMany(models.RoleType, { through: models.RolePermission, foreignKey: 'permission_id' })
   }
 
+  Permission.beforeDestroy(async (permission, _) => {
+    //Validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
+    //Sem retrições para verificar.
+    //Operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
+    //sem modelos associados para deletar.
+  })
+
   Permission.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
