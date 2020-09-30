@@ -9,8 +9,6 @@ module.exports = {
       //id (Ok)
       //name (Ok)
       //urn (Ok)
-      //target_id (Ok)
-      //action_id (Ok)
       //createdAt (OK)
       //updatedAt (OK)
 
@@ -47,8 +45,6 @@ module.exports = {
       //id (Ok)
       //name (Ok)
       //urn (Ok)
-      //target_id (Ok)
-      //action_id (Ok)
       //createdAt (OK)
       //updatedAt (OK)
 
