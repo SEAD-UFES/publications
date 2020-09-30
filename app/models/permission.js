@@ -1,7 +1,10 @@
 /** @format */
 
+'use strict'
+
 const apiRoutes = require('../../config/apiRoutes.json')
-;('use strict')
+const { validateDelete } = require('../validators/permission')
+
 module.exports = (sequelize, DataTypes) => {
   const Permission = sequelize.define(
     'Permission',
@@ -36,7 +39,11 @@ module.exports = (sequelize, DataTypes) => {
 
   Permission.beforeDestroy(async (permission, _) => {
     //Validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
-    //Sem retrições para verificar.
+    const errors = await validateDelete(permission, sequelize.models)
+    if (errors) {
+      throw { name: 'ForbbidenDeletionError', traceback: 'Permission', errors: errors }
+    }
+
     //Operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
     //sem modelos associados para deletar.
   })
