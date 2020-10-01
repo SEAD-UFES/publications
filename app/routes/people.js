@@ -12,4 +12,5 @@ module.exports = app => {
     .route(app.get('personApiRoute') + '/:id')
     .get(authApi.authenticationRequired, api.read)
     .put(authApi.authenticationRequired, authApi.checkAccessLevel, api.update)
+    .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete)
 }

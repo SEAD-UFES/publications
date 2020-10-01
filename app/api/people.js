@@ -1,12 +1,15 @@
 /** @format */
 
-const { validatePermissionRead } = require('../validators/inscription')
-
 module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.people
-  const { unknownDevMessage, idNotFoundDevMessage, unauthorizedDevMessage } = require('../helpers/error')
+  const {
+    unknownDevMessage,
+    idNotFoundDevMessage,
+    unauthorizedDevMessage,
+    forbbidenDeletionDevMessage
+  } = require('../helpers/error')
   const { validatePermissionRead } = require('../validators/people.js')
 
   api.create = (req, res) => {
@@ -70,6 +73,30 @@ module.exports = app => {
         },
         e => res.status(500).json(error.parse('people-04', e))
       )
+    }
+  }
+
+  //Person delete
+  api.delete = async (req, res) => {
+    try {
+      const toDelete = await models.Person.findByPk(req.params.id)
+
+      //verify valid id
+      if (!toDelete) {
+        return res.status(400).json(error.parse('people-400', idNotFoundDevMessage()))
+      }
+
+      //try to delete
+      await models.Person.destroy({
+        where: { id: req.params.id },
+        individualHooks: true
+      }).then(_ => res.sendStatus(204))
+
+      //if error
+    } catch (err) {
+      if (err.name === 'ForbbidenDeletionError')
+        return res.status(403).json(error.parse('people-403', forbbidenDeletionDevMessage(err)))
+      return res.status(500).json(error.parse('people-500', unknownDevMessage(err)))
     }
   }
 

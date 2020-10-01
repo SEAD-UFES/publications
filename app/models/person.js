@@ -1,17 +1,20 @@
 /** @format */
 
+'use strict'
+
 const uuid = require('uuid/v4')
-;('use strict')
 const apiRoutes = require('../../config/apiRoutes.json')
+const { validateDelete } = require('../validators/people')
+
 module.exports = (sequelize, DataTypes) => {
   const Person = sequelize.define(
     'Person',
     {
       id: {
         type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
         allowNull: false,
-        primaryKey: true,
-        defaultValue: DataTypes.UUIDV4
+        primaryKey: true
       },
       cpf: {
         type: DataTypes.STRING,
@@ -47,10 +50,18 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false
       },
-      birthdate: DataTypes.DATE,
-      nationality: DataTypes.STRING,
-      rgNumber: DataTypes.STRING,
-      rgDispatcher: DataTypes.STRING,
+      birthdate: {
+        type: DataTypes.DATE
+      },
+      nationality: {
+        type: DataTypes.STRING
+      },
+      rgNumber: {
+        type: DataTypes.STRING
+      },
+      rgDispatcher: {
+        type: DataTypes.STRING
+      },
       ethnicity: {
         type: DataTypes.ENUM('branco', 'pardo', 'preto', 'indígena', 'amarelo'),
         validate: {
@@ -70,29 +81,40 @@ module.exports = (sequelize, DataTypes) => {
         }
       }
     },
-    {
-      paranoid: true
-    }
+    { timestamps: true, paranoid: true }
   )
-  Person.associate = function(models) {
+
+  Person.associate = function (models) {
     Person.belongsTo(models.User, { foreignKey: 'user_id' })
   }
-  Person.beforeCreate((p, _) => {
-    return (p.id = uuid())
+
+  Person.beforeCreate((person, _) => {
+    return (person.id = uuid())
   })
 
-  Person.prototype.toJSON = function() {
+  Person.beforeDestroy(async (person, _) => {
+    //Validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
+    const errors = await validateDelete(person, sequelize.models)
+    if (errors) {
+      throw { name: 'ForbbidenDeletionError', traceback: 'Action', errors: errors }
+    }
+
+    //Operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
+    //sem modelos associados para deletar.
+  })
+
+  Person.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
+    //remove fields
+    delete values.password
+    delete values.deletedAt
+
+    //"follow your nose..."
     values.link = {
       rel: 'person',
       href: apiRoutes.find(r => r.key === 'personApiRoute').value + '/' + values.id
     }
-
-    delete values.password
-    delete values.createdAt
-    delete values.updatedAt
-    delete values.deletedAt
 
     return values
   }
