@@ -21,4 +21,16 @@ const validatePermissionRead = async (person, user) => {
   return { message: 'O usuário não tem permissão para acessar esse recurso.' }
 }
 
-module.exports = { validatePermissionRead }
+const validateDelete = async (person, models) => {
+  const errors = {}
+
+  //Não pode ser deletado se estiver sendo usado por uma inscription
+  const inscriptions = await models.Inscription.count({ where: { person_id: person.id } })
+  if (inscriptions > 0) {
+    errors.id = 'Esta Pessoa é dependência de Inscrições ativas.'
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = { validatePermissionRead, validateDelete }
