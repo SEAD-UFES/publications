@@ -1,7 +1,10 @@
+/** @format */
+
 module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.courses
+  const { unknownDevMessage, idNotFoundDevMessage, forbbidenDeletionDevMessage } = require('../helpers/error')
 
   api.create = (req, res) => {
     if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !req.body.name || !req.body.description) {
@@ -18,27 +21,15 @@ module.exports = app => {
     }
   }
 
-  api.list = (req, res) => {
-    models.Course.findAll({
-      include: [models.GraduationType]
-    }).then(
-      courses => {
-        res.json(courses)
-      },
-      e => {
-        res.status(500).json(error.parse('courses-02', e))
-      }
-    )
-  }
-
   api.update = (req, res) => {
     models.Course.findById(req.params.id).then(
       course => {
         if (!course) res.status(400).json(error.parse('courses-03', {}))
         else
-          course
-            .update(req.body, { fields: Object.keys(req.body) })
-            .then(updatedCourse => res.json(updatedCourse), e => res.status(500).json(error.parse('courses-02', e)))
+          course.update(req.body, { fields: Object.keys(req.body) }).then(
+            updatedCourse => res.json(updatedCourse),
+            e => res.status(500).json(error.parse('courses-02', e))
+          )
       },
       e => res.status(500).json(error.parse('courses-02', e))
     )
@@ -54,13 +45,6 @@ module.exports = app => {
         if (!course) res.status(400).json(error.parse('courses-03', {}))
         else res.json(course)
       },
-      e => res.status(500).json(error.parse('courses-02', e))
-    )
-  }
-
-  api.delete = (req, res) => {
-    models.Course.destroy({ where: { id: req.params.id } }).then(
-      _ => res.sendStatus(204),
       e => res.status(500).json(error.parse('courses-02', e))
     )
   }
@@ -118,6 +102,43 @@ module.exports = app => {
 
     //Casos não previstos
     else res.status(500).json(error.parse('courses-02', 'Caso não previsto pela api.'))
+  }
+
+  //Course delete
+  api.delete = async (req, res) => {
+    try {
+      const toDelete = await models.Course.findByPk(req.params.id)
+
+      //verify valid id
+      if (!toDelete) {
+        return res.status(400).json(error.parse('course-400', idNotFoundDevMessage()))
+      }
+
+      //try to delete
+      await models.Course.destroy({
+        where: { id: req.params.id },
+        individualHooks: true
+      }).then(_ => res.sendStatus(204))
+
+      //if error
+    } catch (err) {
+      if (err.name === 'ForbbidenDeletionError')
+        return res.status(403).json(error.parse('course-403', forbbidenDeletionDevMessage(err)))
+      return res.status(500).json(error.parse('course-500', unknownDevMessage(err)))
+    }
+  }
+
+  api.list = (req, res) => {
+    models.Course.findAll({
+      include: [models.GraduationType]
+    }).then(
+      courses => {
+        res.json(courses)
+      },
+      e => {
+        res.status(500).json(error.parse('courses-02', e))
+      }
+    )
   }
 
   return api
