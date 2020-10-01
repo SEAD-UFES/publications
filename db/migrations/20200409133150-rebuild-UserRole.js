@@ -15,6 +15,7 @@ module.exports = {
       //id ok
       //roleType_id ok
       //user_id ok
+      //course_id
       //createdAt ok
       //updatedAt ok
 
@@ -85,6 +86,7 @@ module.exports = {
       //id ok
       //roleType_id ok
       //user_id ok
+      //course_id
       //createdAt ok
       //updatedAt ok
 

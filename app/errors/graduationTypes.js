@@ -50,6 +50,34 @@ module.exports = app => {
           }
         }
         break
+      case 'graduationType-400':
+        message = {
+          code,
+          userMessage: 'Requisição inválida.',
+          devMessage: e
+        }
+        break
+      case 'graduationType-401':
+        message = {
+          code,
+          userMessage: 'Operação não autorizada.',
+          devMessage: e
+        }
+        break
+      case 'graduationType-403':
+        message = {
+          code,
+          userMessage: 'Operação proibida.',
+          devMessage: e
+        }
+        break
+      case 'graduationType-500':
+        message = {
+          code,
+          userMessage: 'Erro interno do servidor.',
+          devMessage: e
+        }
+        break
     }
     return message
   }
