@@ -1,54 +1,74 @@
+/** @format */
+
 module.exports = app => {
-  let error = {};
+  let error = {}
 
   error.parse = (code, e) => {
-    let message = {};
+    let message = {}
 
-    switch(code) {
-      case 'selectiveProcesses-400' :
+    switch (code) {
+      case 'selectiveProcesses-400':
         message = {
           code,
           userMessage: 'Requisição inválida.',
-          devMessage: 'Há parametros inválidos na requisição.'
-        };
-        break;
-
-      case 'selectiveProcesses-409' :
+          devMessage: e || 'Há parametros inválidos na requisição.'
+        }
+        break
+      case 'selectiveProcesses-401':
         message = {
           code,
-          userMessage: 'Já há um processo seletivo com esse numero cadastrado.', 
+          userMessage: 'Operação não autorizada.',
           devMessage: e
-        };
-        break;
+        }
+        break
+      case 'selectiveProcesses-403':
+        message = {
+          code,
+          userMessage: 'Operação proibida.',
+          devMessage: e
+        }
+        break
+      case 'selectiveProcesses-409':
+        message = {
+          code,
+          userMessage: 'Já há um processo seletivo com esse numero cadastrado.',
+          devMessage: e
+        }
+        break
 
-      case 'selectiveProcesses-406' :
+      case 'selectiveProcesses-406':
         message = {
           code,
           userMessage: 'Ocorreu um erro na verificação dos dados. Tente novamente.',
           devMessage: e
-        };
-        break;
+        }
+        break
 
-      case 'selectiveProcesses-404' :
+      case 'selectiveProcesses-404':
         message = {
           code,
           userMessage: 'Requisição inválida: não há nenhum Processo Seletivo com o id informado.',
           devMessage: e
-        };
-        break;
-
-      default: // case 'selectiveProcesses-500' :
+        }
+        break
+      case 'selectiveProcesses-500':
+        message = {
+          code,
+          userMessage: 'Erro interno do servidor.',
+          devMessage: e
+        }
+        break
+      default:
+        // case 'selectiveProcesses-500' :
         message = {
           code,
           userMessage: 'Ocorreu um erro interno. Contate os administradores.',
           devMessage: e
-        };
-
+        }
     }
 
-    return message;
+    return message
   }
 
-  return error;
+  return error
 }
-

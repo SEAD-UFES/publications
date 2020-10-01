@@ -5,6 +5,7 @@ module.exports = app => {
   const models = require('../models')
   const Sequelize = require('sequelize')
   const error = app.errors.selectiveProcesses
+  const { unknownDevMessage, idNotFoundDevMessage, forbbidenDeletionDevMessage } = require('../helpers/error')
   const { validate } = require('../validators/selectiveprocesses.js')
   const { isEmpty } = require('../helpers/is-empty.js')
 
@@ -33,64 +34,17 @@ module.exports = app => {
   ]
 
   /* includes for eager loading */
-  const includeCourse = {
-    model: models.Course,
-    required: false
-  }
-
-  const includeCall = {
-    model: models.Call,
-    required: false
-  }
-
-  const includeCourseWithGraduationType = {
-    model: models.Course,
-    required: false,
-    include: [
-      {
-        model: models.GraduationType,
-        required: false
-      }
-    ]
-  }
-
-  const includePublicationWithType = {
-    model: models.Publication,
-    required: false,
-    include: [
-      {
-        model: models.PublicationType,
-        required: true
-      }
-    ]
-  }
-
-  const includeCallWithStepAndType = {
-    model: models.Call,
-    required: false,
-    include: [
-      {
-        model: models.Step,
-        required: false,
-        include: [
-          {
-            model: models.StepType,
-            required: false
-          }
-        ]
-      },
-      {
-        model: models.Vacancy,
-        required: false,
-        include: [
-          {
-            model: models.Assignment,
-            required: false
-          }
-        ]
-      }
-    ]
-  }
+  const includeCourse = { model: models.Course, required: false }
+  const includeCall = { model: models.Call, required: false }
+  const includeGraduationType = { model: models.GraduationType, required: false }
+  const includeCourseWithGraduationType = { model: models.Course, required: false, include: [includeGraduationType] }
+  const includePublicationType = { model: models.PublicationType, required: true }
+  const includePublicationWithType = { model: models.Publication, required: false, include: [includePublicationType] }
+  const includeStepType = { model: models.StepType, required: false }
+  const includeStep = { model: models.Step, required: false, include: [includeStepType] }
+  const includeAssignment = { model: models.Assignment, required: false }
+  const includeVacancy = { model: models.Vacancy, required: false, include: [includeAssignment] }
+  const includeCallWithStepAndType = { model: models.Call, required: false, include: [includeStep, includeVacancy] }
 
   // temporary polyfill for flaMap
   // the function is not yet supported by Node 10.16 LTS
@@ -339,21 +293,6 @@ module.exports = app => {
     }
   }
 
-  api.delete = (req, res) => {
-    models.SelectiveProcess.destroy({
-      where: {
-        id: req.params.id
-      }
-    }).then(
-      _ => {
-        res.sendStatus(204)
-      },
-      e => {
-        res.status(500).json(error.parse('selectiveProcesseses-500'))
-      }
-    )
-  }
-
   api.listPublic = async (req, res, next) => {
     if (req.headers['x-access-token']) {
       next()
@@ -461,6 +400,30 @@ module.exports = app => {
           res.status(404).json(error.parse('selectiveProcesses-404', e))
         }
       )
+    }
+  }
+
+  //Action delete
+  api.delete = async (req, res) => {
+    try {
+      const toDelete = await models.SelectiveProcess.findByPk(req.params.id)
+
+      //verify valid id
+      if (!toDelete) {
+        return res.status(400).json(error.parse('selectiveProcesses-400', idNotFoundDevMessage()))
+      }
+
+      //try to delete
+      await models.SelectiveProcess.destroy({
+        where: { id: req.params.id },
+        individualHooks: true
+      }).then(_ => res.sendStatus(204))
+
+      //if error
+    } catch (err) {
+      if (err.name === 'ForbbidenDeletionError')
+        return res.status(403).json(error.parse('selectiveProcesses-403', forbbidenDeletionDevMessage(err)))
+      return res.status(500).json(error.parse('selectiveProcesses-500', unknownDevMessage(err)))
     }
   }
 
