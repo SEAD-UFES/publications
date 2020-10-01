@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     // associations can be defined here
   }
 
-  Target.beforeDestroy(async (action, _) => {
+  Action.beforeDestroy(async (action, _) => {
     //Validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
     const errors = await validateDelete(action, sequelize.models)
     if (errors) {
