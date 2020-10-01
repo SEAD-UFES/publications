@@ -7,18 +7,16 @@ module.exports = {
     const t = await queryInterface.sequelize.transaction()
     try {
       //id (OK)
-      //graduationType_id (OK)
 
-      //name (Remover unique para aplicar paranoid)
-      await queryInterface.removeConstraint('Courses', 'name', { transaction: t })
+      //name (Remover unique para paranoid funcionar)
+      await queryInterface.removeConstraint('GraduationTypes', 'name', { transaction: t })
 
-      //description (OK)
       //createdAt (OK)
       //updatedAt (OK)
 
       //deletedAt (Adicionar)
       await queryInterface.addColumn(
-        'Courses',
+        'GraduationTypes',
         'deletedAt',
         {
           type: Sequelize.DATE,
@@ -30,7 +28,7 @@ module.exports = {
 
       //isActive (Adicionar para ter unique e paranoid)
       await queryInterface.addColumn(
-        'Courses',
+        'GraduationTypes',
         'isActive',
         { type: 'INT(1) GENERATED ALWAYS AS (IF(deletedAt IS NULL,  1, NULL)) VIRTUAL' },
         { transaction: t }
@@ -38,7 +36,7 @@ module.exports = {
 
       //unique key (adicionar unique_name_isActive)
       await queryInterface.addConstraint(
-        'Courses',
+        'GraduationTypes',
         ['name', 'isActive'],
         {
           type: 'unique',
@@ -52,7 +50,7 @@ module.exports = {
 
       //if error
     } catch (error) {
-      console.log('Erro em 20201001185646-rebuild-Course (up): ', error)
+      console.log('Erro em 20201001195159-rebuild-GraduationType (up): ', error)
       t.rollback()
       throw error
     }
@@ -63,33 +61,36 @@ module.exports = {
     try {
       //Remover todas as linhas "deletadas" com o paranoid para limpar o banco.
       const Op = Sequelize.Op
-      await queryInterface.bulkDelete('Courses', { deletedAt: { [Op.not]: null } }, { transaction: t })
+      await queryInterface.bulkDelete('GraduationTypes', { deletedAt: { [Op.not]: null } }, { transaction: t })
 
       //unique key (remover unique_name_isActive)
-      await queryInterface.removeConstraint('Courses', 'unique_name_isActive', { transaction: t })
+      await queryInterface.removeConstraint('GraduationTypes', 'unique_name_isActive', { transaction: t })
 
       //id (OK)
-      //graduationType_id (OK)
 
       //name (Retornar unique para name)
-      await queryInterface.addConstraint('Courses', ['name'], { type: 'unique', name: 'name' }, { transaction: t })
+      await queryInterface.addConstraint(
+        'GraduationTypes',
+        ['name'],
+        { type: 'unique', name: 'name' },
+        { transaction: t }
+      )
 
-      //description (OK)
       //createdAt (OK)
       //updatedAt (OK)
 
       //isActive (Remover)
-      await queryInterface.removeColumn('Courses', 'isActive', { transaction: t })
+      await queryInterface.removeColumn('GraduationTypes', 'isActive', { transaction: t })
 
       //deletedAt (Remover)
-      await queryInterface.removeColumn('Courses', 'deletedAt', { transaction: t })
+      await queryInterface.removeColumn('GraduationTypes', 'deletedAt', { transaction: t })
 
       //commit transaction
       await t.commit()
 
       //if error
     } catch (error) {
-      console.log('Erro em 20201001185646-rebuild-Course (down): ', error)
+      console.log('Erro em 20201001195159-rebuild-GraduationType (down): ', error)
       t.rollback()
       throw error
     }

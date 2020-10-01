@@ -96,7 +96,7 @@ module.exports = (sequelize, DataTypes) => {
     //Validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
     const errors = await validateDelete(person, sequelize.models)
     if (errors) {
-      throw { name: 'ForbbidenDeletionError', traceback: 'Action', errors: errors }
+      throw { name: 'ForbbidenDeletionError', traceback: 'Person', errors: errors }
     }
 
     //Operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
