@@ -19,7 +19,7 @@ module.exports = app => {
     .route(app.get('publicationApiRoute') + '/:id')
     .get(authApi.authenticationRequired, authApi.checkAccessLevel, api.specific)
     .put(authApi.authenticationRequired, authApi.checkAccessLevel, api.update)
-    .delete(authApi.authenticationRequired, authApi.checkAccessLevel, api.delete)
+    .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete)
 
   app.route(app.get('publicationApiRoute') + '/download/:file').get(api.download)
 }
