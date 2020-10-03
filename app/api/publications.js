@@ -6,6 +6,7 @@ module.exports = app => {
   const path = require('path')
   const api = {}
   const error = app.errors.publications
+  const { unknownDevMessage, idNotFoundDevMessage, forbbidenDeletionDevMessage } = require('../helpers/error')
 
   api.create = (req, res) => {
     if (
@@ -66,6 +67,30 @@ module.exports = app => {
         res.status(500).json(error.parse('publications-03'))
       }
     )
+  }
+
+  //Publication delete
+  api.delete = async (req, res) => {
+    try {
+      const toDelete = await models.Publication.findByPk(req.params.id)
+
+      //verify valid id
+      if (!toDelete) {
+        return res.status(400).json(error.parse('publication-400', idNotFoundDevMessage()))
+      }
+
+      //try to delete
+      await models.Publication.destroy({
+        where: { id: req.params.id },
+        individualHooks: true
+      }).then(_ => res.sendStatus(204))
+
+      //if error
+    } catch (err) {
+      if (err.name === 'ForbbidenDeletionError')
+        return res.status(403).json(error.parse('publication-403', forbbidenDeletionDevMessage(err)))
+      return res.status(500).json(error.parse('publication-500', unknownDevMessage(err)))
+    }
   }
 
   api.download = (req, res) => {

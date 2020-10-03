@@ -68,6 +68,7 @@ module.exports = (sequelize, DataTypes) => {
     let values = Object.assign({}, this.get())
 
     //remove fields
+    delete values.updatedAt
     delete values.deletedAt
 
     //"follow your nose..."
