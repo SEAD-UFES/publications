@@ -55,7 +55,7 @@ module.exports = (sequelize, DataTypes) => {
     return publication
   })
 
-  Publication.beforeDestroy(async (graduationType, _) => {
+  Publication.beforeDestroy(async (publication, _) => {
     //Validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
     //sem restrições de deleção.
     //Operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
