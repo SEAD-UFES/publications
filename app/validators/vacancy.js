@@ -4,6 +4,8 @@
 
 const { isNumeric } = require('validator')
 const { isEmpty } = require('lodash')
+const { findCourseIdByCallId } = require('../helpers/courseHelpers')
+const { hasAnyPermission } = require('../helpers/permissionCheck')
 
 const validateCallId = async (value, db, mode, item) => {
   //value exists and its necessary
@@ -115,4 +117,21 @@ const validateBody = async (body, db, mode, item) => {
   return !isEmpty(errors) ? errors : null
 }
 
-module.exports = { validateBody }
+const validatePermission = async (req, db, item) => {
+  let errors = {}
+
+  //delete case
+  if (req.method === 'DELETE') {
+    const permission = 'vacancy_delete'
+    const courseId = await findCourseIdByCallId(item.call_id, db)
+    const errorMessage = 'O usuário não tem permissão para deletar essa Oferta de Vagas.'
+
+    if (hasAnyPermission(req.user, permission, courseId)) return null
+
+    errors.message = errorMessage
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = { validateBody, validatePermission }

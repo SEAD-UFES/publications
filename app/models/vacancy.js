@@ -1,24 +1,41 @@
 /** @format */
 
+'use strict'
+
 const uuid = require('uuid/v4')
 const apiRoutes = require('../../config/apiRoutes.json')
-;('use strict')
+
 module.exports = (sequelize, DataTypes) => {
-  const Vacancy = sequelize.define('Vacancy', {
-    qtd: DataTypes.INTEGER,
-    reserve: DataTypes.BOOLEAN
-  })
-  Vacancy.associate = function(models) {
+  const Vacancy = sequelize.define(
+    'Vacancy',
+    {
+      id: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        primaryKey: true,
+        defaultValue: DataTypes.UUIDV4
+      },
+      qtd: {
+        type: DataTypes.INTEGER
+      },
+      reserve: {
+        type: DataTypes.BOOLEAN
+      }
+    },
+    { timestamps: true, paranoid: true }
+  )
+
+  Vacancy.associate = function (models) {
+    Vacancy.belongsTo(models.Call, { targetKey: 'id', foreignKey: 'call_id' })
     Vacancy.belongsTo(models.Assignment, {
       sourceKey: 'id',
       foreignKey: 'assignment_id'
     })
+    Vacancy.belongsTo(models.Region, { targetKey: 'id', foreignKey: 'region_id' })
     Vacancy.belongsTo(models.Restriction, {
       sourceKey: 'id',
       foreignKey: 'restriction_id'
     })
-    Vacancy.belongsTo(models.Call, { foreignKey: 'call_id', targetKey: 'id' })
-    Vacancy.belongsTo(models.Region, { foreignKey: 'region_id', targetKey: 'id' })
   }
 
   Vacancy.beforeCreate((vacancy, _) => {
@@ -26,16 +43,24 @@ module.exports = (sequelize, DataTypes) => {
     return vacancy
   })
 
-  Vacancy.prototype.toJSON = function() {
+  Vacancy.beforeDestroy(async (vacancy, _) => {
+    //Validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
+    //sem restrições de deleção.
+    //Operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
+    //sem modelos associados para deletar.
+  })
+
+  Vacancy.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
+    //remove fields
+    delete values.deletedAt
+
+    //"follow your nose..."
     values.link = {
       rel: 'vacancy',
       href: apiRoutes.find(r => r.key === 'vacancyApiRoute').value + '/' + values.id
     }
-
-    delete values.createdAt
-    delete values.updatedAt
 
     return values
   }
