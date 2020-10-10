@@ -1,4 +1,6 @@
-'use strict';
+/** @format */
+
+'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('Vacancies', {
@@ -27,13 +29,6 @@ module.exports = {
           key: 'id'
         }
       },
-      /*branch_id: {
-        type: Sequelize.UUID,
-        references: {
-          model: 'Branches',
-          key: 'id'
-        }
-      },*/
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -42,9 +37,9 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       }
-    });
+    })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Vacancies');
+    return queryInterface.dropTable('Vacancies')
   }
-};
+}

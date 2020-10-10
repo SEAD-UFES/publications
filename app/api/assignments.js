@@ -4,6 +4,7 @@ module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.assignments
+  const { unknownDevMessage, idNotFoundDevMessage, forbbidenDeletionDevMessage } = require('../helpers/error')
 
   api.create = (req, res) => {
     if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !req.body.name || !req.body.description) {
@@ -45,11 +46,28 @@ module.exports = app => {
     })
   }
 
-  api.delete = (req, res) => {
-    models.Assignment.destroy({ where: { id: req.params.id } }).then(
-      _ => res.sendStatus(204),
-      e => res.status(500).json(error.parse('assignments-02', e))
-    )
+  //Assignment delete
+  api.delete = async (req, res) => {
+    try {
+      const toDelete = await models.Assignment.findByPk(req.params.id)
+
+      //verify valid id
+      if (!toDelete) {
+        return res.status(400).json(error.parse('assignment-400', idNotFoundDevMessage()))
+      }
+
+      //try to delete
+      await models.Assignment.destroy({
+        where: { id: req.params.id },
+        individualHooks: true
+      }).then(_ => res.sendStatus(204))
+
+      //if error
+    } catch (err) {
+      if (err.name === 'ForbbidenDeletionError')
+        return res.status(403).json(error.parse('assignment-403', forbbidenDeletionDevMessage(err)))
+      return res.status(500).json(error.parse('assignment-500', unknownDevMessage(err)))
+    }
   }
 
   api.list = (req, res) => {

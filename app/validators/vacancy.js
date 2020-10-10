@@ -4,6 +4,8 @@
 
 const { isNumeric } = require('validator')
 const { isEmpty } = require('lodash')
+const { findCourseIdByCallId } = require('../helpers/courseHelpers')
+const { hasAnyPermission } = require('../helpers/permissionCheck')
 
 const validateCallId = async (value, db, mode, item) => {
   //value exists and its necessary
@@ -115,4 +117,35 @@ const validateBody = async (body, db, mode, item) => {
   return !isEmpty(errors) ? errors : null
 }
 
-module.exports = { validateBody }
+const validatePermission = async (req, db, item) => {
+  let errors = {}
+
+  //delete case
+  if (req.method === 'DELETE') {
+    const permission = 'vacancy_delete'
+    const courseId = await findCourseIdByCallId(item.call_id, db)
+    const errorMessage = 'O usuário não tem permissão para deletar essa Oferta de Vagas.'
+
+    if (hasAnyPermission(req.user, permission, courseId)) return null
+
+    errors.message = errorMessage
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+//Validate delete
+const validateDelete = async (vacancy, models) => {
+  const errors = {}
+
+  //Vacancy não pode ser deletado se ele tiver sendo usado em uma inscrição
+  const inscriptions = await models.Inscription.count({ where: { vacancy_id: vacancy.id } })
+  if (inscriptions > 0) {
+    errors.id = 'Esta Oferta de Vaga está sendo usada por Inscrições ativas.'
+    return errors
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = { validateBody, validatePermission, validateDelete }

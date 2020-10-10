@@ -4,8 +4,14 @@ module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.vacancies
-  const { validationDevMessage, unknownDevMessage, idNotFoundDevMessage } = require('../helpers/error')
-  const { validateBody } = require('../validators/vacancy')
+  const {
+    validationDevMessage,
+    unknownDevMessage,
+    idNotFoundDevMessage,
+    unauthorizedDevMessage,
+    forbbidenDeletionDevMessage
+  } = require('../helpers/error')
+  const { validateBody, validatePermission } = require('../validators/vacancy')
   const { findUserByToken } = require('../helpers/userHelpers')
   const { filterVisibleByCallId } = require('../helpers/selectiveProcessHelpers')
 
@@ -75,11 +81,34 @@ module.exports = app => {
     })
   }
 
-  api.delete = (req, res) => {
-    models.Vacancy.destroy({ where: { id: req.params.id } }).then(
-      _ => res.sendStatus(204),
-      e => res.status(500).json(error.parse('vacancies-02', e))
-    )
+  //Vacancy delete
+  api.delete = async (req, res) => {
+    try {
+      const toDelete = await models.Vacancy.findByPk(req.params.id)
+
+      //verify valid id
+      if (!toDelete) {
+        return res.status(400).json(error.parse('vacancy-400', idNotFoundDevMessage()))
+      }
+
+      //check permission
+      const permissionErrors = await validatePermission(req, models, toDelete)
+      if (permissionErrors) {
+        return res.status(401).json(error.parse('vacancy-401', unauthorizedDevMessage(permissionErrors)))
+      }
+
+      //try to delete
+      await models.Vacancy.destroy({
+        where: { id: req.params.id },
+        individualHooks: true
+      }).then(_ => res.sendStatus(204))
+
+      //if error
+    } catch (err) {
+      if (err.name === 'ForbbidenDeletionError')
+        return res.status(403).json(error.parse('vacancy-403', forbbidenDeletionDevMessage(err)))
+      return res.status(500).json(error.parse('vacancy-500', unknownDevMessage(err)))
+    }
   }
 
   api.list = async (req, res) => {
