@@ -8,7 +8,8 @@ module.exports = app => {
     validationDevMessage,
     unknownDevMessage,
     idNotFoundDevMessage,
-    unauthorizedDevMessage
+    unauthorizedDevMessage,
+    forbbidenDeletionDevMessage
   } = require('../helpers/error')
   const { validateBody, validatePermission } = require('../validators/vacancy')
   const { findUserByToken } = require('../helpers/userHelpers')

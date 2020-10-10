@@ -4,6 +4,7 @@ module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.assignments
+  const { unknownDevMessage, idNotFoundDevMessage, forbbidenDeletionDevMessage } = require('../helpers/error')
 
   api.create = (req, res) => {
     if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !req.body.name || !req.body.description) {
