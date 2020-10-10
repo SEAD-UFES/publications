@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
   )
 
   Assignment.associate = function (models) {
-    // associations can be defined here
+    Assignment.hasMany(models.Vacancy, { foreignKey: 'assignment_id' })
   }
 
   Assignment.beforeCreate((assignment, _) => {
