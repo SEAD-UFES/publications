@@ -93,7 +93,6 @@ module.exports = app => {
       //check permission
       const permissionErrors = await validatePermission(req, models, toDelete)
       if (permissionErrors) {
-        console.log('\n', permissionErrors, '\n')
         return res.status(401).json(error.parse('vacancy-401', unauthorizedDevMessage(permissionErrors)))
       }
 

@@ -134,4 +134,18 @@ const validatePermission = async (req, db, item) => {
   return !isEmpty(errors) ? errors : null
 }
 
-module.exports = { validateBody, validatePermission }
+//Validate delete
+const validateDelete = async (vacancy, models) => {
+  const errors = {}
+
+  //Vacancy não pode ser deletado se ele tiver sendo usado em uma inscrição
+  const inscriptions = await models.Inscription.count({ where: { vacancy_id: vacancy.id } })
+  if (inscriptions > 0) {
+    errors.id = 'Esta Oferta de Vaga está sendo usada por Inscrições ativas.'
+    return errors
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = { validateBody, validatePermission, validateDelete }

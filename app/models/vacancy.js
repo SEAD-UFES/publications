@@ -4,6 +4,7 @@
 
 const uuid = require('uuid/v4')
 const apiRoutes = require('../../config/apiRoutes.json')
+const { validateDelete } = require('../validators/vacancy')
 
 module.exports = (sequelize, DataTypes) => {
   const Vacancy = sequelize.define(
@@ -45,7 +46,10 @@ module.exports = (sequelize, DataTypes) => {
 
   Vacancy.beforeDestroy(async (vacancy, _) => {
     //Validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
-    //sem restrições de deleção.
+    const errors = await validateDelete(vacancy, sequelize.models)
+    if (errors) {
+      throw { name: 'ForbbidenDeletionError', traceback: 'Vacancy', errors: errors }
+    }
     //Operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
     //sem modelos associados para deletar.
   })
