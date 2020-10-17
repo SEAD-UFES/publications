@@ -42,7 +42,7 @@ module.exports = (sequelize, DataTypes) => {
     Inscription.belongsTo(models.Vacancy, { foreignKey: 'vacancy_id', targetKey: 'id' })
   }
 
-  Inscription.beforeValidate(async (inscription, _) => {
+  Inscription.beforeCreate(async (inscription, _) => {
     //gerar numero de inscrição
     const maxQuery = await sequelize.models.Inscription.findAll({
       attributes: [[sequelize.fn('MAX', sequelize.col('number')), 'maxNumber']],
