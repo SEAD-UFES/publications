@@ -2,7 +2,6 @@
 
 'use strict'
 
-const Sequelize = require('sequelize')
 const { isUUID } = require('validator')
 
 const { isEmpty } = require('../helpers/is-empty.js')
