@@ -2,7 +2,7 @@
 
 'use strict'
 
-const { isNumeric } = require('validator')
+const { isNumeric, isUUID } = require('validator')
 const { isEmpty } = require('lodash')
 const { findCourseIdByCallId } = require('../helpers/courseHelpers')
 const { hasAnyPermission } = require('../helpers/permissionCheck')
@@ -14,8 +14,8 @@ const validateCallId = async (value, db, mode, item) => {
   }
 
   //value is valid
-  if (typeof value !== 'undefined' && (value === null || value === '')) {
-    return 'Este campo é requerido.'
+  if (typeof value !== 'undefined' && (value === null || value === '' || !isUUID(value))) {
+    return 'Valor inválido.'
   }
 
   //call exists
@@ -32,8 +32,8 @@ const validateAssignmentId = async (value, db, mode, item) => {
   }
 
   //value is valid
-  if (typeof value !== 'undefined' && (value === null || value === '')) {
-    return 'Este campo é requerido.'
+  if (typeof value !== 'undefined' && (value === null || value === '' || !isUUID(value))) {
+    return 'Valor inválido.'
   }
 
   //assignment exists
