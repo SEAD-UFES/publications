@@ -163,6 +163,33 @@ const validateBody = async (body, db, mode, item) => {
 const validatePermission = async (req, db, item) => {
   let errors = {}
 
+  //create case
+  if (req.method === 'POST') {
+    const permission = 'vacancy_create'
+    const courseId = await findCourseIdByCallId(req.body.call_id, db)
+    const errorMessage = 'O usuário não tem permissão para criar essa Oferta de Vagas.'
+
+    if (hasAnyPermission(req.user, permission, courseId)) return null
+
+    errors.message = errorMessage
+  }
+
+  //update case
+  if (req.method === 'PUT') {
+    const permission = 'vacancy_update'
+    const courseIdAtual = await findCourseIdByCallId(item.call_id, db)
+    const courseIdNovo = (await findCourseIdByCallId(req.body.call_id ? req.body.call_id : item.call_id, db)) || ''
+    const errorMessage = 'O usuário não tem permissão para atualizar essa Oferta de Vagas.'
+
+    //deve possuir permissão nos dois cursos para fazer a alteração. (update call_id case)
+    const havePermissionAtual = hasAnyPermission(req.user, permission, courseIdAtual)
+    const havePermissionNovo = hasAnyPermission(req.user, permission, courseIdNovo)
+
+    if (havePermissionAtual && havePermissionNovo) return null
+
+    errors.message = errorMessage
+  }
+
   //delete case
   if (req.method === 'DELETE') {
     const permission = 'vacancy_delete'
