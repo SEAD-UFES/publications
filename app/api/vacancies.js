@@ -24,6 +24,12 @@ module.exports = app => {
         return res.status(400).json(error.parse('vacancy-400', validationDevMessage(errors)))
       }
 
+      //check permission
+      const permissionErrors = await validatePermission(req, models, null)
+      if (permissionErrors) {
+        return res.status(401).json(error.parse('vacancy-401', unauthorizedDevMessage(permissionErrors)))
+      }
+
       //try to create
       const created = await models.Vacancy.create(req.body)
       return res.status(201).json(created)
@@ -34,6 +40,7 @@ module.exports = app => {
     }
   }
 
+  //Vacancy read
   api.read = async (req, res) => {
     const includeRegion = { model: models.Region, required: false }
     const includeAssignment = { model: models.Assignment, required: false }
@@ -68,17 +75,31 @@ module.exports = app => {
     }
   }
 
-  api.update = (req, res) => {
-    models.Vacancy.findById(req.params.id).then(vacancy => {
-      if (!vacancy) res.status(400).json(error.parse('vacancies-03', {}))
-      else
-        vacancy.update(req.body).then(
-          updatedVacancy => {
-            res.json(updatedVacancy)
-          },
-          e => res.status(500).json(error.parse('vacancies-02', e))
-        )
-    })
+  //Vacancy update
+  api.update = async (req, res) => {
+    try {
+      const toUpdate = await models.Vacancy.findByPk(req.params.id)
+
+      //validation
+      const errors = await validateBody(req.body, models, 'update', toUpdate)
+      if (errors) {
+        return res.status(400).json(error.parse('vacancy-400', validationDevMessage(errors)))
+      }
+
+      //check permission
+      const permissionErrors = await validatePermission(req, models, toUpdate)
+      if (permissionErrors) {
+        return res.status(401).json(error.parse('vacancy-401', unauthorizedDevMessage(permissionErrors)))
+      }
+
+      //try to update
+      const updated = await models.Vacancy.update(req.body, { fields: Object.keys(req.body) })
+      return res.status(201).json(updated)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('vacancy-500', unknownDevMessage(err)))
+    }
   }
 
   //Vacancy delete
