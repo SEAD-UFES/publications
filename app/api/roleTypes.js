@@ -11,7 +11,7 @@ module.exports = app => {
     forbbidenDeletionDevMessage
   } = require('../helpers/error')
 
-  const { validateBody } = require('../validators/roleType.js')
+  const { validateBody } = require('../validators/roletype.js')
 
   //RoleType create
   api.create = async (req, res) => {
