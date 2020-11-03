@@ -22,10 +22,11 @@ module.exports = (sequelize, DataTypes) => {
           len: [14, 14],
           isValid(strCPF) {
             strCPF = strCPF.replace(/\.|-/g, '')
-            let Soma = 0,
-              Resto
+            let Soma = 0
+            let Resto
+
             if (strCPF == '00000000000') throw new Error('CPF invalid!')
-            for (i = 1; i <= 9; i++) Soma = Soma + parseInt(strCPF.substring(i - 1, i)) * (11 - i)
+            for (var i = 1; i <= 9; i++) Soma = Soma + parseInt(strCPF.substring(i - 1, i)) * (11 - i)
             Resto = (Soma * 10) % 11
 
             if (Resto == 10 || Resto == 11) Resto = 0
