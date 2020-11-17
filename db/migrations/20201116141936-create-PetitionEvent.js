@@ -3,35 +3,27 @@
 'use strict'
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Appeals', {
+    return queryInterface.createTable('PetitionEvents', {
       id: {
         type: Sequelize.UUID,
         primaryKey: true,
         allowNull: false
       },
-      appealEvent_id: {
+      calendar_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'AppealEvents',
+          model: 'Calendars',
           key: 'id'
         }
       },
-      inscription_id: {
+      inscriptionEvent_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'Inscriptions',
+          model: 'InscriptionEvents',
           key: 'id'
         }
-      },
-      title: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      descriptiopn: {
-        type: Sequelize.TEXT,
-        allowNull: false
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -51,6 +43,6 @@ module.exports = {
     })
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Appeals')
+    return queryInterface.dropTable('PetitionEvents')
   }
 }

@@ -2,8 +2,8 @@
 
 'use strict'
 module.exports = (sequelize, DataTypes) => {
-  const Appeal = sequelize.define(
-    'Appeal',
+  const Petition = sequelize.define(
+    'Petition',
     {
       id: {
         type: DataTypes.UUID,
@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         allowNull: false
       },
-      appealEvent_id: {
+      petitionEvent_id: {
         type: DataTypes.UUID,
         allowNull: false
       },
@@ -31,20 +31,20 @@ module.exports = (sequelize, DataTypes) => {
     { timestamps: true, paranoid: true }
   )
 
-  Appeal.associate = function (models) {
-    Appeal.belongsTo(models.AppealEvent, { foreignKey: 'appealEvent_id', targetKey: 'id' })
-    Appeal.belongsTo(models.Inscription, { foreignKey: 'inscription_id', targetKey: 'id' })
-    Appeal.hasOne(models.AppealReply, { foreignKey: 'appeal_id' })
+  Petition.associate = function (models) {
+    Petition.belongsTo(models.PetitionEvent, { foreignKey: 'petitionEvent_id', targetKey: 'id' })
+    Petition.belongsTo(models.Inscription, { foreignKey: 'inscription_id', targetKey: 'id' })
+    Petition.hasOne(models.PetitionReply, { foreignKey: 'petition_id' })
   }
 
-  Appeal.beforeDestroy(async (appeal, _) => {
+  Petition.beforeDestroy(async (petition, _) => {
     //validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
     //sem restrições em modelos relacionados
     //operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
     //sem modelos associados para deletar
   })
 
-  Appeal.prototype.toJSON = function () {
+  Petition.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
     //remove fields
@@ -52,11 +52,11 @@ module.exports = (sequelize, DataTypes) => {
 
     //"follow your nose..."
     values.link = {
-      rel: 'appeal',
-      href: apiRoutes.find(r => r.key === 'appealApiRoute').value + '/' + values.id
+      rel: 'petition',
+      href: apiRoutes.find(r => r.key === 'petitionApiRoute').value + '/' + values.id
     }
     return values
   }
 
-  return Appeal
+  return Petition
 }

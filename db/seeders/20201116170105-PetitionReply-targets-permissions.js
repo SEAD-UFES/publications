@@ -18,57 +18,57 @@ module.exports = {
         'Targets',
         [
           {
-            id: uuidByString('appeal-target-id-1'),
-            name: 'appeal api (general)',
-            urn: '/v1/appeals'
+            id: uuidByString('petitionreply-target-id-1'),
+            name: 'petitionreply api (general)',
+            urn: '/v1/petitionreplies'
           },
           {
-            id: uuidByString('appeal-target-id-2'),
-            name: 'appeal api (specific)',
-            urn: '/v1/appeals/:id'
+            id: uuidByString('petitionreply-target-id-2'),
+            name: 'petitionreply api (specific)',
+            urn: '/v1/petitionreplies/:id'
           }
         ],
         { transaction: t }
       )
 
-      //insert appeal permissions
+      //insert petitionreply permissions
       await queryInterface.bulkInsert(
         'Permissions',
         [
           {
-            id: uuidByString('appeal_create'),
-            name: 'appeal_create',
-            description: 'Criar recurso.',
+            id: uuidByString('petitionreply_create'),
+            name: 'petitionreply_create',
+            description: 'Criar resposta a recurso.',
             action_id: actionIds['POST'],
-            target_id: uuidByString('appeal-target-id-1')
+            target_id: uuidByString('petitionreply-target-id-1')
           },
           {
-            id: uuidByString('appeal_read'),
-            name: 'appeal_read',
-            description: 'Ler recurso.',
+            id: uuidByString('petitionreply_read'),
+            name: 'petitionreply_read',
+            description: 'Ler resposta a recurso.',
             action_id: actionIds['GET'],
-            target_id: uuidByString('appeal-target-id-2')
+            target_id: uuidByString('petitionreply-target-id-2')
           },
           {
-            id: uuidByString('appeal_update'),
-            name: 'appeal_update',
-            description: 'Atualizar recurso.',
+            id: uuidByString('petitionreply_update'),
+            name: 'petitionreply_update',
+            description: 'Atualizar resposta a recurso.',
             action_id: actionIds['PUT'],
-            target_id: uuidByString('appeal-target-id-2')
+            target_id: uuidByString('petitionreply-target-id-2')
           },
           {
-            id: uuidByString('appeal_delete'),
-            name: 'appeal_delete',
-            description: 'Excluir recurso.',
+            id: uuidByString('petitionreply_delete'),
+            name: 'petitionreply_delete',
+            description: 'Excluir resposta a recurso.',
             action_id: actionIds['DELETE'],
-            target_id: uuidByString('appeal-target-id-2')
+            target_id: uuidByString('petitionreply-target-id-2')
           },
           {
-            id: uuidByString('appeal_list'),
-            name: 'appeal_list',
-            description: 'Listar recursos.',
+            id: uuidByString('petitionreply_list'),
+            name: 'petitionreply_list',
+            description: 'Listar respostas a recurso.',
             action_id: actionIds['GET'],
-            target_id: uuidByString('appeal-target-id-1')
+            target_id: uuidByString('petitionreply-target-id-1')
           }
         ],
         { transaction: t }
@@ -92,15 +92,15 @@ module.exports = {
       const Op = Sequelize.Op
 
       //generate target ids to delete
-      const targetIds = [uuidByString('appeal-target-id-1'), uuidByString('appeal-target-id-2')]
+      const targetIds = [uuidByString('petitionreply-target-id-1'), uuidByString('petitionreply-target-id-2')]
 
       //generate permission ids to delete
       const permissionIds = [
-        uuidByString('appeal_create'),
-        uuidByString('appeal_read'),
-        uuidByString('appeal_update'),
-        uuidByString('appeal_delete'),
-        uuidByString('appeal_list')
+        uuidByString('petitionreply_create'),
+        uuidByString('petitionreply_read'),
+        uuidByString('petitionreply_update'),
+        uuidByString('petitionreply_delete'),
+        uuidByString('petitionreply_list')
       ]
 
       //delete permissions
