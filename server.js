@@ -1,3 +1,5 @@
+/** @format */
+
 // const http = require('http')
 // const app = require('./config/express')
 
@@ -18,10 +20,12 @@ const app = express()
 secrets.forEach(s => {
   app.set(s.key, s.value)
 })
+
 //Load API Routes file
 apiRoutes.forEach(r => {
   app.set(r.key, r.value)
 })
+
 //set port
 app.set('port', process.env.PORT || siteConf.port || 3000)
 

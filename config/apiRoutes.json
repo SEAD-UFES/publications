@@ -28,8 +28,5 @@
   { "key": "userVerificationTokenApiRoute", "value": "/v1/verify" },
   { "key": "inscriptionEventApiRoute", "value": "/v1/inscriptionevents" },
   { "key": "calendarApiRoute", "value": "/v1/calendars" },
-  { "key": "inscriptionApiRoute", "value": "/v1/inscriptions" },
-  { "key": "appealEventApiRoute", "value": "/v1/appealevents" },
-  { "key": "appealApiRoute", "value": "/v1/appeals" },
-  { "key": "appealReplyApiRoute", "value": "/v1/appealreplies" }
+  { "key": "inscriptionApiRoute", "value": "/v1/inscriptions" }
 ]
