@@ -5,8 +5,9 @@
 const { isUUID, isISO8601, isInt } = require('validator')
 
 const models = require('../models')
-const { isAdmin } = require('../helpers/permissionCheck')
 const { isEmpty } = require('../helpers/is-empty.js')
+const { findCourseIdByCalendarId } = require('../helpers/courseHelpers')
+const { isAdmin, hasAnyPermission } = require('../helpers/permissionCheck')
 
 const validateCalendarId = async (value, db, mode, item) => {
   //value mandatory on create
@@ -108,6 +109,15 @@ const validatePermissionCreate = async (req, db, item) => {
   let errors = {}
 
   if (isAdmin(req.user)) return null
+
+  //create case
+  const permission = 'appealevent_create'
+  const courseId = (await findCourseIdByCalendarId(req.body.calendar_id, db)) || ''
+  const errorMessage = 'O usuário não tem permissão para criar evento de recurso desse calendário.'
+
+  if (hasAnyPermission(req.user, permission, courseId)) return null
+
+  errors.message = errorMessage
 
   return !isEmpty(errors) ? errors : null
 }

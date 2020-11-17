@@ -12,7 +12,7 @@ module.exports = app => {
     unauthorizedDevMessage,
     forbbidenDeletionDevMessage
   } = require('../helpers/error')
-  const { validateBody, validatePermission } = require('../validators/inscriptionevents.js')
+  const { validateBody, validatePermissionCreate } = require('../validators/appealevent.js')
   const { findUserByToken } = require('../helpers/userHelpers')
   const { filterVisibleByCalendarId, filterVisibleByCalendarIds } = require('../helpers/selectiveProcessHelpers')
 
@@ -26,7 +26,7 @@ module.exports = app => {
       }
 
       //permission
-      const permissionErrors = await validatePermission(req, models, null)
+      const permissionErrors = await validatePermissionCreate(req, models, null)
       if (permissionErrors) {
         return res.status(401).json(error.parse('appealEvent-401', unauthorizedDevMessage(permissionErrors)))
       }
