@@ -1,6 +1,9 @@
 /** @format */
 
 'use strict'
+
+const apiRoutes = require('../../config/apiRoutes.json')
+
 module.exports = (sequelize, DataTypes) => {
   const PetitionEvent = sequelize.define(
     'PetitionEvent',
@@ -24,17 +27,10 @@ module.exports = (sequelize, DataTypes) => {
   )
 
   PetitionEvent.associate = function (models) {
-    PetitionEvent.belongsTo(models.Calendar, { foreignKey: 'calendar_id', targetKey: 'id' })
-    PetitionEvent.belongsTo(models.InscriptionEvent, { foreignKey: 'inscriptionEvent_id', targetKey: 'id' })
-    PetitionEvent.hasMany(models.Petition, { foreignKey: 'petitionEvent_id' })
+    //PetitionEvent.belongsTo(models.Calendar, { foreignKey: 'calendar_id', targetKey: 'id' })
+    //PetitionEvent.belongsTo(models.InscriptionEvent, { foreignKey: 'inscriptionEvent_id', targetKey: 'id' })
+    //PetitionEvent.hasMany(models.Petition, { foreignKey: 'petitionEvent_id' })
   }
-
-  PetitionEvent.beforeDestroy(async (petitionEvent, _) => {
-    //validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
-    //sem restrições em modelos relacionados
-    //operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
-    //sem modelos associados para deletar
-  })
 
   PetitionEvent.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
@@ -47,6 +43,7 @@ module.exports = (sequelize, DataTypes) => {
       rel: 'petitionEvent',
       href: apiRoutes.find(r => r.key === 'petitionEventApiRoute').value + '/' + values.id
     }
+
     return values
   }
 

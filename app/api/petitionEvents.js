@@ -18,7 +18,7 @@ module.exports = app => {
       }
 
       //permission
-      const permissionErrors = await validatePermissionCreate(req, models, null)
+      const permissionErrors = await validatePermissionCreate(req, models)
       if (permissionErrors) {
         return res.status(401).json(error.parse('petitionEvent-401', unauthorizedDevMessage(permissionErrors)))
       }
@@ -34,7 +34,8 @@ module.exports = app => {
     }
   }
 
-  api.read = () => {}
+  //PettionEvent read
+  api.read = (req, res) => {}
   api.update = () => {}
   api.delete = () => {}
   api.list = () => {}
