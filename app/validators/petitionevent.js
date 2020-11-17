@@ -60,7 +60,7 @@ const validateInscriptionEventId = async (value, db, mode, item) => {
 }
 
 const validateSameCall = async (body, db, mode, item, errors) => {
-  if (!errors.calendarIdError && !errors.inscriptionEventIdError) {
+  if (!errors.calendar_id && !errors.inscriptionEvent_id) {
     const calendar_id = body.calendar_id
     const inscriptionEvent_id = body.inscriptionEvent_id
 
@@ -69,7 +69,7 @@ const validateSameCall = async (body, db, mode, item, errors) => {
     const callId_from_calendar = calendar.call_id
 
     //achar (inscriptionEvent > calendar > call_id) de inscriptionEvent
-    const inscriptionEvent = await db.inscriptionEvent.findByPk(inscriptionEvent_id)
+    const inscriptionEvent = await db.InscriptionEvent.findByPk(inscriptionEvent_id)
     const ie_calendar = await db.Calendar.findByPk(inscriptionEvent.calendar_id)
     const callId_from_inscriptionEvent = ie_calendar.call_id
 
@@ -105,7 +105,7 @@ const validateBody = async (body, db, mode, item) => {
   return !isEmpty(errors) ? errors : null
 }
 
-const validatePermissionCreate = async (req, db, item) => {
+const validatePermissionCreate = async (req, db) => {
   let errors = {}
 
   if (isAdmin(req.user)) return null
