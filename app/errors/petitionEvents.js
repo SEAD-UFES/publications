@@ -7,28 +7,28 @@ module.exports = app => {
     let message = {}
 
     switch (code) {
-      case 'appealEvent-400':
+      case 'petitionEvent-400':
         message = {
           code,
           userMessage: 'Requisição inválida.',
           devMessage: e
         }
         break
-      case 'appealEvent-401':
+      case 'petitionEvent-401':
         message = {
           code,
           userMessage: 'Operação não autorizada.',
           devMessage: e
         }
         break
-      case 'appealEvent-403':
+      case 'petitionEvent-403':
         message = {
           code,
           userMessage: 'Operação proibida.',
           devMessage: e
         }
         break
-      case 'appealEvent-500':
+      case 'petitionEvent-500':
         message = {
           code,
           userMessage: 'Erro interno do servidor.',

@@ -2,8 +2,8 @@
 
 'use strict'
 module.exports = (sequelize, DataTypes) => {
-  const AppealReply = sequelize.define(
-    'AppealReply',
+  const PetitionReply = sequelize.define(
+    'PetitionReply',
     {
       id: {
         type: DataTypes.UUID,
@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         allowNull: false
       },
-      appeal_id: {
+      petition_id: {
         type: DataTypes.UUID,
         allowNull: false
       },
@@ -27,18 +27,18 @@ module.exports = (sequelize, DataTypes) => {
     { timestamps: true, paranoid: true }
   )
 
-  AppealReply.associate = function (models) {
-    AppealReply.belongsTo(models.Appeal, { foreignKey: 'appeal_id', targetKey: 'id' })
+  PetitionReply.associate = function (models) {
+    PetitionReply.belongsTo(models.Petition, { foreignKey: 'petition_id', targetKey: 'id' })
   }
 
-  AppealReply.beforeDestroy(async (appealReply, _) => {
+  PetitionReply.beforeDestroy(async (petitionReply, _) => {
     //validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
     //sem restrições em modelos relacionados
     //operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
     //sem modelos associados para deletar
   })
 
-  AppealReply.prototype.toJSON = function () {
+  PetitionReply.prototype.toJSON = function () {
     let values = Object.assign({}, this.get())
 
     //remove fields
@@ -46,11 +46,11 @@ module.exports = (sequelize, DataTypes) => {
 
     //"follow your nose..."
     values.link = {
-      rel: 'appealReply',
-      href: apiRoutes.find(r => r.key === 'appealReplyApiRoute').value + '/' + values.id
+      rel: 'petitionReply',
+      href: apiRoutes.find(r => r.key === 'petitionReplyApiRoute').value + '/' + values.id
     }
     return values
   }
 
-  return AppealReply
+  return PetitionReply
 }

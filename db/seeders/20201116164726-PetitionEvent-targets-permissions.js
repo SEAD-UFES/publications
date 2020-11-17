@@ -18,57 +18,57 @@ module.exports = {
         'Targets',
         [
           {
-            id: uuidByString('appealevent-target-id-1'),
-            name: 'appealevent api (general)',
-            urn: '/v1/appealevents'
+            id: uuidByString('petitionevent-target-id-1'),
+            name: 'petitionevent api (general)',
+            urn: '/v1/petitionevents'
           },
           {
-            id: uuidByString('appealevent-target-id-2'),
-            name: 'appealevent api (specific)',
-            urn: '/v1/appealevents/:id'
+            id: uuidByString('petitionevent-target-id-2'),
+            name: 'petitionevent api (specific)',
+            urn: '/v1/petitionevents/:id'
           }
         ],
         { transaction: t }
       )
 
-      //insert appealevent permissions
+      //insert petitionevent permissions
       await queryInterface.bulkInsert(
         'Permissions',
         [
           {
-            id: uuidByString('appealevent_create'),
-            name: 'appealevent_create',
+            id: uuidByString('petitionevent_create'),
+            name: 'petitionevent_create',
             description: 'Criar evento de recurso.',
             action_id: actionIds['POST'],
-            target_id: uuidByString('appealevent-target-id-1')
+            target_id: uuidByString('petitionevent-target-id-1')
           },
           {
-            id: uuidByString('appealevent_read'),
-            name: 'appealevent_read',
+            id: uuidByString('petitionevent_read'),
+            name: 'petitionevent_read',
             description: 'Ler evento de recurso.',
             action_id: actionIds['GET'],
-            target_id: uuidByString('appealevent-target-id-2')
+            target_id: uuidByString('petitionevent-target-id-2')
           },
           {
-            id: uuidByString('appealevent_update'),
-            name: 'appealevent_update',
+            id: uuidByString('petitionevent_update'),
+            name: 'petitionevent_update',
             description: 'Atualizar evento de recurso.',
             action_id: actionIds['PUT'],
-            target_id: uuidByString('appealevent-target-id-2')
+            target_id: uuidByString('petitionevent-target-id-2')
           },
           {
-            id: uuidByString('appealevent_delete'),
-            name: 'appealevent_delete',
+            id: uuidByString('petitionevent_delete'),
+            name: 'petitionevent_delete',
             description: 'Excluir evento de recurso.',
             action_id: actionIds['DELETE'],
-            target_id: uuidByString('appealevent-target-id-2')
+            target_id: uuidByString('petitionevent-target-id-2')
           },
           {
-            id: uuidByString('appealevent_list'),
-            name: 'appealevent_list',
+            id: uuidByString('petitionevent_list'),
+            name: 'petitionevent_list',
             description: 'Listar eventos de recurso.',
             action_id: actionIds['GET'],
-            target_id: uuidByString('appealevent-target-id-1')
+            target_id: uuidByString('petitionevent-target-id-1')
           }
         ],
         { transaction: t }
@@ -92,15 +92,15 @@ module.exports = {
       const Op = Sequelize.Op
 
       //generate target ids to delete
-      const targetIds = [uuidByString('appealevent-target-id-1'), uuidByString('appealevent-target-id-2')]
+      const targetIds = [uuidByString('petitionevent-target-id-1'), uuidByString('petitionevent-target-id-2')]
 
       //generate permission ids to delete
       const permissionIds = [
-        uuidByString('appealevent_create'),
-        uuidByString('appealevent_read'),
-        uuidByString('appealevent_update'),
-        uuidByString('appealevent_delete'),
-        uuidByString('appealevent_list')
+        uuidByString('petitionevent_create'),
+        uuidByString('petitionevent_read'),
+        uuidByString('petitionevent_update'),
+        uuidByString('petitionevent_delete'),
+        uuidByString('petitionevent_list')
       ]
 
       //delete permissions

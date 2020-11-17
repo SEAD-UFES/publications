@@ -27,9 +27,9 @@ const validateCalendarId = async (value, db, mode, item) => {
     //calendar must exists
     if (!calendar) return 'O item de calendário não existe.'
 
-    //AppealEvent have to be unique child of calendar
+    //PetitionEvent have to be unique child of calendar
     const whereIgnoreOwnId = mode === 'update' ? { id: { [db.Sequelize.Op.not]: item.id } } : {}
-    const AEs = await db.AppealEvent.findAll({ where: { calendar_id: calendar.id, ...whereIgnoreOwnId } })
+    const AEs = await db.PetitionEvent.findAll({ where: { calendar_id: calendar.id, ...whereIgnoreOwnId } })
     if (AEs.length > 0) return 'O item de calendário já possui evento de recurso associado.'
   }
 
@@ -64,7 +64,7 @@ const validateSameCall = async (body, db, mode, item, errors) => {
     const calendar_id = body.calendar_id
     const inscriptionEvent_id = body.inscriptionEvent_id
 
-    //achar (calendar > call_id) do nosso appealEvent
+    //achar (calendar > call_id) do nosso petitionEvent
     const calendar = await db.Calendar.findByPk(calendar_id)
     const callId_from_calendar = calendar.call_id
 
@@ -111,7 +111,7 @@ const validatePermissionCreate = async (req, db, item) => {
   if (isAdmin(req.user)) return null
 
   //create case
-  const permission = 'appealevent_create'
+  const permission = 'petitionevent_create'
   const courseId = (await findCourseIdByCalendarId(req.body.calendar_id, db)) || ''
   const errorMessage = 'O usuário não tem permissão para criar evento de recurso desse calendário.'
 
