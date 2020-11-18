@@ -29,8 +29,8 @@ const validateCalendarId = async (value, db, mode, item) => {
 
     //PetitionEvent have to be unique child of calendar
     const whereIgnoreOwnId = mode === 'update' ? { id: { [db.Sequelize.Op.not]: item.id } } : {}
-    const AEs = await db.PetitionEvent.findAll({ where: { calendar_id: calendar.id, ...whereIgnoreOwnId } })
-    if (AEs.length > 0) return 'O item de calendário já possui evento de recurso associado.'
+    const PEs = await db.PetitionEvent.findAll({ where: { calendar_id: calendar.id, ...whereIgnoreOwnId } })
+    if (PEs.length > 0) return 'O item de calendário já possui evento de recurso associado.'
   }
 
   //no errors
