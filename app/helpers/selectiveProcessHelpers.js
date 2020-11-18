@@ -71,6 +71,16 @@ const filterVisibleByInscriptionEventIds = async (inscriptionEventIds, user, db)
   )
 }
 
+const filterVisibleByPetitionEventId = async (inscriptionEventId, user, db) => {
+  const petitionEvent = await db.PetitionEvent.findByPk(inscriptionEventId)
+  if (!petitionEvent) return null
+
+  const calendarId = await filterVisibleByCalendarId(inscriptionEvent.calendar_id, user, db)
+  if (!calendarId) return null
+
+  return inscriptionEventId
+}
+
 module.exports = {
   filterVisibleByProcessId,
   filterVisibleByProcessIds,
@@ -79,5 +89,6 @@ module.exports = {
   filterVisibleByCalendarId,
   filterVisibleByCalendarIds,
   filterVisibleByInscriptionEventId,
-  filterVisibleByInscriptionEventIds
+  filterVisibleByInscriptionEventIds,
+  filterVisibleByPetitionEventId
 }

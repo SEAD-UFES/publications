@@ -5,6 +5,8 @@
 const { isUUID } = require('validator')
 
 const { isEmpty } = require('../helpers/is-empty.js')
+const { filterVisibleByPetitionEventId } = require('../helpers/selectiveProcessHelpers')
+const { checkIsUserInscription } = require('../helpers/inscriptionHelpers')
 
 const validatePetitionEventId = async (value, db, mode, item) => {
   //value mandatory on create
@@ -193,4 +195,34 @@ const validateBody = async (body, db, mode, item) => {
   return !isEmpty(errors) ? errors : null
 }
 
-module.exports = { validateBody }
+const validatePermissionCreate = async (req, db) => {
+  const inscription = await db.Inscription.findByPk(req.body.inscription_id)
+  const isMyInscription = checkIsUserInscription(inscription, req.user, db)
+
+  //Im Admin. So, I have permission.
+  if (isAdmin(user) && isMyInscription) return null
+
+  //I have global permisson. So, I have permission.
+  const permission = 'selectiveprocess_read'
+  if (hasGlobalPermission(user, permission) && isMyInscription) return null
+
+  //I have local Permission. So, I have permisson.
+  const courseId = await findCourseIdByInscriptionEventId(inscription.inscriptionEvent_id, db)
+  if (hasCoursePermission(user, permission, courseId) && isMyInscription) return null
+
+  //The process is visible and the inscription is mine. So i have permission to create a petition for this inscription.
+  const isVisible = await filterVisibleByPetitionEventId(req.body.petitionEvent_id, req.user, db)
+
+  if (isVisible && isMyInscription) return null
+
+  const errors = {}
+  errors.message = 'O usuário não tem permissão para acessar esse recurso.'
+  if (!isMyInscription) errors.inscription_id = 'Inscrição não pertence ao usuário.'
+
+  //if no permission
+  return errors
+}
+
+const validatePermissionRead = () => {}
+
+module.exports = { validateBody, validatePermissionCreate }
