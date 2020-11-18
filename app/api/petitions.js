@@ -34,13 +34,13 @@ module.exports = app => {
       }
 
       //permission
-      const permissionErrors = await validatePermission(req, models, null)
+      const permissionErrors = await validatePermissionCreate(req, models)
       if (permissionErrors) {
         return res.status(401).json(error.parse('inscriptionEvent-401', unauthorizedDevMessage(permissionErrors)))
       }
 
       //try to create
-      const created = await models.Inscription.create(req.body)
+      const created = await models.Petition.create(req.body)
       await created.reload() //para que o retorno seja igual ao de api.read.
       return res.status(201).json(created)
 
@@ -53,7 +53,7 @@ module.exports = app => {
   //Inscription read
   api.read = async (req, res) => {
     try {
-      const toRead = await models.Inscription.findByPk(req.params.id)
+      const toRead = await models.Petition.findByPk(req.params.id)
 
       //verify valid id
       if (!toRead) {
