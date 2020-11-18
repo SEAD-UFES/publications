@@ -74,7 +74,7 @@ const validateVacancyId = async (value, db, mode, item) => {
 }
 
 const validateUnique_IEv_Per_Vac = async (body, db, mode, item, errors) => {
-  if (!errors.inscriptionEventIdError && !errors.personIdError && !errors.vacancyIdError) {
+  if (!errors.inscriptionEvent_id && !errors.person_id && !errors.vacancy_id) {
     const inscriptionEvent_id = body.inscriptionEvent_id
     const person_id = body.person_id
     const vacancy_id = body.vacancy_id
@@ -94,7 +94,7 @@ const validateUnique_IEv_Per_Vac = async (body, db, mode, item, errors) => {
 }
 
 const validateEventRestrictions = async (body, db, mode, item, errors) => {
-  if (!errors.inscriptionEventIdError && !errors.personIdError) {
+  if (!errors.inscriptionEvent_id && !errors.person_id) {
     const vacancyInclude = { model: db.Vacancy, required: false }
     const inscriptionEvent = await db.InscriptionEvent.findByPk(body.inscriptionEvent_id)
 
@@ -145,7 +145,7 @@ const validateEventRestrictions = async (body, db, mode, item, errors) => {
 }
 
 const validateCalendarRestrictions = async (body, db, mode, item, errors) => {
-  if (!errors.inscriptionEventIdError) {
+  if (!errors.inscriptionEvent_id) {
     const inscriptionEvent = await db.InscriptionEvent.findByPk(body.inscriptionEvent_id)
     const calendar = await db.Calendar.findByPk(inscriptionEvent.calendar_id)
     const calendarStatus = await calendar.calculateStatus()
