@@ -122,4 +122,44 @@ const validatePermissionCreate = async (req, db) => {
   return !isEmpty(errors) ? errors : null
 }
 
-module.exports = { validateBody, validatePermissionCreate }
+const validatePermissionUpdate = async (req, db, item) => {
+  let errors = {}
+
+  if (isAdmin(req.user)) return null
+
+  //update case
+  const permission = 'petitionevent_update'
+  const courseIdAtual = (await findCourseIdByCalendarId(item.calendar_id, db)) || ''
+  const courseIdNovo =
+    (await findCourseIdByCalendarId(req.body.calendar_id ? req.body.calendar_id : item.calendar_id, db)) || ''
+  const errorMessage = 'O usuário não tem permissão para atualizar evento de recurso desse calendário.'
+
+  //deve possuir permissão nos dois cursos para fazer a alteração. (update calendar_id case)
+  const havePermissionAtual = hasAnyPermission(req.user, permission, courseIdAtual)
+  const havePermissionNovo = hasAnyPermission(req.user, permission, courseIdNovo)
+
+  if (havePermissionAtual && havePermissionNovo) return null
+
+  errors.message = errorMessage
+
+  return !isEmpty(errors) ? errors : null
+}
+
+const validatePermissionDelete = async (req, db, item) => {
+  let errors = {}
+
+  if (isAdmin(req.user)) return null
+
+  //delete case
+  const permission = 'inscriptionevent_delete'
+  const courseId = (await findCourseIdByCalendarId(item.calendar_id, db)) || ''
+  const errorMessage = 'O usuário não tem permissão para deletar evento de inscrição desse calendário.'
+
+  if (hasAnyPermission(req.user, permission, courseId)) return null
+
+  errors.message = errorMessage
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = { validateBody, validatePermissionCreate, validatePermissionUpdate, validatePermissionDelete }

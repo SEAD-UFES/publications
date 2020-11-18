@@ -130,6 +130,7 @@ module.exports = app => {
     }
   }
 
+  //InscriptionEvent list
   api.list = async (req, res) => {
     const call_id = req.query.call_id ? req.query.call_id : null
     const calendarIds = req.query.calendar_ids ? req.query.calendar_ids : []
