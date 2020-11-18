@@ -151,7 +151,7 @@ const validatePermissionDelete = async (req, db, item) => {
   if (isAdmin(req.user)) return null
 
   //delete case
-  const permission = 'inscriptionevent_delete'
+  const permission = 'petitionevent_delete'
   const courseId = (await findCourseIdByCalendarId(item.calendar_id, db)) || ''
   const errorMessage = 'O usuário não tem permissão para deletar evento de inscrição desse calendário.'
 
