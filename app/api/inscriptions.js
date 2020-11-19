@@ -36,7 +36,7 @@ module.exports = app => {
       //permission (caso coberto pelo middleware)
       const permissionErrors = await validatePermission(req, models, null)
       if (permissionErrors) {
-        return res.status(401).json(error.parse('inscriptionEvent-401', unauthorizedDevMessage(permissionErrors)))
+        return res.status(401).json(error.parse('inscription-401', unauthorizedDevMessage(permissionErrors)))
       }
 
       //try to create
