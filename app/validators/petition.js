@@ -223,6 +223,26 @@ const validatePermissionCreate = async (req, db) => {
   return errors
 }
 
-const validatePermissionRead = () => {}
+const validatePermissionRead = (req, db) => {
+  //Im Admin. So, I have permission.
+  if (isAdmin(user)) return null
 
-module.exports = { validateBody, validatePermissionCreate }
+  //I have global permisson. So, I have permission.
+  const permission = 'selectiveprocess_read'
+  if (hasGlobalPermission(user, permission)) return null
+
+  //I have local Permission. So, I have permisson.
+  const courseId = await findCourseIdByInscriptionEventId(inscription.inscriptionEvent_id, db)
+  if (hasCoursePermission(user, permission, courseId)) return null
+
+  //The process is visible and the inscription is mine. So i have permission.
+  const inscription = await db.Inscription.findByPk(req.body.inscription_id)
+  const isVisible = await filterVisibleByInscriptionEventId(inscription.inscriptionEvent_id, user, db)
+  const isMyInscription = checkIsUserInscription(inscription, user, db)
+  if (isVisible && isMyInscription) return null
+
+  //if no permission
+  return { message: 'O usuário não tem permissão para acessar esse recurso.' }
+}
+
+module.exports = { validateBody, validatePermissionCreate, validatePermissionRead }
