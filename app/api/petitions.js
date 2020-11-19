@@ -30,13 +30,13 @@ module.exports = app => {
       //validation and rules
       const validationErrors = await validateBody(req.body, models, 'create')
       if (validationErrors) {
-        return res.status(400).json(error.parse('inscription-400', validationDevMessage(validationErrors)))
+        return res.status(400).json(error.parse('petition-400', validationDevMessage(validationErrors)))
       }
 
       //permission
       const permissionErrors = await validatePermissionCreate(req, models)
       if (permissionErrors) {
-        return res.status(401).json(error.parse('inscriptionEvent-401', unauthorizedDevMessage(permissionErrors)))
+        return res.status(401).json(error.parse('petition-401', unauthorizedDevMessage(permissionErrors)))
       }
 
       //try to create
@@ -46,7 +46,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
+      return res.status(500).json(error.parse('petition-500', unknownDevMessage(err)))
     }
   }
 
@@ -57,15 +57,15 @@ module.exports = app => {
 
       //verify valid id
       if (!toRead) {
-        return res.status(400).json(error.parse('inscription-400', idNotFoundDevMessage()))
+        return res.status(400).json(error.parse('petition-400', idNotFoundDevMessage()))
       }
 
       //Checar visibilidade/permissão do processo
       //Ou se é visivel e é minha inscrição
       //req.user existe pois estar logado é obrigatório
-      const permissionErrors = await validatePermissionRead(toRead, req.user, models)
+      const permissionErrors = await validatePermissionRead(req, models, toRead)
       if (permissionErrors) {
-        return res.status(401).json(error.parse('inscription-401', unauthorizedDevMessage(permissionErrors)))
+        return res.status(401).json(error.parse('petition-401', unauthorizedDevMessage(permissionErrors)))
       }
 
       //return result
@@ -73,7 +73,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
+      return res.status(500).json(error.parse('petition-500', unknownDevMessage(err)))
     }
   }
 
@@ -81,23 +81,17 @@ module.exports = app => {
   api.delete = async (req, res) => {
     const t = await models.sequelize.transaction()
     try {
-      const toDelete = await models.Inscription.findByPk(req.params.id)
+      const toDelete = await models.Petition.findByPk(req.params.id)
 
       //verify valid id
       if (!toDelete) {
-        return res.status(400).json(error.parse('inscription-400', idNotFoundDevMessage()))
-      }
-
-      //validate Justification
-      const validationErrors = validateDeleteBody(req.body, models)
-      if (validationErrors) {
-        return res.status(400).json(error.parse('inscription-400', validationDevMessage(validationErrors)))
+        return res.status(400).json(error.parse('petition-400', idNotFoundDevMessage()))
       }
 
       //permission
-      const permissionErrors = await validatePermission(req, models, toDelete)
+      const permissionErrors = await validatePermissionDelete(req, models, toDelete)
       if (permissionErrors) {
-        return res.status(401).json(error.parse('inscription-401', unauthorizedDevMessage(permissionErrors)))
+        return res.status(401).json(error.parse('petition-401', unauthorizedDevMessage(permissionErrors)))
       }
 
       //create justification
@@ -118,8 +112,8 @@ module.exports = app => {
     } catch (err) {
       await t.rollback()
       if (err.name === 'ForbbidenDeletionError')
-        return res.status(403).json(error.parse('inscription-403', forbbidenDeletionDevMessage(err)))
-      return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
+        return res.status(403).json(error.parse('petition-403', forbbidenDeletionDevMessage(err)))
+      return res.status(500).json(error.parse('petition-500', unknownDevMessage(err)))
     }
   }
 

@@ -216,33 +216,97 @@ const validatePermissionCreate = async (req, db) => {
   if (isVisible && isMyInscription) return null
 
   const errors = {}
-  errors.message = 'O usuário não tem permissão para acessar esse recurso.'
+  errors.message = 'O usuário não tem permissão para criar esse recurso.'
   if (!isMyInscription) errors.inscription_id = 'Inscrição não pertence ao usuário.'
 
   //if no permission
   return errors
 }
 
-const validatePermissionRead = (req, db) => {
+const validatePermissionRead = async (req, db, item) => {
   //Im Admin. So, I have permission.
-  if (isAdmin(user)) return null
+  if (isAdmin(req.user)) return null
 
   //I have global permisson. So, I have permission.
   const permission = 'selectiveprocess_read'
-  if (hasGlobalPermission(user, permission)) return null
+  if (hasGlobalPermission(req.user, permission)) return null
 
   //I have local Permission. So, I have permisson.
   const courseId = await findCourseIdByInscriptionEventId(inscription.inscriptionEvent_id, db)
-  if (hasCoursePermission(user, permission, courseId)) return null
+  if (hasCoursePermission(req.user, permission, courseId)) return null
 
   //The process is visible and the inscription is mine. So i have permission.
-  const inscription = await db.Inscription.findByPk(req.body.inscription_id)
-  const isVisible = await filterVisibleByInscriptionEventId(inscription.inscriptionEvent_id, user, db)
-  const isMyInscription = checkIsUserInscription(inscription, user, db)
+  const inscription = await db.Inscription.findByPk(item.inscription_id)
+  const isVisible = await filterVisibleByInscriptionEventId(inscription.inscriptionEvent_id, req.user, db)
+  const isMyInscription = checkIsUserInscription(inscription, req.user, db)
   if (isVisible && isMyInscription) return null
 
   //if no permission
   return { message: 'O usuário não tem permissão para acessar esse recurso.' }
 }
 
-module.exports = { validateBody, validatePermissionCreate, validatePermissionRead }
+const validatePermissionDelete = async (req, db, item) => {
+  const inscription = await db.Inscription.findByPk(req.body.inscription_id)
+  const isMyInscription = checkIsUserInscription(inscription, req.user, db)
+
+  //Im Admin. So, I have permission.
+  if (isAdmin(user) && isMyInscription) return null
+
+  //I have global permisson. So, I have permission.
+  const permission = 'selectiveprocess_read'
+  if (hasGlobalPermission(user, permission) && isMyInscription) return null
+
+  //I have local Permission. So, I have permisson.
+  const courseId = await findCourseIdByInscriptionEventId(inscription.inscriptionEvent_id, db)
+  if (hasCoursePermission(user, permission, courseId) && isMyInscription) return null
+
+  //The process is visible and the inscription is mine. So i have permission to create a petition for this inscription.
+  const isVisible = await filterVisibleByPetitionEventId(req.body.petitionEvent_id, req.user, db)
+
+  if (isVisible && isMyInscription) return null
+
+  const errors = {}
+  errors.message = 'O usuário não tem permissão para excluir esse recurso.'
+  if (!isMyInscription) errors.inscription_id = 'Inscrição não pertence ao usuário.'
+
+  //if no permission
+  return errors
+}
+
+//Validate delete
+const validateOperationDelete = async (petition, db) => {
+  const errors = {}
+
+  //Não pode ser deletado se estiver fora do periodo de inscrição.
+  const petitionEvent = await db.PetitionEvent.findByPk(petition.petitionEvent_id)
+  const calendar = await db.Calendar.findByPk(petitionEvent.calendar_id)
+  const calendarStatus = await calendar.calculateStatus()
+  const status = {
+    ag: 'Aguardando',
+    atd: 'Atrasado por dependência',
+    at: 'Atrasado',
+    ad: 'Em andamento',
+    cc: 'Concluído!'
+  }
+  if (calendarStatus !== status['ad']) {
+    errors.id = 'Não é possivel excluir recursos fora do periodo de recurso.'
+    return errors
+  }
+
+  //Não pode ser deletado se tiver uma inscription associada.
+  const petitionReplies = await models.PetitionReply.count({ where: { petition_id: petition.id } })
+  if (petitionReplies > 0) {
+    errors.id = 'Este recurso não pode ser apagado pois já possui resposta.'
+    return errors
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = {
+  validateBody,
+  validatePermissionCreate,
+  validatePermissionRead,
+  validatePermissionDelete,
+  validateOperationDelete
+}
