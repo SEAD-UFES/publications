@@ -79,7 +79,6 @@ module.exports = app => {
 
   //Inscription delete
   api.delete = async (req, res) => {
-    const t = await models.sequelize.transaction()
     try {
       const toDelete = await models.Petition.findByPk(req.params.id)
 
@@ -94,19 +93,11 @@ module.exports = app => {
         return res.status(401).json(error.parse('petition-401', unauthorizedDevMessage(permissionErrors)))
       }
 
-      //create justification
-      const justification = { inscription_id: toDelete.id, description: req.body.description }
-      await models.Justification.create(justification, { transaction: t })
-
       //try to delete
-      await models.Inscription.destroy({
+      await models.Petition.destroy({
         where: { id: req.params.id },
-        individualHooks: true,
-        transaction: t
+        individualHooks: true
       }).then(_ => res.sendStatus(204))
-
-      //commit transaction
-      await t.commit()
 
       //if error
     } catch (err) {
@@ -118,48 +109,39 @@ module.exports = app => {
   }
 
   api.list = async (req, res) => {
-    const inscriptionEventIds = req.query.inscriptionEvent_ids ? req.query.inscriptionEvent_ids : []
+    //recolher eventos da lista de pesquisa forncecida.
+    const petitionEventIds = req.query.petitionEvent_ids ? req.query.petitionEvent_ids : []
+
     try {
       //validation
-      if (inscriptionEventIds.length === 0) {
-        const errors = { message: 'Array de pesquisa (inscriptionEvent_ids) deve ser enviado.' }
-        return res.status(400).json(error.parse('inscription-400', validationDevMessage(errors)))
+      if (petitionEventIds.length === 0) {
+        const errors = { message: 'Array de pesquisa (petitionEvent_ids) deve ser enviado.' }
+        return res.status(400).json(error.parse('petition-400', validationDevMessage(errors)))
       }
 
-      //Checar visibilidade dos processos (e remover não autorizados da pesquisa).
-      const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
-      const person = user ? await user.getPerson() : null
-      const filtredInscriptionEventIds = await filterVisibleByInscriptionEventIds(inscriptionEventIds, user, models)
+      //Filtrar petitionEventIds visiveis para esse usuário (e remover não autorizados da pesquisa).
+      const visiblePetitionEventIds = await filterVisible_PetitionEventIds(petitionEventIds, req.user, models)
 
-      const filterReadPermissionId = async (user, ieId, db) => {
-        const courseId = await findCourseIdByInscriptionEventId(ieId, db)
-        console.log('courseId', courseId)
-        const havePermission = user ? hasAnyPermission(user, 'inscription_read', courseId) : null
-        return havePermission ? ieId : null
-      }
+      //Filtrar inscription_ids do user
+      const person = req.user ? await req.user.getPerson() : null
+      const petitionEvents = await models.PetitionEvent.findAll({ where: { id: visiblePetitionEventIds } })
+      const inscriptionEvents = petitionEvents.map(PE => PE.inscriptionEvent_id)
+      const user_inscriptions = await models.Inscription.findAll({
+        where: { inscriptionEvent_id: inscriptionEvents, person_id: person.id }
+      })
+      const user_inscription_ids = user_inscriptions.map(ins => ins.id)
 
-      const filterReadPermissionIds = async (user, ieIds, db) => {
-        return Promise.all(ieIds.map(id => filterReadPermissionId(user, id, db))).then(new_list =>
-          new_list.filter(item => item !== null)
-        )
-      }
-
-      const eventsWithFullPermissionIds = await filterReadPermissionIds(user, filtredInscriptionEventIds, models)
-      const eventsWithOwnerPermissionIds = filtredInscriptionEventIds.filter(
-        ieId => !eventsWithFullPermissionIds.includes(ieId)
-      )
+      //filtrar inscrições de quem tem permissão para ver tudo.
 
       //query and send
-      const inscriptions = await models.Inscription.findAll({
+      const inscriptions = await models.Petitions.findAll({
         where: {
-          [Op.or]: [
-            { inscriptionEvent_id: eventsWithFullPermissionIds },
-            { inscriptionEvent_id: eventsWithOwnerPermissionIds, person_id: person ? person.id : null }
-          ]
+          petitionEvent_id: visiblePetitionEventIds,
+          inscription_id: user_inscription_ids // inscrições do user.
         }
       })
 
-      return res.json(inscriptions)
+      return res.json(petitions)
 
       //if error
     } catch (err) {

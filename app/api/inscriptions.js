@@ -139,7 +139,6 @@ module.exports = app => {
 
       const filterReadPermissionId = async (user, ieId, db) => {
         const courseId = await findCourseIdByInscriptionEventId(ieId, db)
-        console.log('courseId', courseId)
         const havePermission = user ? hasAnyPermission(user, 'inscription_read', courseId) : null
         return havePermission ? ieId : null
       }
