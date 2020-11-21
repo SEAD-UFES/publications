@@ -19,10 +19,12 @@ module.exports = app => {
     validatePermissionRead,
     validateDeleteBody
   } = require('../validators/petition.js')
-  const { filterVisibleByInscriptionEventIds } = require('../helpers/selectiveProcessHelpers')
-  const { findCourseIdByInscriptionEventId } = require('../helpers/courseHelpers')
-  const { hasAnyPermission } = require('../helpers/permissionCheck')
-  const { findUserByToken } = require('../helpers/userHelpers')
+  const {
+    getCourseIds_from_Petitions,
+    filterCourseIds_withPermission,
+    getPetitionIds_withCourseIds,
+    getPetitionIds_OwnedByUser
+  } = require('../helpers/petitionHelpers')
 
   //Inscription create
   api.create = async (req, res) => {
@@ -122,30 +124,40 @@ module.exports = app => {
       //Filtrar petitionEventIds visiveis para esse usuário (e remover não autorizados da pesquisa).
       const visiblePetitionEventIds = await filterVisible_PetitionEventIds(petitionEventIds, req.user, models)
 
-      //Filtrar inscription_ids do user
-      const person = req.user ? await req.user.getPerson() : null
-      const petitionEvents = await models.PetitionEvent.findAll({ where: { id: visiblePetitionEventIds } })
-      const inscriptionEvents = petitionEvents.map(PE => PE.inscriptionEvent_id)
-      const user_inscriptions = await models.Inscription.findAll({
-        where: { inscriptionEvent_id: inscriptionEvents, person_id: person.id }
+      //delaração de includes para query
+      const includeProcess = { model: models.SelectiveProcess, required: false, include: [includeProcess] }
+      const includeCall = { model: models.Call, required: false, include: [includeProcess] }
+      const includeCalendar = { model: models.Calendar, required: false, include: [includeCall] }
+      const includeInscriptionEvent = { model: models.InscriptionEvent, required: false, include: [includeCalendar] }
+      const includeInscription = { model: models.Inscription, required: false, include: [includeInscriptionEvent] }
+
+      //query para calculo.
+      const petitions = await models.Petitions.findAll({
+        include: [includeInscription],
+        where: { petitionEvent_id: visiblePetitionEventIds }
       })
-      const user_inscription_ids = user_inscriptions.map(ins => ins.id)
 
-      //filtrar inscrições de quem tem permissão para ver tudo.
+      //Filtrar petitionIds que o usuário tem permissão para ler.
+      const courseIds = getCourseIds_from_Petitions(petitions)
+      const courseIds_withPermission = filterCourseIds_withPermission(req.user, 'petition_read', courseIds)
+      const petitionIds_withPermission = getPetitionIds_withCourseIds(petitions, courseIds_withPermission)
 
-      //query and send
-      const inscriptions = await models.Petitions.findAll({
+      //Filtrar petitionsIds que o usuário é dono.
+      const person = req.user ? await req.user.getPerson() : null
+      const petitionIds_OwnedByUser = getPetitionIds_OwnedByUser(petitions, person)
+
+      //Query para enviar.
+      const filtred_petitions = await models.Petitions.findAll({
         where: {
-          petitionEvent_id: visiblePetitionEventIds,
-          inscription_id: user_inscription_ids // inscrições do user.
+          [Op.or]: [{ id: petitionIds_withPermission }, { id: petitionIds_OwnedByUser }],
+          petitionEvent_id: visiblePetitionEventIds
         }
       })
 
-      return res.json(petitions)
+      return res.json(filtred_petitions)
 
       //if error
     } catch (err) {
-      console.log('\n', err, '\n')
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
     }
   }
