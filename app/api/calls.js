@@ -1,7 +1,5 @@
 /** @format */
 
-const { findUserByToken } = require('../helpers/userHelpers')
-
 module.exports = app => {
   const api = {}
   const models = require('../models')
