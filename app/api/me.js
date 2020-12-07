@@ -6,6 +6,8 @@ module.exports = app => {
   const db = require('../models/index')
   const error = app.errors.me
 
+  // const { validationDevMessage } = require('../helpers/error')
+
   api.me = (req, res) => {
     models.User.findById(req.user.id, {
       include: [
@@ -53,6 +55,12 @@ module.exports = app => {
       Person.user_id = req.user.id
       hasPerson = true
     }
+
+    // //validation
+    // const validationErrors = validateBodyPerson(req, models, toDelete)
+    // if (validationErrors) {
+    //   return res.status(400).json(error.parse('me-400', validationDevMessage(validationErrors)))
+    // }
 
     db.sequelize.transaction().then(t => {
       return Promise.all([

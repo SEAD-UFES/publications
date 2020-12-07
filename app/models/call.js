@@ -36,9 +36,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false
       }
     },
-    {
-      paranoid: true
-    }
+    { timestamps: true, paranoid: true }
   )
 
   Call.associate = function (models) {
@@ -73,8 +71,6 @@ module.exports = (sequelize, DataTypes) => {
 
     delete values.enrollmentOpeningDate
     delete values.enrollmentClosingDate
-    delete values.createdAt
-    delete values.updatedAt
     delete values.deletedAt
 
     return values
