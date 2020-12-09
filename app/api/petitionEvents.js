@@ -19,7 +19,7 @@ module.exports = app => {
     validatePermissionDelete
   } = require('../validators/petitionevent.js')
   const { findUserByToken } = require('../helpers/userHelpers')
-  const { filterVisibleByCalendarId } = require('../helpers/selectiveProcessHelpers')
+  const { filterVisibleByCalendarId, filterVisibleByCalendarIds } = require('../helpers/selectiveProcessHelpers')
 
   //PetitionEvent create
   api.create = async (req, res) => {
@@ -145,7 +145,7 @@ module.exports = app => {
       //validation
       if (calendarIds.length === 0 && call_id === null) {
         const errors = { message: 'Array de pesquisa (calendar_ids) ou call_id deve ser enviado.' }
-        return res.status(400).json(error.parse('inscriptionEvent-400', validationDevMessage(errors)))
+        return res.status(400).json(error.parse('petition-400', validationDevMessage(errors)))
       }
 
       //extraindo as calendarIds a partir de call_id
@@ -164,16 +164,17 @@ module.exports = app => {
 
       //checar visibilidade dos processos (e remover não autorizados da pesquisa)
       const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
+      console.log('user:', typeof user)
       const filtredCldIds = await filterVisibleByCalendarIds(newCalendarIds, user, models)
 
       //query and send
       const whereCalendarIds = filtredCldIds.length > 0 ? { calendar_id: filtredCldIds } : { calendar_id: null }
-      const PEs = await models.InscriptionEvent.findAll({ where: { ...whereCalendarIds } })
+      const PEs = await models.PetitionEvent.findAll({ where: { ...whereCalendarIds } })
       return res.json(PEs)
 
       //if error
     } catch (err) {
-      return res.status(500).json(error.parse('inscriptionEvent-500', unknownDevMessage(err)))
+      return res.status(500).json(error.parse('petition-500', unknownDevMessage(err)))
     }
   }
 
