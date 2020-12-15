@@ -4,6 +4,7 @@
 const moment = require('moment')
 
 const apiRoutes = require('../../config/apiRoutes.json')
+const calendar = require('../validators/calendar')
 const { validateDelete } = require('../validators/calendar')
 
 module.exports = (sequelize, DataTypes) => {
@@ -106,8 +107,8 @@ module.exports = (sequelize, DataTypes) => {
       rel: 'calendar',
       href: apiRoutes.find(r => r.key === 'calendarApiRoute').value + '/' + values.id
     }
+
     return values
   }
-
   return Calendar
 }
