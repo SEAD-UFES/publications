@@ -26,6 +26,8 @@ module.exports = app => {
     getPetitionIds_OwnedByUser
   } = require('../helpers/petitionHelpers')
 
+  const { filterVisibleByPetitionEventIds } = require('../helpers/selectiveProcessHelpers')
+
   //Inscription create
   api.create = async (req, res) => {
     try {
@@ -54,8 +56,6 @@ module.exports = app => {
 
   //Inscription read
   api.read = async (req, res) => {
-    console.log('\npetitionEvent.read\n')
-
     try {
       const toRead = await models.Petition.findByPk(req.params.id)
 
@@ -114,7 +114,7 @@ module.exports = app => {
   }
 
   api.list = async (req, res) => {
-    console.log('petitionEvent.list')
+    console.log('\n', 'Petition.list', '\n')
 
     //recolher eventos da lista de pesquisa forncecida.
     const petitionEventIds = req.query.petitionEvent_ids ? req.query.petitionEvent_ids : []
@@ -127,17 +127,17 @@ module.exports = app => {
       }
 
       //Filtrar petitionEventIds visiveis para esse usuário (e remover não autorizados da pesquisa).
-      const visiblePetitionEventIds = await filterVisible_PetitionEventIds(petitionEventIds, req.user, models)
+      const visiblePetitionEventIds = await filterVisibleByPetitionEventIds(petitionEventIds, req.user, models)
 
       //delaração de includes para query
-      const includeProcess = { model: models.SelectiveProcess, required: false, include: [includeProcess] }
+      const includeProcess = { model: models.SelectiveProcess, required: false }
       const includeCall = { model: models.Call, required: false, include: [includeProcess] }
       const includeCalendar = { model: models.Calendar, required: false, include: [includeCall] }
       const includeInscriptionEvent = { model: models.InscriptionEvent, required: false, include: [includeCalendar] }
       const includeInscription = { model: models.Inscription, required: false, include: [includeInscriptionEvent] }
 
       //query para calculo.
-      const petitions = await models.Petitions.findAll({
+      const petitions = await models.Petition.findAll({
         include: [includeInscription],
         where: { petitionEvent_id: visiblePetitionEventIds }
       })
@@ -149,10 +149,10 @@ module.exports = app => {
 
       //Filtrar petitionsIds que o usuário é dono.
       const person = req.user ? await req.user.getPerson() : null
-      const petitionIds_OwnedByUser = getPetitionIds_OwnedByUser(petitions, person)
+      const petitionIds_OwnedByUser = await getPetitionIds_OwnedByUser(petitions, person)
 
       //Query para enviar.
-      const filtred_petitions = await models.Petitions.findAll({
+      const filtred_petitions = await models.Petition.findAll({
         where: {
           [Op.or]: [{ id: petitionIds_withPermission }, { id: petitionIds_OwnedByUser }],
           petitionEvent_id: visiblePetitionEventIds
@@ -163,7 +163,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
+      return res.status(500).json(error.parse('petition-500', unknownDevMessage(err)))
     }
   }
 

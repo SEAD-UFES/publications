@@ -69,7 +69,9 @@ module.exports = app => {
   }
 
   api.authenticationRequired = (req, res, next) => {
+    console.log('\n', 'entrei authenticationRequired', '\n')
     try {
+      console.log(req.headers)
       const decoded = jwt.verify(req.headers['x-access-token'], app.get('jwt_secret'))
       models.User.findByPk(decoded.data, userInclude)
         .then(user => {
