@@ -5,7 +5,7 @@ const { Op } = require('sequelize')
 module.exports = app => {
   const models = require('../models')
   const api = {}
-  const error = app.errors.inscriptions
+  const error = app.errors.petitions
   const {
     validationDevMessage,
     unknownDevMessage,
@@ -54,6 +54,8 @@ module.exports = app => {
 
   //Inscription read
   api.read = async (req, res) => {
+    console.log('\npetitionEvent.read\n')
+
     try {
       const toRead = await models.Petition.findByPk(req.params.id)
 
@@ -75,6 +77,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
+      console.log('\n', err, '\n')
       return res.status(500).json(error.parse('petition-500', unknownDevMessage(err)))
     }
   }
@@ -111,6 +114,8 @@ module.exports = app => {
   }
 
   api.list = async (req, res) => {
+    console.log('petitionEvent.list')
+
     //recolher eventos da lista de pesquisa forncecida.
     const petitionEventIds = req.query.petitionEvent_ids ? req.query.petitionEvent_ids : []
 
