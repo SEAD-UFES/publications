@@ -29,7 +29,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
-      descriptiopn: {
+      description: {
         type: Sequelize.TEXT,
         allowNull: false
       },
