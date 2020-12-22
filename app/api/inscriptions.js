@@ -125,6 +125,8 @@ module.exports = app => {
 
   api.list = async (req, res) => {
     const inscriptionEventIds = req.query.inscriptionEvent_ids ? req.query.inscriptionEvent_ids : []
+    const ownerOnly = req.query.ownerOnly === 'true' ? true : false
+
     try {
       //validation
       if (inscriptionEventIds.length === 0) {
@@ -153,6 +155,18 @@ module.exports = app => {
       const eventsWithOwnerPermissionIds = filtredInscriptionEventIds.filter(
         ieId => !eventsWithFullPermissionIds.includes(ieId)
       )
+
+      //if ownerOnly faço apenas para as inscrições do usuário.
+      if (ownerOnly) {
+        const inscriptionEventIds = filtredInscriptionEventIds
+        const personId = person ? person.id : null
+
+        const inscriptions = await models.Inscription.findAll({
+          where: { inscriptionEvent_id: inscriptionEventIds, person_id: personId }
+        })
+
+        return res.json(inscriptions)
+      }
 
       //query and send
       const inscriptions = await models.Inscription.findAll({
