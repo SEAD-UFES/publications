@@ -139,6 +139,19 @@ module.exports = app => {
       const person = user ? await user.getPerson() : null
       const filtredInscriptionEventIds = await filterVisibleByInscriptionEventIds(inscriptionEventIds, user, models)
 
+      //if ownerOnly faço apenas para as inscrições do usuário.
+      if (ownerOnly) {
+        const inscriptionEventIds = filtredInscriptionEventIds
+        const personId = person ? person.id : null
+
+        const inscriptions = await models.Inscription.findAll({
+          where: { inscriptionEvent_id: inscriptionEventIds, person_id: personId }
+        })
+
+        return res.json(inscriptions)
+      }
+
+      //if not ownerOnly
       const filterReadPermissionId = async (user, ieId, db) => {
         const courseId = await findCourseIdByInscriptionEventId(ieId, db)
         const havePermission = user ? hasAnyPermission(user, 'inscription_read', courseId) : null
@@ -156,18 +169,6 @@ module.exports = app => {
         ieId => !eventsWithFullPermissionIds.includes(ieId)
       )
 
-      //if ownerOnly faço apenas para as inscrições do usuário.
-      if (ownerOnly) {
-        const inscriptionEventIds = filtredInscriptionEventIds
-        const personId = person ? person.id : null
-
-        const inscriptions = await models.Inscription.findAll({
-          where: { inscriptionEvent_id: inscriptionEventIds, person_id: personId }
-        })
-
-        return res.json(inscriptions)
-      }
-
       //query and send
       const inscriptions = await models.Inscription.findAll({
         where: {
@@ -182,7 +183,6 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      console.log('\n', err, '\n')
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
     }
   }
