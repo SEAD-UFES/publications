@@ -1,6 +1,9 @@
 /** @format */
 
 'use strict'
+
+const apiRoutes = require('../../config/apiRoutes.json')
+
 module.exports = (sequelize, DataTypes) => {
   const Petition = sequelize.define(
     'Petition',
