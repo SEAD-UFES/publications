@@ -131,8 +131,6 @@ module.exports = app => {
 
       const visiblePetitionEventIds = await filterVisibleByPetitionEventIds(petitionEventIds, req.user, models)
 
-      console.log('petitionEventIds', petitionEventIds, '\n')
-
       //delaração de includes para query
       const includeProcess = { model: models.SelectiveProcess, required: false }
       const includeCall = { model: models.Call, required: false, include: [includeProcess] }
