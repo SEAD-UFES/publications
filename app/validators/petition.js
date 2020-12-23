@@ -50,7 +50,7 @@ const validateInscriptionId = async (value, db, mode, item) => {
   return null
 }
 
-const validateTitle = () => {
+const validateTitle = (value, db, mode, item) => {
   //value mandatory on create
   if (typeof value === 'undefined' && mode === 'create') {
     return 'Este campo é necessário.'
@@ -70,7 +70,7 @@ const validateTitle = () => {
   return null
 }
 
-const validateDescription = () => {
+const validateDescription = (value, db, mode, item) => {
   //value mandatory on create
   if (typeof value === 'undefined' && mode === 'create') {
     return 'Este campo é necessário.'
@@ -91,7 +91,7 @@ const validateDescription = () => {
 }
 
 //O recurso deve ser único
-const validateUniqueInscriptionAndEvent = async () => {
+const validateUniqueInscriptionAndEvent = async (body, db, mode, item, errors) => {
   if (!errors.petitionEvent_id || !errors.inscription_id) {
     //determinar variaveis
     const petitionEventId = body.petitionEvent_id ? body.petitionEvent_id : item.petitionEvent_id
@@ -117,7 +117,7 @@ const validateInscriptionAndEvent = async (body, db, mode, item, errors) => {
     const petitionEvent_inscriptionEventId = petitionEvent.inscriptionEvent_id
 
     //localizar inscriptionEvent_id da inscrição
-    const inscription = await db.Inscription.findBkPk(inscriptionId)
+    const inscription = await db.Inscription.findByPk(inscriptionId)
     const inscription_InscriptionEventId = inscription.inscriptionEvent_id
 
     if (petitionEvent_inscriptionEventId !== inscription_InscriptionEventId)
@@ -128,8 +128,8 @@ const validateInscriptionAndEvent = async (body, db, mode, item, errors) => {
 //O recurso deve ser criado dentro do prazo do evento.
 const validateCalendarRestrictions = async (body, db, mode, item, errors) => {
   if (!errors.inscriptionEvent_id) {
-    const petitionEvent = await db.PetitionEvent.findByPk(body.PetitionEvent_id)
-    const calendar = await db.Calendar.findByPk(petitionEvent.calendar_id)
+    const petitionEvent = await db.PetitionEvent.findByPk(body.petitionEvent_id)
+    const calendar = await db.Calendar.findByPk(petitionEvent ? petitionEvent.calendar_id : null)
     const calendarStatus = await calendar.calculateStatus()
 
     const status = {
