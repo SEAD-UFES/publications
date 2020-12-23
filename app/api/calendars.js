@@ -140,16 +140,13 @@ module.exports = app => {
     const callIds = req.query.call_ids ? req.query.call_ids : []
 
     setStatusOnCalendar = async calendar => {
-      calendar.dataValues.status = await calendar.calculateStatus()
+      const status = await calendar.calculateStatus()
+      calendar.dataValues.status = status
       return calendar
     }
 
     const setStatusOnCalendars = async calendars => {
-      return Promise.all(
-        calendars.map(cld => {
-          setStatusOnCalendar(cld)
-        })
-      )
+      return Promise.all(calendars.map(cld => setStatusOnCalendar(cld)))
     }
 
     try {
@@ -167,6 +164,7 @@ module.exports = app => {
       const whereCallIds = filtredCallIds.length > 0 ? { call_id: filtredCallIds } : { call_id: null }
       const calendars = await models.Calendar.findAll({ where: { ...whereCallIds } })
       await setStatusOnCalendars(calendars)
+
       return res.json(calendars)
 
       //if error
