@@ -75,7 +75,7 @@ const filterVisibleByPetitionEventId = async (petitionEventId, user, db) => {
   const petitionEvent = await db.PetitionEvent.findByPk(petitionEventId)
   if (!petitionEvent) return null
 
-  const calendarId = await filterVisibleByCalendarId(petitionEventId.calendar_id, user, db)
+  const calendarId = await filterVisibleByCalendarId(petitionEvent.calendar_id, user, db)
   if (!calendarId) return null
 
   return petitionEventId
