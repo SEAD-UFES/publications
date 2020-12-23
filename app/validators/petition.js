@@ -7,6 +7,7 @@ const { isUUID } = require('validator')
 const { isEmpty } = require('../helpers/is-empty.js')
 const { filterVisibleByPetitionEventId } = require('../helpers/selectiveProcessHelpers')
 const { checkIsUserInscription } = require('../helpers/inscriptionHelpers')
+const { isAdmin } = require('../helpers/permissionCheck')
 
 const validatePetitionEventId = async (value, db, mode, item) => {
   //value mandatory on create
@@ -198,6 +199,7 @@ const validateBody = async (body, db, mode, item) => {
 const validatePermissionCreate = async (req, db) => {
   const inscription = await db.Inscription.findByPk(req.body.inscription_id)
   const isMyInscription = checkIsUserInscription(inscription, req.user, db)
+  const user = req.user
 
   //Im Admin. So, I have permission.
   if (isAdmin(user) && isMyInscription) return null

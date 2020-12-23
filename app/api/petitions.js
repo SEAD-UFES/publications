@@ -17,7 +17,8 @@ module.exports = app => {
     validateBody,
     validatePermission,
     validatePermissionRead,
-    validateDeleteBody
+    validateDeleteBody,
+    validatePermissionCreate
   } = require('../validators/petition.js')
   const {
     getCourseIds_from_Petitions,
