@@ -1,5 +1,7 @@
 /** @format */
 
+const { hasAnyPermission } = require('./permissionCheck')
+
 const checkIsUserInscription = async (inscription, user, db) => {
   const userPerson = await user.getPerson()
   if (!userPerson) return false
@@ -11,13 +13,31 @@ const checkIsUserInscription = async (inscription, user, db) => {
   return false
 }
 
-const haveAccess = async (ieId, user, db) => {
-  //Eu tenho permissão para baixar todas as inscrições = Tenho inscription_read no curso ao qual esse inscriptionEvent pertence.
-  const courseId = await findCourseIdByInscriptionEventId(ieId)
-  const havePermission = hasAnyPermission(user, 'inscription_read', courseId)
-  return havePermission
+const filter_Inscriptions_VisibleForThisUser = (inscriptions, user) => {
+  //isolar os processos para checar
+  const processesToCheck = inscriptions.reduce((acc, curr) => {
+    const process = curr.InscriptionEvent.Calendar.Call.process
+    if (!acc.find(pro => pro.id === process.id)) acc = [...acc, process]
+    return acc
+  }, [])
+
+  //para cada processo, isolar os visiveis para esse usuário.
+  const visibleProcessIds = processesToCheck.reduce((acc, curr) => {
+    const haveProcessPermission = user ? hasAnyPermission(user, 'selectiveprocess_read', curr.course_id) : false
+    if (curr.visible || haveProcessPermission) acc = [...acc, curr.id]
+    return acc
+  }, [])
+
+  //filtrar as inscrições que pertencem a processos visiveis
+  const visibleInscriptions = inscriptions.reduce((acc, curr) => {
+    const processId = curr.InscriptionEvent.Calendar.Call.process.id
+    if (visibleProcessIds.includes(processId)) [...acc, curr]
+  }, [])
+
+  return visibleInscriptions
 }
 
 module.exports = {
-  checkIsUserInscription
+  checkIsUserInscription,
+  filter_Inscriptions_VisibleForThisUser
 }

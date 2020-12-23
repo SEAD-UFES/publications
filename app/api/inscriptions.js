@@ -23,6 +23,7 @@ module.exports = app => {
   const { findCourseIdByInscriptionEventId } = require('../helpers/courseHelpers')
   const { hasAnyPermission } = require('../helpers/permissionCheck')
   const { findUserByToken } = require('../helpers/userHelpers')
+  const { filter_Inscriptions_VisibleForThisUser } = require('../helpers/inscriptionHelpers')
 
   //Inscription create
   api.create = async (req, res) => {
@@ -124,30 +125,97 @@ module.exports = app => {
   }
 
   api.list = async (req, res) => {
+    const inscriptionIds = req.query.inscription_ids ? req.query.inscription_ids : []
     const inscriptionEventIds = req.query.inscriptionEvent_ids ? req.query.inscriptionEvent_ids : []
     const ownerOnly = req.query.ownerOnly === 'true' ? true : false
 
     try {
+      //find user/person
+      const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
+      const person = user ? await user.getPerson() : null
+
+      //clausulas where para query de calculo.
+      let whereOwnerId = ownerOnly ? { person_id: person.id } : {}
+      let whereId = {}
+      let whereInscriptionEventId = {}
+
+      //delaração de includes para query de calculo.
+      const includeProcess = { model: models.SelectiveProcess, required: false }
+      const includeCall = { model: models.Call, required: false, include: [includeProcess] }
+      const includeCalendar = { model: models.Calendar, required: false, include: [includeCall] }
+      const includeInscriptionEvent = { model: models.InscriptionEvent, required: false, include: [includeCalendar] }
+
+      //query para calculo.
+      const inscriptions = await models.Inscription.findAll({
+        include: [includeInscriptionEvent],
+        where: { id: inscriptionIds, inscriptionEvent_id: inscriptionEventIds, ...whereOwnerId }
+      })
+
+      //filtrar inscriptions visiveis para esse usuário
+      //O filtro considera permissões de acesso e visibilidade do processo
+      const visibleInscriptions = filter_Inscriptions_VisibleForThisUser(inscriptions, user)
+
+      //filtrar permissões que usuário é dono.
+      const inscriptions_OwnedByUser = ownerOnly
+        ? visibleInscriptions
+        : filter_Inscriptions_OwnedByPerson(visibleInscriptions, person)
+      const inscriptionIds_OwnedByUser = inscriptions_OwnedByUser.map(ins => ins.id)
+
+      //filtrar inscriptions que esse usuário tem permissão para ler.
+      const courseIds = getCourseIds_from_Inscriptions(visibleInscriptions)
+      const courseIds_withPermission = filterCourseIds_withPermission(user, 'inscription_read', courseIds)
+      const inscriptions_withPermission = getInscriptions_withCourseIds(visibleInscriptions, courseIds_withPermission)
+      const inscriptionIds_withPermission = inscriptions_withPermission.map(ins => ins.id)
+
+      //Query para enviar.
+      const filtred_inscriptions = await models.Inscription.findAll({
+        where: {
+          [Op.or]: [{ id: inscriptionIds_OwnedByUser }, { id: inscriptionIds_withPermission }]
+        }
+      })
+
+      return res.json(filtred_inscriptions)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
+    }
+
+    try {
       //validation
       if (inscriptionEventIds.length === 0) {
-        const errors = { message: 'Array de pesquisa (inscriptionEvent_ids) deve ser enviado.' }
+        const errors = { message: 'Array de pesquisa (inscriptionEvent_ids ou inscription_ids) deve ser enviado.' }
         return res.status(400).json(error.parse('inscription-400', validationDevMessage(errors)))
       }
 
       //Checar visibilidade dos processos (e remover não autorizados da pesquisa).
       const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
       const person = user ? await user.getPerson() : null
-      const filtredInscriptionEventIds = await filterVisibleByInscriptionEventIds(inscriptionEventIds, user, models)
+      const filtredInscriptionEventIds =
+        inscriptionEventIds.length > 0
+          ? await filterVisibleByInscriptionEventIds(inscriptionEventIds, user, models)
+          : []
+      const filtredInscriptionIds =
+        inscriptionIds.length > 0 ? await filterVisibleByInscriptionIds(inscriptionIds, user, models) : []
 
       //if ownerOnly faço apenas para as inscrições do usuário.
       if (ownerOnly) {
-        const inscriptionEventIds = filtredInscriptionEventIds
+        //checando variaveis para usar
+        const IEIds = filtredInscriptionEventIds
+        const inscriptionIds = filtredInscriptionIds
         const personId = person ? person.id : null
 
+        //estabelecendo clausulas where
+        whereId = inscriptionIds.length > 0 ? { id: inscriptionIds } : {}
+        whereInscriptionEventId = IEIds.length > 0 ? { inscriptionEvent_id: IEIds } : {}
+        whereOwnerId = personId ? { person_id: personId } : { personId: null }
+
+        //executando query
         const inscriptions = await models.Inscription.findAll({
-          where: { inscriptionEvent_id: inscriptionEventIds, person_id: personId }
+          where: { ...whereId, ...whereInscriptionEventId, ...whereOwnerId }
         })
 
+        //retornando resultado
         return res.json(inscriptions)
       }
 
