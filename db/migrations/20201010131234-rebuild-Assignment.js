@@ -70,7 +70,7 @@ module.exports = {
       //id (ok)
 
       //name (devolver unique para name)
-      await queryInterface.addConstraint('Assignments', ['name'], { type: 'unique', name: 'name' }, { transaction: t })
+      await queryInterface.addConstraint('Assignments', ['name'], { type: 'unique', name: 'name', transaction: t })
 
       //description (ok)
       //createdAt (ok)
