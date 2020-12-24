@@ -130,14 +130,20 @@ module.exports = app => {
     const ownerOnly = req.query.ownerOnly === 'true' ? true : false
 
     try {
+      //validation
+      if (inscriptionEventIds.length === 0) {
+        const errors = { message: 'Array de pesquisa (inscriptionEvent_ids ou inscription_ids) deve ser enviado.' }
+        return res.status(400).json(error.parse('inscription-400', validationDevMessage(errors)))
+      }
+
       //find user/person
       const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
       const person = user ? await user.getPerson() : null
 
       //clausulas where para query de calculo.
       let whereOwnerId = ownerOnly ? { person_id: person.id } : {}
-      let whereId = {}
-      let whereInscriptionEventId = {}
+      let whereId = { id: inscriptionIds }
+      let whereInscriptionEventId = { inscriptionEvent_id: inscriptionEventIds }
 
       //delaração de includes para query de calculo.
       const includeProcess = { model: models.SelectiveProcess, required: false }
@@ -148,7 +154,7 @@ module.exports = app => {
       //query para calculo.
       const inscriptions = await models.Inscription.findAll({
         include: [includeInscriptionEvent],
-        where: { id: inscriptionIds, inscriptionEvent_id: inscriptionEventIds, ...whereOwnerId }
+        where: { ...whereId, ...whereInscriptionEventId, ...whereOwnerId }
       })
 
       //filtrar inscriptions visiveis para esse usuário
