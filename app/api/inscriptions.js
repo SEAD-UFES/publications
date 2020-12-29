@@ -19,11 +19,14 @@ module.exports = app => {
     validatePermissionRead,
     validateDeleteBody
   } = require('../validators/inscription.js')
-  const { filterVisibleByInscriptionEventIds } = require('../helpers/selectiveProcessHelpers')
-  const { findCourseIdByInscriptionEventId } = require('../helpers/courseHelpers')
-  const { hasAnyPermission } = require('../helpers/permissionCheck')
   const { findUserByToken } = require('../helpers/userHelpers')
-  const { filter_Inscriptions_VisibleForThisUser } = require('../helpers/inscriptionHelpers')
+  const {
+    filter_Inscriptions_VisibleForThisUser,
+    filter_Inscriptions_OwnedByPerson,
+    getCourseIds_from_Inscriptions,
+    filterCourseIds_withPermission,
+    getInscriptionIds_withCourseIds
+  } = require('../helpers/inscriptionHelpers')
 
   //Inscription create
   api.create = async (req, res) => {
@@ -131,7 +134,7 @@ module.exports = app => {
 
     try {
       //validation
-      if (inscriptionEventIds.length === 0) {
+      if (inscriptionEventIds.length === 0 && inscriptionIds.length === 0) {
         const errors = { message: 'Array de pesquisa (inscriptionEvent_ids ou inscription_ids) deve ser enviado.' }
         return res.status(400).json(error.parse('inscription-400', validationDevMessage(errors)))
       }
@@ -142,8 +145,8 @@ module.exports = app => {
 
       //clausulas where para query de calculo.
       let whereOwnerId = ownerOnly ? { person_id: person.id } : {}
-      let whereId = { id: inscriptionIds }
-      let whereInscriptionEventId = { inscriptionEvent_id: inscriptionEventIds }
+      let whereId = inscriptionIds.length > 0 ? { id: inscriptionIds } : {}
+      let whereInscriptionEventId = inscriptionEventIds.length > 0 ? { inscriptionEvent_id: inscriptionEventIds } : {}
 
       //delaração de includes para query de calculo.
       const includeProcess = { model: models.SelectiveProcess, required: false }
@@ -164,14 +167,16 @@ module.exports = app => {
       //filtrar permissões que usuário é dono.
       const inscriptions_OwnedByUser = ownerOnly
         ? visibleInscriptions
-        : filter_Inscriptions_OwnedByPerson(visibleInscriptions, person)
+        : filter_Inscriptions_OwnedByPerson(visibleInscriptions, person ? person.id : null)
       const inscriptionIds_OwnedByUser = inscriptions_OwnedByUser.map(ins => ins.id)
 
       //filtrar inscriptions que esse usuário tem permissão para ler.
       const courseIds = getCourseIds_from_Inscriptions(visibleInscriptions)
       const courseIds_withPermission = filterCourseIds_withPermission(user, 'inscription_read', courseIds)
-      const inscriptions_withPermission = getInscriptions_withCourseIds(visibleInscriptions, courseIds_withPermission)
-      const inscriptionIds_withPermission = inscriptions_withPermission.map(ins => ins.id)
+      const inscriptionIds_withPermission = getInscriptionIds_withCourseIds(
+        visibleInscriptions,
+        courseIds_withPermission
+      )
 
       //Query para enviar.
       const filtred_inscriptions = await models.Inscription.findAll({
@@ -184,79 +189,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
-    }
-
-    try {
-      //validation
-      if (inscriptionEventIds.length === 0) {
-        const errors = { message: 'Array de pesquisa (inscriptionEvent_ids ou inscription_ids) deve ser enviado.' }
-        return res.status(400).json(error.parse('inscription-400', validationDevMessage(errors)))
-      }
-
-      //Checar visibilidade dos processos (e remover não autorizados da pesquisa).
-      const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
-      const person = user ? await user.getPerson() : null
-      const filtredInscriptionEventIds =
-        inscriptionEventIds.length > 0
-          ? await filterVisibleByInscriptionEventIds(inscriptionEventIds, user, models)
-          : []
-      const filtredInscriptionIds =
-        inscriptionIds.length > 0 ? await filterVisibleByInscriptionIds(inscriptionIds, user, models) : []
-
-      //if ownerOnly faço apenas para as inscrições do usuário.
-      if (ownerOnly) {
-        //checando variaveis para usar
-        const IEIds = filtredInscriptionEventIds
-        const inscriptionIds = filtredInscriptionIds
-        const personId = person ? person.id : null
-
-        //estabelecendo clausulas where
-        whereId = inscriptionIds.length > 0 ? { id: inscriptionIds } : {}
-        whereInscriptionEventId = IEIds.length > 0 ? { inscriptionEvent_id: IEIds } : {}
-        whereOwnerId = personId ? { person_id: personId } : { personId: null }
-
-        //executando query
-        const inscriptions = await models.Inscription.findAll({
-          where: { ...whereId, ...whereInscriptionEventId, ...whereOwnerId }
-        })
-
-        //retornando resultado
-        return res.json(inscriptions)
-      }
-
-      //if not ownerOnly
-      const filterReadPermissionId = async (user, ieId, db) => {
-        const courseId = await findCourseIdByInscriptionEventId(ieId, db)
-        const havePermission = user ? hasAnyPermission(user, 'inscription_read', courseId) : null
-        return havePermission ? ieId : null
-      }
-
-      const filterReadPermissionIds = async (user, ieIds, db) => {
-        return Promise.all(ieIds.map(id => filterReadPermissionId(user, id, db))).then(new_list =>
-          new_list.filter(item => item !== null)
-        )
-      }
-
-      const eventsWithFullPermissionIds = await filterReadPermissionIds(user, filtredInscriptionEventIds, models)
-      const eventsWithOwnerPermissionIds = filtredInscriptionEventIds.filter(
-        ieId => !eventsWithFullPermissionIds.includes(ieId)
-      )
-
-      //query and send
-      const inscriptions = await models.Inscription.findAll({
-        where: {
-          [Op.or]: [
-            { inscriptionEvent_id: eventsWithFullPermissionIds },
-            { inscriptionEvent_id: eventsWithOwnerPermissionIds, person_id: person ? person.id : null }
-          ]
-        }
-      })
-
-      return res.json(inscriptions)
-
-      //if error
-    } catch (err) {
+      console.log(err)
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
     }
   }
