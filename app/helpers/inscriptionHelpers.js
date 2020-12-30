@@ -56,7 +56,7 @@ const getCourseIds_from_Inscriptions = inscriptions => {
 
 const filterCourseIds_withPermission = (user, permission, courseIds) => {
   const courseIds_withPermission = courseIds.reduce((acc, curr, idx, src) => {
-    if (hasAnyPermission(user, permission, curr)) acc.push(curr)
+    if (user && hasAnyPermission(user, permission, curr)) acc.push(curr)
     return acc
   }, [])
   return courseIds_withPermission
