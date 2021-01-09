@@ -7,7 +7,9 @@ const { isUUID } = require('validator')
 const { isEmpty } = require('../helpers/is-empty.js')
 const { filterVisibleByPetitionEventId } = require('../helpers/selectiveProcessHelpers')
 const { checkIsUserInscription } = require('../helpers/inscriptionHelpers')
-const { isAdmin } = require('../helpers/permissionCheck')
+const { checkIsUserPetition } = require('../helpers/petitionHelpers')
+const { isAdmin, hasGlobalPermission, hasCoursePermission } = require('../helpers/permissionCheck')
+const { findCourseIdByInscriptionId } = require('../helpers/courseHelpers')
 
 const validatePetitionEventId = async (value, db, mode, item) => {
   //value mandatory on create
@@ -248,28 +250,29 @@ const validatePermissionRead = async (req, db, item) => {
 }
 
 const validatePermissionDelete = async (req, db, item) => {
-  const inscription = await db.Inscription.findByPk(req.body.inscription_id)
-  const isMyInscription = checkIsUserInscription(inscription, req.user, db)
+  const isMyPetition = await checkIsUserPetition(item, req.user, db)
+
+  console.log('isMyPetition', isMyPetition)
+  console.log('req.user', typeof req.user)
 
   //Im Admin. So, I have permission.
-  if (isAdmin(user) && isMyInscription) return null
+  if (isAdmin(req.user) && isMyPetition) return null
 
   //I have global permisson. So, I have permission.
   const permission = 'selectiveprocess_read'
-  if (hasGlobalPermission(user, permission) && isMyInscription) return null
+  if (hasGlobalPermission(req.user, permission) && isMyPetition) return null
 
   //I have local Permission. So, I have permisson.
-  const courseId = await findCourseIdByInscriptionEventId(inscription.inscriptionEvent_id, db)
-  if (hasCoursePermission(user, permission, courseId) && isMyInscription) return null
+  const courseId = await findCourseIdByInscriptionId(item.inscription_id, db)
+  if (hasCoursePermission(req.user, permission, courseId) && isMyPetition) return null
 
   //The process is visible and the inscription is mine. So i have permission to create a petition for this inscription.
   const isVisible = await filterVisibleByPetitionEventId(req.body.petitionEvent_id, req.user, db)
-
-  if (isVisible && isMyInscription) return null
+  if (isVisible && isMyPetition) return null
 
   const errors = {}
   errors.message = 'O usuário não tem permissão para excluir esse recurso.'
-  if (!isMyInscription) errors.inscription_id = 'Inscrição não pertence ao usuário.'
+  if (!isMyPetition) errors.inscription_id = 'Inscrição não pertence ao usuário.'
 
   //if no permission
   return errors

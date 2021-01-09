@@ -1,6 +1,7 @@
 /** @format */
 
 const { hasAnyPermission } = require('./permissionCheck')
+const { checkIsUserInscription } = require('./inscriptionHelpers')
 
 const getCourseIds_from_Petitions = petitions => {
   const courseIds = petitions.map(
@@ -36,9 +37,21 @@ const getPetitionIds_OwnedByUser = (petitions, person) => {
   return petitionIds
 }
 
+const checkIsUserPetition = async (petition, user, db) => {
+  //dados de inscription
+  const inscription = await db.Inscription.findByPk(petition.inscription_id)
+
+  //checar se inscription é daquele user
+  const isUserPetition = await checkIsUserInscription(inscription, user, db)
+  if (isUserPetition) return true
+
+  return false
+}
+
 module.exports = {
   getCourseIds_from_Petitions,
   filterCourseIds_withPermission,
   getPetitionIds_withCourseIds,
-  getPetitionIds_OwnedByUser
+  getPetitionIds_OwnedByUser,
+  checkIsUserPetition
 }

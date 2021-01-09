@@ -15,7 +15,7 @@ module.exports = app => {
   } = require('../helpers/error')
   const {
     validateBody,
-    validatePermission,
+    validatePermissionDelete,
     validatePermissionRead,
     validateDeleteBody,
     validatePermissionCreate
@@ -107,7 +107,6 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      await t.rollback()
       if (err.name === 'ForbbidenDeletionError')
         return res.status(403).json(error.parse('petition-403', forbbidenDeletionDevMessage(err)))
       return res.status(500).json(error.parse('petition-500', unknownDevMessage(err)))
@@ -115,8 +114,6 @@ module.exports = app => {
   }
 
   api.list = async (req, res) => {
-    console.log('\n', 'Petition.list', '\n')
-
     //recolher eventos da lista de pesquisa forncecida.
     const petitionEventIds = req.query.petitionEvent_ids ? req.query.petitionEvent_ids : []
 
