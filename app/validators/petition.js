@@ -86,7 +86,7 @@ const validateDescription = (value, db, mode, item) => {
 
   //tamanho mínimo
   if (typeof value !== 'undefined' && (typeof value !== 'string' || value.length <= 3 || value.length >= 255)) {
-    return 'O título precisa ter entre 20 e 512 caracteres.'
+    return 'O título precisa ter entre 20 e 1024 caracteres.'
   }
 
   //no errors
@@ -170,7 +170,7 @@ const validateBody = async (body, db, mode, item) => {
   if (inscriptionIdError) errors.inscription_id = inscriptionIdError
 
   const titleError = validateTitle(body.title, db, mode, item)
-  if (titleError) errors.description = titleError
+  if (titleError) errors.title = titleError
 
   const descriptionError = validateDescription(body.description, db, mode, item)
   if (descriptionError) errors.description = descriptionError

@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
   Petition.associate = function (models) {
     Petition.belongsTo(models.PetitionEvent, { foreignKey: 'petitionEvent_id', targetKey: 'id' })
     Petition.belongsTo(models.Inscription, { foreignKey: 'inscription_id', targetKey: 'id' })
-    //Petition.hasOne(models.PetitionReply, { foreignKey: 'petition_id' })
+    Petition.hasOne(models.PetitionReply, { foreignKey: 'petition_id' })
   }
 
   Petition.beforeDestroy(async (petition, _) => {

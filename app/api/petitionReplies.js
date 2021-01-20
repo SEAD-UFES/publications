@@ -5,7 +5,7 @@ const { Op } = require('sequelize')
 module.exports = app => {
   const models = require('../models')
   const api = {}
-  const error = app.errors.petitions
+  const error = app.errors.petitionReplies
   const {
     validationDevMessage,
     unknownDevMessage,
@@ -15,11 +15,11 @@ module.exports = app => {
   } = require('../helpers/error')
   const {
     validateBody,
+    validatePermissionCreate,
     validatePermissionDelete,
     validatePermissionRead,
-    validateDeleteBody,
-    validatePermissionCreate
-  } = require('../validators/petition.js')
+    validateDeleteBody
+  } = require('../validators/petitionreply.js')
   const {
     getCourseIds_from_Petitions,
     filterCourseIds_withPermission,
@@ -29,48 +29,47 @@ module.exports = app => {
 
   const { filterVisibleByPetitionEventIds } = require('../helpers/selectiveProcessHelpers')
 
-  //Petition create
+  //PetitionReply create
   api.create = async (req, res) => {
     try {
-      //validation and rules
+      // //validation and rules
       const validationErrors = await validateBody(req.body, models, 'create')
       if (validationErrors) {
-        return res.status(400).json(error.parse('petition-400', validationDevMessage(validationErrors)))
+        return res.status(400).json(error.parse('petitionReply-400', validationDevMessage(validationErrors)))
       }
 
-      //permission
+      // //permission
       const permissionErrors = await validatePermissionCreate(req, models)
       if (permissionErrors) {
         return res.status(401).json(error.parse('petition-401', unauthorizedDevMessage(permissionErrors)))
       }
 
       //try to create
-      const created = await models.Petition.create(req.body)
+      const created = await models.PetitionReply.create(req.body)
       await created.reload() //para que o retorno seja igual ao de api.read.
       return res.status(201).json(created)
 
       //if error
     } catch (err) {
-      return res.status(500).json(error.parse('petition-500', unknownDevMessage(err)))
+      console.log(err)
+      return res.status(500).json(error.parse('petitionReply-500', unknownDevMessage(err)))
     }
   }
 
-  //Petition read
+  //PetitionReply read
   api.read = async (req, res) => {
     try {
-      const toRead = await models.Petition.findByPk(req.params.id)
+      const toRead = await models.PetitionReply.findByPk(req.params.id)
 
       //verify valid id
       if (!toRead) {
-        return res.status(400).json(error.parse('petition-400', idNotFoundDevMessage()))
+        return res.status(400).json(error.parse('petitionReply-400', idNotFoundDevMessage()))
       }
 
-      //Checar visibilidade/permissão do processo
-      //Ou se é visivel e é minha inscrição
-      //req.user existe pois estar logado é obrigatório
+      //checar permissão
       const permissionErrors = await validatePermissionRead(req, models, toRead)
       if (permissionErrors) {
-        return res.status(401).json(error.parse('petition-401', unauthorizedDevMessage(permissionErrors)))
+        return res.status(401).json(error.parse('petitionReply-401', unauthorizedDevMessage(permissionErrors)))
       }
 
       //return result
@@ -78,12 +77,11 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      console.log('\n', err, '\n')
-      return res.status(500).json(error.parse('petition-500', unknownDevMessage(err)))
+      return res.status(500).json(error.parse('petitionReply-500', unknownDevMessage(err)))
     }
   }
 
-  //Petition delete
+  //PetitionReply delete
   api.delete = async (req, res) => {
     try {
       const toDelete = await models.Petition.findByPk(req.params.id)
@@ -113,6 +111,7 @@ module.exports = app => {
     }
   }
 
+  //PetitionReply list
   api.list = async (req, res) => {
     //recolher eventos da lista de pesquisa forncecida.
     const petitionEventIds = req.query.petitionEvent_ids ? req.query.petitionEvent_ids : []

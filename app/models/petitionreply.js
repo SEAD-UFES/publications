@@ -1,6 +1,9 @@
 /** @format */
 
 'use strict'
+
+const apiRoutes = require('../../config/apiRoutes.json')
+
 module.exports = (sequelize, DataTypes) => {
   const PetitionReply = sequelize.define(
     'PetitionReply',
@@ -28,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
   )
 
   PetitionReply.associate = function (models) {
-    //PetitionReply.belongsTo(models.Petition, { foreignKey: 'petition_id', targetKey: 'id' })
+    PetitionReply.belongsTo(models.Petition, { foreignKey: 'petition_id', targetKey: 'id' })
   }
 
   PetitionReply.beforeDestroy(async (petitionReply, _) => {
