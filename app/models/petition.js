@@ -3,6 +3,7 @@
 'use strict'
 
 const apiRoutes = require('../../config/apiRoutes.json')
+const { validateOperationDelete } = require('../validators/petition')
 
 module.exports = (sequelize, DataTypes) => {
   const Petition = sequelize.define(
@@ -42,7 +43,11 @@ module.exports = (sequelize, DataTypes) => {
 
   Petition.beforeDestroy(async (petition, _) => {
     //validação de restrições em modelos relacionados. (onDelete:'RESTRICT')
-    //sem restrições em modelos relacionados
+    const errors = await validateOperationDelete(petition, sequelize.models)
+    if (errors) {
+      throw { name: 'ForbbidenDeletionError', traceback: 'Petition', errors: errors }
+    }
+
     //operações em modelos relacionados (onDelete:'CASCADE' ou 'SET NULL')
     //sem modelos associados para deletar
   })

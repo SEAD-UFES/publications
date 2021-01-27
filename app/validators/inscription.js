@@ -154,6 +154,7 @@ const validateCalendarRestrictions = async (body, db, mode, item, errors) => {
       ag: 'Aguardando',
       atd: 'Atrasado por dependência',
       at: 'Atrasado',
+      atPE: 'Atrasado (recursos pendentes)',
       ad: 'Em andamento',
       cc: 'Concluído!'
     }
@@ -163,6 +164,8 @@ const validateCalendarRestrictions = async (body, db, mode, item, errors) => {
     if (calendarStatus === status['atd']) return 'O evento de inscrição está atrasado por uma dependência.'
 
     if (calendarStatus === status['at']) return 'O evento de inscrição está atrasado.'
+
+    if (calendarStatus === status['atPE']) return 'O evento de inscrição está atrasado (recursos pendentes).'
 
     //if (calendarStatus === status['ad']) Evento em andamento, sem problemas para se inscrever.
 
@@ -275,10 +278,18 @@ const validateDelete = async (inscription, db) => {
     ag: 'Aguardando',
     atd: 'Atrasado por dependência',
     at: 'Atrasado',
+    atPE: 'Atrasado (recursos pendentes)',
     ad: 'Em andamento',
     cc: 'Concluído!'
   }
   if (calendarStatus !== status['ad']) errors.id = 'Não é possivel excluir inscrições fora do periodo de inscrição.'
+
+  //não pode ser deletado se tiver uma Petition associada.
+  const petitions = await models.Petition.count({ where: { inscription_id: inscription.id } })
+  if (petitions > 0) {
+    errors.id = 'Esta inscrição é dependência de recurso ativo.'
+    return errors
+  }
 
   return !isEmpty(errors) ? errors : null
 }

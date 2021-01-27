@@ -139,6 +139,7 @@ const validateCalendarRestrictions = async (body, db, mode, item, errors) => {
       ag: 'Aguardando',
       atd: 'Atrasado por dependência',
       at: 'Atrasado',
+      atPE: 'Atrasado (recursos pendentes)',
       ad: 'Em andamento',
       cc: 'Concluído!'
     }
@@ -147,7 +148,8 @@ const validateCalendarRestrictions = async (body, db, mode, item, errors) => {
 
     if (calendarStatus === status['atd']) return 'O evento de recurso está atrasado por uma dependência.'
 
-    if (calendarStatus === status['at']) return 'O evento de recurso está atrasado.'
+    if (calendarStatus === status['at'] || calendarStatus === status['atPE'])
+      return 'O evento de recurso está atrasado.'
 
     //if (calendarStatus === status['ad']) Evento em andamento, sem problemas para criar recurso.
 
@@ -252,9 +254,6 @@ const validatePermissionRead = async (req, db, item) => {
 const validatePermissionDelete = async (req, db, item) => {
   const isMyPetition = await checkIsUserPetition(item, req.user, db)
 
-  console.log('isMyPetition', isMyPetition)
-  console.log('req.user', typeof req.user)
-
   //Im Admin. So, I have permission.
   if (isAdmin(req.user) && isMyPetition) return null
 
@@ -266,7 +265,7 @@ const validatePermissionDelete = async (req, db, item) => {
   const courseId = await findCourseIdByInscriptionId(item.inscription_id, db)
   if (hasCoursePermission(req.user, permission, courseId) && isMyPetition) return null
 
-  //The process is visible and the inscription is mine. So i have permission to create a petition for this inscription.
+  //The process is visible and the inscription is mine.
   const isVisible = await filterVisibleByPetitionEventId(req.body.petitionEvent_id, req.user, db)
   if (isVisible && isMyPetition) return null
 
@@ -282,7 +281,7 @@ const validatePermissionDelete = async (req, db, item) => {
 const validateOperationDelete = async (petition, db) => {
   const errors = {}
 
-  //Não pode ser deletado se estiver fora do periodo de inscrição.
+  //Não pode ser deletado se estiver fora do periodo de recurso
   const petitionEvent = await db.PetitionEvent.findByPk(petition.petitionEvent_id)
   const calendar = await db.Calendar.findByPk(petitionEvent.calendar_id)
   const calendarStatus = await calendar.calculateStatus()
@@ -290,6 +289,7 @@ const validateOperationDelete = async (petition, db) => {
     ag: 'Aguardando',
     atd: 'Atrasado por dependência',
     at: 'Atrasado',
+    atPE: 'Atrasado (recursos pendentes)',
     ad: 'Em andamento',
     cc: 'Concluído!'
   }
@@ -298,7 +298,7 @@ const validateOperationDelete = async (petition, db) => {
     return errors
   }
 
-  //Não pode ser deletado se tiver uma inscription associada.
+  //Não pode ser deletado se tiver uma petitionReply associada.
   const petitionReplies = await models.PetitionReply.count({ where: { petition_id: petition.id } })
   if (petitionReplies > 0) {
     errors.id = 'Este recurso não pode ser apagado pois já possui resposta.'

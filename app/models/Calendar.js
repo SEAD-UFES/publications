@@ -69,6 +69,7 @@ module.exports = (sequelize, DataTypes) => {
       ag: 'Aguardando',
       atd: 'Atrasado por dependência',
       at: 'Atrasado',
+      atPE: 'Atrasado (recursos pendentes)',
       ad: 'Em andamento',
       cc: 'Concluído!'
     }
@@ -84,10 +85,25 @@ module.exports = (sequelize, DataTypes) => {
     //Atrasado por dependencia
     const fatherCalendar = this.calendar_id ? await sequelize.models.Calendar.findByPk(this.calendar_id) : null
     const fatherStatus = fatherCalendar ? await fatherCalendar.calculateStatus() : null
-    if (fatherStatus === status['atd'] || fatherStatus === status['at']) return status['atd']
+    if (fatherStatus === status['atd'] || fatherStatus === status['at'] || fatherStatus === status['atPE'])
+      return status['atd']
 
     //Atrasado
     if (ready === false && now > startDate) return status['at']
+
+    //atrasado por evento (PetitionEvent)
+    const includePetitionReply = { model: sequelize.models.PetitionReply, required: false }
+    const includePetition = { model: sequelize.models.Petition, required: false, include: [includePetitionReply] }
+    const petitionEvent = await sequelize.models.PetitionEvent.find({
+      where: { calendar_id: this.id },
+      include: [includePetition]
+    })
+    const petitions = petitionEvent ? petitionEvent.Petitions : []
+    const havePetitionWithNoReply = petitions.find(pet => {
+      if (!pet.PetitionReply) return true
+      else return false
+    })
+    if (ready === true && now > endDate && havePetitionWithNoReply) return status['atPE']
 
     //Em andamento
     if (ready === true && now > startDate && now < endDate) return status['ad']

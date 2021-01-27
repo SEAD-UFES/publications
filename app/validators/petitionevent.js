@@ -148,8 +148,6 @@ const validatePermissionUpdate = async (req, db, item) => {
 const validatePermissionDelete = async (req, db, item) => {
   let errors = {}
 
-  if (isAdmin(req.user)) return null
-
   //delete case
   const permission = 'petitionevent_delete'
   const courseId = (await findCourseIdByCalendarId(item.calendar_id, db)) || ''
@@ -162,4 +160,23 @@ const validatePermissionDelete = async (req, db, item) => {
   return !isEmpty(errors) ? errors : null
 }
 
-module.exports = { validateBody, validatePermissionCreate, validatePermissionUpdate, validatePermissionDelete }
+const validateOperationDelete = async (petitionEvent, db) => {
+  const errors = {}
+
+  //Não pode ser deletado se tiver Petition associada.
+  const petitions = await db.Petition.count({ where: { petitionEvent_id: petitionEvent.id } })
+  if (petitions > 0) {
+    errors.id = 'Este Evento não pode ser apagado pois já possui recursos.'
+    return errors
+  }
+
+  return !isEmpty(errors) ? errors : null
+}
+
+module.exports = {
+  validateBody,
+  validatePermissionCreate,
+  validatePermissionUpdate,
+  validatePermissionDelete,
+  validateOperationDelete
+}
