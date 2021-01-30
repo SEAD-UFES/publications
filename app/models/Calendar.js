@@ -85,7 +85,12 @@ module.exports = (sequelize, DataTypes) => {
     //Atrasado por dependencia
     const fatherCalendar = this.calendar_id ? await sequelize.models.Calendar.findByPk(this.calendar_id) : null
     const fatherStatus = fatherCalendar ? await fatherCalendar.calculateStatus() : null
-    if (fatherStatus === status['atd'] || fatherStatus === status['at'] || fatherStatus === status['atPE'])
+    if (
+      fatherStatus === status['atd'] ||
+      fatherStatus === status['at'] ||
+      fatherStatus === status['atPE'] ||
+      fatherStatus === status['ad']
+    )
       return status['atd']
 
     //Atrasado
