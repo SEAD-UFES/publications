@@ -38,6 +38,30 @@ const filter_Inscriptions_VisibleForThisUser = (inscriptions, user) => {
   return visibleInscriptions
 }
 
+const filter_Inscription_VisibleForThisUserV2 = (inscriptions, user) => {
+  const visibleInscriptions = inscriptions.reduce((acc, curr) => {
+    const havePermission = user ? hasAnyPermission(user, 'inscription_list', curr.course_id) : false
+
+    console.log('user', user)
+    const us_personId = user.Person ? user.Person.id : null
+    const pr_personId = curr.person_id
+
+    //if I have permission
+    if (havePermission) {
+      acc = [...acc, curr]
+      return acc
+    }
+
+    //if I am the owner
+    if (pr_personId === us_personId) {
+      acc = [...acc, curr]
+      return acc
+    }
+  }, [])
+
+  return visibleInscriptions
+}
+
 const filter_Inscriptions_OwnedByPerson = (inscriptions, person_id) => {
   const inscriptionsOfThisPerson = inscriptions.reduce((acc, curr) => {
     if (curr.person_id === person_id) acc = [...acc, process]
@@ -77,5 +101,6 @@ module.exports = {
   filter_Inscriptions_OwnedByPerson,
   getCourseIds_from_Inscriptions,
   filterCourseIds_withPermission,
-  getInscriptionIds_withCourseIds
+  getInscriptionIds_withCourseIds,
+  filter_Inscription_VisibleForThisUserV2
 }

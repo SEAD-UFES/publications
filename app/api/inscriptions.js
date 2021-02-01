@@ -22,6 +22,7 @@ module.exports = app => {
   const { findUserByToken } = require('../helpers/userHelpers')
   const {
     filter_Inscriptions_VisibleForThisUser,
+    filter_Inscription_VisibleForThisUserV2,
     filter_Inscriptions_OwnedByPerson,
     getCourseIds_from_Inscriptions,
     filterCourseIds_withPermission,
@@ -160,36 +161,17 @@ module.exports = app => {
         where: { ...whereId, ...whereInscriptionEventId, ...whereOwnerId }
       })
 
-      //filtrar inscriptions visiveis para esse usuário
-      //O filtro considera permissões de acesso e visibilidade do processo
-      const visibleInscriptions = filter_Inscriptions_VisibleForThisUser(inscriptions, user)
-
-      //filtrar permissões que usuário é dono.
-      const inscriptions_OwnedByUser = ownerOnly
-        ? visibleInscriptions
-        : filter_Inscriptions_OwnedByPerson(visibleInscriptions, person ? person.id : null)
-      const inscriptionIds_OwnedByUser = inscriptions_OwnedByUser.map(ins => ins.id)
-
-      //filtrar inscriptions que esse usuário tem permissão para ler.
-      const courseIds = getCourseIds_from_Inscriptions(visibleInscriptions)
-      const courseIds_withPermission = filterCourseIds_withPermission(user, 'inscription_read', courseIds)
-      const inscriptionIds_withPermission = getInscriptionIds_withCourseIds(
-        visibleInscriptions,
-        courseIds_withPermission
-      )
+      //Filtrar inscriptionIds visiveis para esse usuário (e remover não autorizados da pesquisa).
+      const visibleInscriptions = filter_Inscription_VisibleForThisUserV2(inscriptions, user)
+      const visibleInscriptionIds = visibleInscriptions.map(pr => pr.id)
 
       //Query para enviar.
-      const filtred_inscriptions = await models.Inscription.findAll({
-        where: {
-          [Op.or]: [{ id: inscriptionIds_OwnedByUser }, { id: inscriptionIds_withPermission }]
-        }
-      })
+      const filtred_inscriptions = await models.Inscription.findAll({ where: { id: visibleInscriptionIds } })
 
       return res.json(filtred_inscriptions)
 
       //if error
     } catch (err) {
-      console.log(err)
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
     }
   }
