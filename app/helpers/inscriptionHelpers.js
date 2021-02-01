@@ -39,24 +39,22 @@ const filter_Inscriptions_VisibleForThisUser = (inscriptions, user) => {
 }
 
 const filter_Inscription_VisibleForThisUserV2 = (inscriptions, user) => {
+  inscriptions.map(ins => {
+    console.log(ins.id)
+  })
   const visibleInscriptions = inscriptions.reduce((acc, curr) => {
-    const havePermission = user ? hasAnyPermission(user, 'inscription_list', curr.course_id) : false
-
-    console.log('user', user)
+    const course_id = curr.InscriptionEvent.Calendar.Call.SelectiveProcess.course_id
+    const havePermission = user ? hasAnyPermission(user, 'inscription_list', curr.course_id) : course_id
     const us_personId = user.Person ? user.Person.id : null
     const pr_personId = curr.person_id
 
     //if I have permission
-    if (havePermission) {
-      acc = [...acc, curr]
-      return acc
-    }
+    if (havePermission) return acc.concat(curr)
 
     //if I am the owner
-    if (pr_personId === us_personId) {
-      acc = [...acc, curr]
-      return acc
-    }
+    if (pr_personId === us_personId) return acc.concat(curr)
+
+    return acc
   }, [])
 
   return visibleInscriptions

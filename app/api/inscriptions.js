@@ -20,14 +20,7 @@ module.exports = app => {
     validateDeleteBody
   } = require('../validators/inscription.js')
   const { findUserByToken } = require('../helpers/userHelpers')
-  const {
-    filter_Inscriptions_VisibleForThisUser,
-    filter_Inscription_VisibleForThisUserV2,
-    filter_Inscriptions_OwnedByPerson,
-    getCourseIds_from_Inscriptions,
-    filterCourseIds_withPermission,
-    getInscriptionIds_withCourseIds
-  } = require('../helpers/inscriptionHelpers')
+  const { filter_Inscription_VisibleForThisUserV2 } = require('../helpers/inscriptionHelpers')
 
   //Inscription create
   api.create = async (req, res) => {
@@ -172,6 +165,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
+      console.log(err)
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
     }
   }
