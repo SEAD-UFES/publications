@@ -213,7 +213,7 @@ const validatePermissionCreate = async (req, db) => {
   if (hasGlobalPermission(user, permission) && isMyInscription) return null
 
   //I have local Permission. So, I have permisson.
-  const courseId = await findCourseIdByInscriptionEventId(inscription.inscriptionEvent_id, db)
+  const courseId = await findCourseIdByInscriptionId(inscription.id, db)
   if (hasCoursePermission(user, permission, courseId) && isMyInscription) return null
 
   //The process is visible and the inscription is mine. So i have permission to create a petition for this inscription.
@@ -238,12 +238,13 @@ const validatePermissionRead = async (req, db, item) => {
   if (hasGlobalPermission(req.user, permission)) return null
 
   //I have local Permission. So, I have permisson.
-  const courseId = await findCourseIdByInscriptionEventId(inscription.inscriptionEvent_id, db)
+  const inscription = await db.Inscription.findByPk(item.inscription_id)
+  const courseId = await findCourseIdByInscriptionId(inscription.id, db)
   if (hasCoursePermission(req.user, permission, courseId)) return null
 
   //The process is visible and the inscription is mine. So i have permission.
-  const inscription = await db.Inscription.findByPk(item.inscription_id)
-  const isVisible = await filterVisibleByInscriptionEventId(inscription.inscriptionEvent_id, req.user, db)
+  const isVisible = await filterVisibleByPetitionEventId(item.petitionEvent_id, req.user, db)
+
   const isMyInscription = checkIsUserInscription(inscription, req.user, db)
   if (isVisible && isMyInscription) return null
 
@@ -266,7 +267,7 @@ const validatePermissionDelete = async (req, db, item) => {
   if (hasCoursePermission(req.user, permission, courseId) && isMyPetition) return null
 
   //The process is visible and the inscription is mine.
-  const isVisible = await filterVisibleByPetitionEventId(req.body.petitionEvent_id, req.user, db)
+  const isVisible = await filterVisibleByPetitionEventId(item.petitionEvent_id, req.user, db)
   if (isVisible && isMyPetition) return null
 
   const errors = {}
@@ -299,7 +300,7 @@ const validateOperationDelete = async (petition, db) => {
   }
 
   //Não pode ser deletado se tiver uma petitionReply associada.
-  const petitionReplies = await models.PetitionReply.count({ where: { petition_id: petition.id } })
+  const petitionReplies = await db.PetitionReply.count({ where: { petition_id: petition.id } })
   if (petitionReplies > 0) {
     errors.id = 'Este recurso não pode ser apagado pois já possui resposta.'
     return errors
