@@ -79,13 +79,12 @@ module.exports = app => {
         .catch(err => {
           t.rollback().then(() => {
             if (err.name === 'SequelizeValidationError') {
-              console.log(err)
+              console.log('\n', err, '\n')
               res.status(400).json(error.parse('me-01', err))
             }
             if (err.name === 'SequelizeUniqueConstraintError') res.status(400).json(error.parse('me-02', err))
             else res.status(500).json(error.parse('me-03', err))
           })
-          console.log(err)
         })
     })
   }

@@ -71,6 +71,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
+      console.log('\n', err, '\n')
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
     }
   }
@@ -114,6 +115,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
+      console.log('\n', err, '\n')
       await t.rollback()
       if (err.name === 'ForbbidenDeletionError')
         return res.status(403).json(error.parse('inscription-403', forbbidenDeletionDevMessage(err)))
@@ -165,7 +167,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
-      console.log(err)
+      console.log('\n', err, '\n')
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
     }
   }

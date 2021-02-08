@@ -282,10 +282,14 @@ const validateDelete = async (inscription, db) => {
     ad: 'Em andamento',
     cc: 'Concluído!'
   }
-  if (calendarStatus !== status['ad']) errors.id = 'Não é possivel excluir inscrições fora do periodo de inscrição.'
+  console.log('calendarStatus', calendarStatus)
+  if (calendarStatus !== status['ad']) {
+    errors.id = 'Não é possivel excluir inscrições fora do periodo de inscrição.'
+    return errors
+  }
 
   //não pode ser deletado se tiver uma Petition associada.
-  const petitions = await models.Petition.count({ where: { inscription_id: inscription.id } })
+  const petitions = await db.Petition.count({ where: { inscription_id: inscription.id } })
   if (petitions > 0) {
     errors.id = 'Esta inscrição é dependência de recurso ativo.'
     return errors

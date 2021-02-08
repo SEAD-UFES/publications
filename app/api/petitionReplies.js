@@ -27,7 +27,7 @@ module.exports = app => {
       // //permission
       const permissionErrors = await validatePermissionCreate(req, models)
       if (permissionErrors) {
-        return res.status(401).json(error.parse('petition-401', unauthorizedDevMessage(permissionErrors)))
+        return res.status(401).json(error.parse('petitionReply-401', unauthorizedDevMessage(permissionErrors)))
       }
 
       //try to create
