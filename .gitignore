@@ -60,7 +60,14 @@ typings/
 # next.js build output
 .next
 
+#config files
 config/database.json
 config/secrets.json
+config/mail.js
+config/site.js
 
+#vscode
 .vscode
+
+#files
+public/files/
