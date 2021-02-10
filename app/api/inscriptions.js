@@ -19,10 +19,8 @@ module.exports = app => {
     validatePermissionRead,
     validateDeleteBody
   } = require('../validators/inscription.js')
-  const { filterVisibleByInscriptionEventIds } = require('../helpers/selectiveProcessHelpers')
-  const { findCourseIdByInscriptionEventId } = require('../helpers/courseHelpers')
-  const { hasAnyPermission } = require('../helpers/permissionCheck')
   const { findUserByToken } = require('../helpers/userHelpers')
+  const { filter_Inscription_VisibleForThisUserV2 } = require('../helpers/inscriptionHelpers')
 
   //Inscription create
   api.create = async (req, res) => {
@@ -36,7 +34,7 @@ module.exports = app => {
       //permission (caso coberto pelo middleware)
       const permissionErrors = await validatePermission(req, models, null)
       if (permissionErrors) {
-        return res.status(401).json(error.parse('inscriptionEvent-401', unauthorizedDevMessage(permissionErrors)))
+        return res.status(401).json(error.parse('inscription-401', unauthorizedDevMessage(permissionErrors)))
       }
 
       //try to create
@@ -73,6 +71,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
+      console.log('\n', err, '\n')
       return res.status(500).json(error.parse('inscription-500', unknownDevMessage(err)))
     }
   }
@@ -116,6 +115,7 @@ module.exports = app => {
 
       //if error
     } catch (err) {
+      console.log('\n', err, '\n')
       await t.rollback()
       if (err.name === 'ForbbidenDeletionError')
         return res.status(403).json(error.parse('inscription-403', forbbidenDeletionDevMessage(err)))
@@ -124,48 +124,46 @@ module.exports = app => {
   }
 
   api.list = async (req, res) => {
+    const inscriptionIds = req.query.inscription_ids ? req.query.inscription_ids : []
     const inscriptionEventIds = req.query.inscriptionEvent_ids ? req.query.inscriptionEvent_ids : []
+    const ownerOnly = req.query.ownerOnly === 'true' ? true : false
+
     try {
       //validation
-      if (inscriptionEventIds.length === 0) {
-        const errors = { message: 'Array de pesquisa (inscriptionEvent_ids) deve ser enviado.' }
+      if (inscriptionEventIds.length === 0 && inscriptionIds.length === 0) {
+        const errors = { message: 'Array de pesquisa (inscriptionEvent_ids ou inscription_ids) deve ser enviado.' }
         return res.status(400).json(error.parse('inscription-400', validationDevMessage(errors)))
       }
 
-      //Checar visibilidade dos processos (e remover não autorizados da pesquisa).
+      //find user/person
       const user = await findUserByToken(req.headers['x-access-token'], app.get('jwt_secret'), models)
       const person = user ? await user.getPerson() : null
-      const filtredInscriptionEventIds = await filterVisibleByInscriptionEventIds(inscriptionEventIds, user, models)
 
-      const filterReadPermissionId = async (user, ieId, db) => {
-        const courseId = await findCourseIdByInscriptionEventId(ieId, db)
-        console.log('courseId', courseId)
-        const havePermission = user ? hasAnyPermission(user, 'inscription_read', courseId) : null
-        return havePermission ? ieId : null
-      }
+      //clausulas where para query de calculo.
+      let whereOwnerId = ownerOnly ? { person_id: person.id } : {}
+      let whereId = inscriptionIds.length > 0 ? { id: inscriptionIds } : {}
+      let whereInscriptionEventId = inscriptionEventIds.length > 0 ? { inscriptionEvent_id: inscriptionEventIds } : {}
 
-      const filterReadPermissionIds = async (user, ieIds, db) => {
-        return Promise.all(ieIds.map(id => filterReadPermissionId(user, id, db))).then(new_list =>
-          new_list.filter(item => item !== null)
-        )
-      }
+      //delaração de includes para query de calculo.
+      const includeProcess = { model: models.SelectiveProcess, required: false }
+      const includeCall = { model: models.Call, required: false, include: [includeProcess] }
+      const includeCalendar = { model: models.Calendar, required: false, include: [includeCall] }
+      const includeInscriptionEvent = { model: models.InscriptionEvent, required: false, include: [includeCalendar] }
 
-      const eventsWithFullPermissionIds = await filterReadPermissionIds(user, filtredInscriptionEventIds, models)
-      const eventsWithOwnerPermissionIds = filtredInscriptionEventIds.filter(
-        ieId => !eventsWithFullPermissionIds.includes(ieId)
-      )
-
-      //query and send
+      //query para calculo.
       const inscriptions = await models.Inscription.findAll({
-        where: {
-          [Op.or]: [
-            { inscriptionEvent_id: eventsWithFullPermissionIds },
-            { inscriptionEvent_id: eventsWithOwnerPermissionIds, person_id: person ? person.id : null }
-          ]
-        }
+        include: [includeInscriptionEvent],
+        where: { ...whereId, ...whereInscriptionEventId, ...whereOwnerId }
       })
 
-      return res.json(inscriptions)
+      //Filtrar inscriptionIds visiveis para esse usuário (e remover não autorizados da pesquisa).
+      const visibleInscriptions = filter_Inscription_VisibleForThisUserV2(inscriptions, user)
+      const visibleInscriptionIds = visibleInscriptions.map(pr => pr.id)
+
+      //Query para enviar.
+      const filtred_inscriptions = await models.Inscription.findAll({ where: { id: visibleInscriptionIds } })
+
+      return res.json(filtred_inscriptions)
 
       //if error
     } catch (err) {

@@ -31,9 +31,18 @@ const findCourseIdByInscriptionEventId = async (inscriptionEvent_id, db) => {
   return courseIdByCalendarId
 }
 
+const findCourseIdByInscriptionId = async (inscription_id, db) => {
+  const inscription = await db.Inscription.findByPk(inscription_id)
+  if (!inscription) return null
+
+  const courseIdByInscriptionEventId = await findCourseIdByInscriptionEventId(inscription.inscriptionEvent_id, db)
+  return courseIdByInscriptionEventId
+}
+
 module.exports = {
   findCourseIdBySelectiveProcessId,
   findCourseIdByCallId,
   findCourseIdByCalendarId,
-  findCourseIdByInscriptionEventId
+  findCourseIdByInscriptionEventId,
+  findCourseIdByInscriptionId
 }

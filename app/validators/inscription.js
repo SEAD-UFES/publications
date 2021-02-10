@@ -74,7 +74,7 @@ const validateVacancyId = async (value, db, mode, item) => {
 }
 
 const validateUnique_IEv_Per_Vac = async (body, db, mode, item, errors) => {
-  if (!errors.inscriptionEventIdError && !errors.personIdError && !errors.vacancyIdError) {
+  if (!errors.inscriptionEvent_id && !errors.person_id && !errors.vacancy_id) {
     const inscriptionEvent_id = body.inscriptionEvent_id
     const person_id = body.person_id
     const vacancy_id = body.vacancy_id
@@ -94,7 +94,7 @@ const validateUnique_IEv_Per_Vac = async (body, db, mode, item, errors) => {
 }
 
 const validateEventRestrictions = async (body, db, mode, item, errors) => {
-  if (!errors.inscriptionEventIdError && !errors.personIdError) {
+  if (!errors.inscriptionEvent_id && !errors.person_id) {
     const vacancyInclude = { model: db.Vacancy, required: false }
     const inscriptionEvent = await db.InscriptionEvent.findByPk(body.inscriptionEvent_id)
 
@@ -145,7 +145,7 @@ const validateEventRestrictions = async (body, db, mode, item, errors) => {
 }
 
 const validateCalendarRestrictions = async (body, db, mode, item, errors) => {
-  if (!errors.inscriptionEventIdError) {
+  if (!errors.inscriptionEvent_id) {
     const inscriptionEvent = await db.InscriptionEvent.findByPk(body.inscriptionEvent_id)
     const calendar = await db.Calendar.findByPk(inscriptionEvent.calendar_id)
     const calendarStatus = await calendar.calculateStatus()
@@ -154,6 +154,7 @@ const validateCalendarRestrictions = async (body, db, mode, item, errors) => {
       ag: 'Aguardando',
       atd: 'Atrasado por dependência',
       at: 'Atrasado',
+      atPE: 'Atrasado (recursos pendentes)',
       ad: 'Em andamento',
       cc: 'Concluído!'
     }
@@ -163,6 +164,8 @@ const validateCalendarRestrictions = async (body, db, mode, item, errors) => {
     if (calendarStatus === status['atd']) return 'O evento de inscrição está atrasado por uma dependência.'
 
     if (calendarStatus === status['at']) return 'O evento de inscrição está atrasado.'
+
+    if (calendarStatus === status['atPE']) return 'O evento de inscrição está atrasado (recursos pendentes).'
 
     //if (calendarStatus === status['ad']) Evento em andamento, sem problemas para se inscrever.
 
@@ -275,10 +278,22 @@ const validateDelete = async (inscription, db) => {
     ag: 'Aguardando',
     atd: 'Atrasado por dependência',
     at: 'Atrasado',
+    atPE: 'Atrasado (recursos pendentes)',
     ad: 'Em andamento',
     cc: 'Concluído!'
   }
-  if (calendarStatus !== status['ad']) errors.id = 'Não é possivel excluir inscrições fora do periodo de inscrição.'
+  console.log('calendarStatus', calendarStatus)
+  if (calendarStatus !== status['ad']) {
+    errors.id = 'Não é possivel excluir inscrições fora do periodo de inscrição.'
+    return errors
+  }
+
+  //não pode ser deletado se tiver uma Petition associada.
+  const petitions = await db.Petition.count({ where: { inscription_id: inscription.id } })
+  if (petitions > 0) {
+    errors.id = 'Esta inscrição é dependência de recurso ativo.'
+    return errors
+  }
 
   return !isEmpty(errors) ? errors : null
 }

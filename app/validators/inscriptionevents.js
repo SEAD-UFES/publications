@@ -212,6 +212,13 @@ const validateDelete = async (inscriptionEvent, models) => {
     return errors
   }
 
+  //Não pode ser deletado se estiver ligado algum PetitionEvent
+  const petitionEvents = await models.PetitionEvent.count({ where: { inscriptionEvent_id: inscriptionEvent.id } })
+  if (petitionEvents > 0) {
+    errors.id = 'Este evento de inscrição é dependência de evento de recurso ativo.'
+    return errors
+  }
+
   return !isEmpty(errors) ? errors : null
 }
 

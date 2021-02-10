@@ -1,5 +1,7 @@
 /** @format */
 
+const calendar = require('../validators/calendar')
+
 module.exports = app => {
   const models = require('../models')
   const api = {}
@@ -33,6 +35,7 @@ module.exports = app => {
       //try to create
       const created = await models.Calendar.create(req.body)
       await created.reload() //para que o retorno seja igual ao de api.read.
+      created.dataValues.status = await created.calculateStatus()
       return res.status(201).json(created)
 
       //if error
@@ -59,6 +62,7 @@ module.exports = app => {
       }
 
       //return result
+      toRead.dataValues.status = await toRead.calculateStatus()
       return res.json(toRead)
 
       //if error
@@ -92,6 +96,7 @@ module.exports = app => {
       //try to create
       const updated = await toUpdate.update(req.body)
       await updated.reload() //para que o retorno seja igual ao de api.read.
+      updated.dataValues.status = await updated.calculateStatus()
       return res.status(201).json(updated)
 
       //if error
@@ -133,6 +138,17 @@ module.exports = app => {
 
   api.list = async (req, res) => {
     const callIds = req.query.call_ids ? req.query.call_ids : []
+
+    setStatusOnCalendar = async calendar => {
+      const status = await calendar.calculateStatus()
+      calendar.dataValues.status = status
+      return calendar
+    }
+
+    const setStatusOnCalendars = async calendars => {
+      return Promise.all(calendars.map(cld => setStatusOnCalendar(cld)))
+    }
+
     try {
       //validation
       if (callIds.length === 0) {
@@ -147,6 +163,8 @@ module.exports = app => {
       //query and send
       const whereCallIds = filtredCallIds.length > 0 ? { call_id: filtredCallIds } : { call_id: null }
       const calendars = await models.Calendar.findAll({ where: { ...whereCallIds } })
+      await setStatusOnCalendars(calendars)
+
       return res.json(calendars)
 
       //if error

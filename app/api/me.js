@@ -6,6 +6,8 @@ module.exports = app => {
   const db = require('../models/index')
   const error = app.errors.me
 
+  // const { validationDevMessage } = require('../helpers/error')
+
   api.me = (req, res) => {
     models.User.findById(req.user.id, {
       include: [
@@ -54,6 +56,12 @@ module.exports = app => {
       hasPerson = true
     }
 
+    // //validation
+    // const validationErrors = validateBodyPerson(req, models, toDelete)
+    // if (validationErrors) {
+    //   return res.status(400).json(error.parse('me-400', validationDevMessage(validationErrors)))
+    // }
+
     db.sequelize.transaction().then(t => {
       return Promise.all([
         models.User.findById(req.user.id, { transaction: t }).then(user => {
@@ -71,13 +79,12 @@ module.exports = app => {
         .catch(err => {
           t.rollback().then(() => {
             if (err.name === 'SequelizeValidationError') {
-              console.log(err)
+              console.log('\n', err, '\n')
               res.status(400).json(error.parse('me-01', err))
             }
             if (err.name === 'SequelizeUniqueConstraintError') res.status(400).json(error.parse('me-02', err))
             else res.status(500).json(error.parse('me-03', err))
           })
-          console.log(err)
         })
     })
   }
