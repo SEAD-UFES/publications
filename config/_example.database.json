@@ -11,7 +11,8 @@
       "dateStrings": true,
       "typeCast": true
     },
-    "timezone": "-03:00"
+    "timezone": "-03:00",
+    "seederStorageTableName": "sequelize_seed_data"
   },
   "test": {
     "username": "your_db_user_name",
