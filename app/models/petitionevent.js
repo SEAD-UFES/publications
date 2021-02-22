@@ -3,7 +3,7 @@
 'use strict'
 
 const apiRoutes = require('../../config/apiRoutes.json')
-const { validateOperationDelete } = require('../validators/petitionEvent')
+const { validateOperationDelete } = require('../validators/petitionevent')
 
 module.exports = (sequelize, DataTypes) => {
   const PetitionEvent = sequelize.define(
