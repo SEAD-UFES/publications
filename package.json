@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/SEAD-UFES/publications#readme",
   "dependencies": {
-    "bcrypt": "^3.0.4",
+    "bcrypt": "^3.0.6",
     "body-parser": "^1.18.3",
     "consign": "^0.1.6",
     "cors": "^2.8.5",
