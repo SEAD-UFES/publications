@@ -21,32 +21,17 @@ module.exports = app => {
       }
 
       //permission
-      // uses atuhrequired middleware
+      // uses auth required middleware
       // uses admin required middleware
 
       //try to create
       const created = await models.Assignment.create(req.body)
       await created.reload() //para que o retorno seja igual ao de api.read.
       return res.status(201).json(created)
-    } catch (err) {
-      console.log(err)
-      return res.status(500).json(error.parse('assignment-500', unknownDevMessage(err)))
-    }
 
-    console.log('entrei api.create')
-    if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !req.body.name || !req.body.description) {
-      res.status(400).json(error.parse('assignments-01', {}))
-    } else {
-      console.log('vou criar assingment')
-      models.Assignment.create(req.body).then(
-        _ => {
-          console.log('criei')
-          res.sendStatus(201)
-        },
-        e => {
-          res.status(500).json(error.parse('assignments-02', e))
-        }
-      )
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('assignment-500', unknownDevMessage(err)))
     }
   }
 
@@ -55,24 +40,45 @@ module.exports = app => {
       const toRead = await models.Assignment.findByPk(req.params.id)
 
       //check if exists
-      if (!toRead) return res.status(400).json(error.parse('assignments-02', {}))
+      if (!toRead) return res.status(400).json(error.parse('assignments-400', {}))
 
       //return result
       return res.json(toRead)
+
+      //if error
     } catch (error) {
-      return res.status(500).json(error.parse('assignments-02', error))
+      return res.status(500).json(error.parse('assignment-500', error))
     }
   }
 
-  api.update = (req, res) => {
-    models.Assignment.findById(req.params.id).then(assignment => {
-      if (!assignment) res.status(500).json(error.parse('assignments-02', {}))
-      else
-        assignment.update(req.body, { fields: Object.keys(req.body) }).then(
-          updated => res.json(updated),
-          e => res.status(500).json(error.parse('assignments-02', e))
-        )
-    })
+  api.update = async (req, res) => {
+    try {
+      const toUpdate = await models.Assignment.findByPk(req.params.id)
+
+      //verify valid id
+      if (!toUpdate) {
+        return res.status(400).json(error.parse('assignment-400', idNotFoundDevMessage()))
+      }
+
+      //validation and rules
+      const validationErrors = await validateBody(req.body, models, 'update', toUpdate)
+      if (validationErrors) {
+        return res.status(400).json(error.parse('assignment-400', validationDevMessage(validationErrors)))
+      }
+
+      //permission
+      // uses auth required middleware
+      // uses admin required middleware
+
+      //try to update
+      const updated = await toUpdate.update(req.body)
+      await updated.reload() //para que o retorno seja igual ao de api.read.
+      return res.status(201).json(updated)
+
+      //if error
+    } catch (err) {
+      return res.status(500).json(error.parse('assignment-500', unknownDevMessage(err)))
+    }
   }
 
   //Assignment delete

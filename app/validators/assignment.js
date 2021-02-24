@@ -51,7 +51,7 @@ const validateBody = async (body, db, mode, item) => {
   const nameError = await validateName(body.name, db, mode, item)
   if (nameError) errors.name = nameError
 
-  const descriptionError = await validateDescription(body.description, db, mode, item)
+  const descriptionError = validateDescription(body.description, db, mode, item)
   if (descriptionError) errors.description = descriptionError
 
   return !isEmpty(errors) ? errors : null
