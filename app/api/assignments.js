@@ -4,14 +4,43 @@ module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.assignments
-  const { unknownDevMessage, idNotFoundDevMessage, forbbidenDeletionDevMessage } = require('../helpers/error')
+  const {
+    validationDevMessage,
+    unknownDevMessage,
+    idNotFoundDevMessage,
+    forbbidenDeletionDevMessage
+  } = require('../helpers/error')
+  const { validateBody } = require('../validators/assignment')
 
-  api.create = (req, res) => {
+  api.create = async (req, res) => {
+    try {
+      //validation and rules
+      const validationErrors = await validateBody(req.body, models, 'create')
+      if (validationErrors) {
+        return res.status(400).json(error.parse('assignment-400', validationDevMessage(validationErrors)))
+      }
+
+      //permission
+      // uses atuhrequired middleware
+      // uses admin required middleware
+
+      //try to create
+      const created = await models.Assignment.create(req.body)
+      await created.reload() //para que o retorno seja igual ao de api.read.
+      return res.status(201).json(created)
+    } catch (err) {
+      console.log(err)
+      return res.status(500).json(error.parse('assignment-500', unknownDevMessage(err)))
+    }
+
+    console.log('entrei api.create')
     if (!(Object.prototype.toString.call(req.body) === '[object Object]') || !req.body.name || !req.body.description) {
       res.status(400).json(error.parse('assignments-01', {}))
     } else {
+      console.log('vou criar assingment')
       models.Assignment.create(req.body).then(
         _ => {
+          console.log('criei')
           res.sendStatus(201)
         },
         e => {

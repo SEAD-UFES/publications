@@ -60,7 +60,7 @@ const validateJustification = (value, db, mode, item) => {
   }
 
   //tamanho mínimo
-  if (typeof value !== 'undefined' && (typeof value !== 'string' || value.length < 5 || value.length >= 255)) {
+  if (typeof value !== 'undefined' && (typeof value !== 'string' || value.length < 5 || value.length >= 1024)) {
     return 'A justificativa precisa ter entre 5 e 1024 caracteres.'
   }
 

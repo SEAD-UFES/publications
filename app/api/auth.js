@@ -69,10 +69,13 @@ module.exports = app => {
   }
 
   api.authenticationRequired = (req, res, next) => {
+    console.log('entrei authenticationRequired')
     try {
       const decoded = jwt.verify(req.headers['x-access-token'], app.get('jwt_secret'))
+      console.log(decoded.data)
       models.User.findByPk(decoded.data, userInclude)
         .then(user => {
+          console.log('user.login', user.login)
           if (!user) return res.status(500).json(error.parse('auth-03', { errors: { id: 'usuário não encontrado.' } }))
           req.user = user
           return next()
@@ -95,6 +98,8 @@ module.exports = app => {
   }
 
   api.adminRequired = (req, res, next) => {
+    console.log('entrei adminRequired')
+
     if (isAdmin(req.user)) return next()
     else return res.status(401).json(error.parse('auth-08', 'Administrator level required'))
   }
