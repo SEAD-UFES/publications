@@ -9,34 +9,17 @@ module.exports = app => {
   // const { validationDevMessage } = require('../helpers/error')
 
   api.me = (req, res) => {
-    models.User.findById(req.user.id, {
-      include: [
-        {
-          model: models.UserRole,
-          required: false,
-          include: [
-            {
-              model: models.RoleType,
-              required: false,
-              include: [
-                {
-                  model: models.Permission,
-                  required: false
-                }
-              ]
-            },
-            {
-              model: models.Course,
-              required: false
-            }
-          ]
-        },
-        {
-          model: models.Person,
-          require: false
-        }
-      ]
-    }).then(user => res.send(user))
+    //includes
+    const includePermission = { model: models.Permission, required: false }
+    const includeRoleType = { model: models.RoleType, required: false, include: [includePermission] }
+    const includeCourse = { model: models.Course, required: false }
+    const includeUserRole = { model: models.UserRole, required: false, include: [includeRoleType, includeCourse] }
+    const includePerson = { model: models.Person, require: false }
+
+    //query
+    models.User.findByPk(req.user.id, { include: [includeUserRole, includePerson] }).then(user => {
+      return res.send(user)
+    })
   }
 
   api.update = (req, res) => {
