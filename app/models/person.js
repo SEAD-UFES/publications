@@ -80,6 +80,13 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isIn: [['masculino', 'feminino', 'outro']]
         }
+      },
+      fatherName: {
+        type: DataTypes.STRING
+      },
+      motherName: {
+        type: DataTypes.STRING,
+        allowNull: false
       }
     },
     { timestamps: true, paranoid: true }
