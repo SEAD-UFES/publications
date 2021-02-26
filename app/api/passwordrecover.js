@@ -18,8 +18,11 @@ module.exports = app => {
     }
 
     //Conferir se o usuário existe e é valido
-    let includes = [{ model: models.Person, required: false }]
-    let user = await models.User.findOne({ include: includes, where: { login: req.body.login, authorized: true } })
+    let includePerson = { model: models.Person, required: false }
+    let user = await models.User.findOne({
+      include: [includePerson],
+      where: { login: req.body.login, authorized: true }
+    })
     if (user === null) {
       return res.status(404).json(error.parse('recover-404', { login: 'Usuário inativo ou não existe' }))
     }
