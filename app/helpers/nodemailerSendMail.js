@@ -3,14 +3,26 @@
 const nodemailer = require('nodemailer')
 
 const mailConfig = require('../../config/mail')
-
 const apiAddress = 'http://localhost:3000/v1/verify/'
-
 const transporter = nodemailer.createTransport(mailConfig)
+
+const verify = async () => {
+  // verify connection configuration
+  return new Promise((resolve, reject) => {
+    transporter.verify(function (error, success) {
+      if (error) {
+        console.log(error)
+        reject(false)
+      } else {
+        resolve(true)
+      }
+    })
+  })
+}
 
 const sendMail = mailOptions => {
   return new Promise((resolve, reject) => {
-    transporter.sendMail(mailOptions, function(error, info) {
+    transporter.sendMail(mailOptions, function (error, info) {
       if (error) return reject(error)
       return resolve(info)
     })
@@ -41,7 +53,7 @@ const sendVerificationEmail = async (userName, userEmail, verificationToken) => 
   `
 
   const mailOptions = {
-    from: 'no-reply-spss@ufes.br',
+    from: 'fernando.annecchini@ufes.br',
     to: userEmail,
     subject: 'Seleção SEAD - Confirmação de E-mail',
     html: htmlMessage,
@@ -51,4 +63,4 @@ const sendVerificationEmail = async (userName, userEmail, verificationToken) => 
   return await sendMail(mailOptions)
 }
 
-module.exports = { sendMail, sendVerificationEmail }
+module.exports = { verify, sendMail, sendVerificationEmail }
