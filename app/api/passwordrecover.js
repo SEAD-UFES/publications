@@ -4,116 +4,150 @@ module.exports = app => {
   const models = require('../models')
   const api = {}
   const error = app.errors.passwordrecover
-
+  const siteConf = require('../../config/site.js')
+  const mailConf = require('../../config/mail.js')
   const { validateBodyRequire, validateBodyChange } = require('../validators/passwordrecover')
   const cryptoRandomString = require('crypto-random-string')
-  const { sendMail } = require('../helpers/nodemailerSendMail')
+  const { verify, sendMail } = require('../helpers/nodemailerSendMail')
+  const {
+    generateRecoverMessageText,
+    generateRecoverMessageHTML,
+    generateRecoverMessageSubject
+  } = require('../helpers/emailHelpers')
 
-  //revover password require
   api.recoverRequire = async (req, res) => {
-    //Conferir se tem um body valido
-    const validation = validateBodyRequire(req.body)
-    if (validation.isValid === false) {
-      return res.status(400).json(error.parse('recover-400', { ...validation.errors }))
-    }
+    const t = await models.sequelize.transaction()
+    try {
+      //Conferir se tem um body valido
+      const validation = validateBodyRequire(req.body)
+      if (validation.isValid === false) {
+        await t.rollback()
+        //send message
+        return res.status(400).json(error.parse('recover-400', { ...validation.errors }))
+      }
 
-    //Conferir se o usuário existe e é valido
-    let includePerson = { model: models.Person, required: false }
-    let user = await models.User.findOne({
-      include: [includePerson],
-      where: { login: req.body.login, authorized: true }
-    })
-    if (user === null) {
-      return res.status(404).json(error.parse('recover-404', { login: 'Usuário inativo ou não existe' }))
-    }
+      //Conferir se o usuário existe e é valido
+      const includePerson = { model: models.Person, required: false }
+      const user = await models.User.findOne({
+        include: [includePerson],
+        where: { login: req.body.login, authorized: true }
+      })
+      if (user === null) {
+        await t.rollback()
+        const message = { login: 'Usuário inativo ou não existe' }
+        return res.status(404).json(error.parse('recover-404', message))
+      }
 
-    //Se tudo ok, gerar e enviar token
-    const token = cryptoRandomString({ length: 52 }) + '0' + Date.now().toString(16)
-    const passwordRecover = await models.PasswordRecover.create({ user_id: user.id, token: token })
+      //Se tudo ok, gerar token, passwordRecover e recover URL
+      const token = cryptoRandomString({ length: 52 }) + '0' + Date.now().toString(16)
+      const passwordRecover = await models.PasswordRecover.create(
+        { user_id: user.id, token: token },
+        { transaction: t }
+      )
+      const recoverURL = `${siteConf.frontend_url}/recover`
 
-    const text = `
-      Requisição de troca de senha\n
-      Olá ${user.Person ? user.Person.name : user.login}\n
-      Você nos disse que esqueceu sua senha. Se você realmente esqueceu, utilize o link abaixo para redefini-la.\n
-      Para redefinir sua senha, acesse:\n
-      http://localhost:5000/recover/${passwordRecover.token}\n
-      Este e-mail é automático, favor não responder!\n
-      `
+      //preparar email.
+      const mailOptions = {
+        from: `${mailConf.auth.user}`,
+        to: user.login,
+        subject: generateRecoverMessageSubject(),
+        text: generateRecoverMessageText(user, recoverURL, passwordRecover),
+        html: generateRecoverMessageHTML(user, recoverURL, passwordRecover)
+      }
 
-    const html = `
-      <h1>Requisição de troca de senha</h1>
-      <p>Olá ${user.Person ? user.Person.name : user.login}</p>
-      <p>Você nos disse que esqueceu sua senha. Se você realmente esqueceu, utilize o link abaixo para redefini-la.</p>
-      <p>
-        Para redefinir sua senha,
-        <a href="http://localhost:5000/recover/${
-          passwordRecover.token
-        }" target="_blank" rel="noopener noreferrer">clique aqui</a>
-      </p>
-      <p>Este e-mail é automático, favor não responder!</p>
-      `
+      //tentar enviar o email.
+      await verify().catch(err => {
+        console.log('Erro ao verificar servidor de email.')
+        throw err
+      })
+      const result = await sendMail(mailOptions).catch(err => {
+        console.log('Falha ao enviar email.')
+        throw err
+      })
 
-    mailOptions = {
-      from: '1e3a18137a-8f25af@inbox.mailtrap.io',
-      to: user.login,
-      subject: 'SPS SEAD - Requisição de troca de senha.',
-      text: text,
-      html: html
-    }
+      //commit
+      await t.commit()
 
-    sendMail(mailOptions)
-      .then(info => {
-        console.log(`Email enviado para ${user.login} - `, info.response)
+      // enviar resposta ao usuário.
+      if (result) {
+        console.log(`Email enviado para ${user.login} - `, result.response)
         return res.json({ sended: true, message: `Email enviado para ${user.login}` })
-      })
-      .catch(error => {
-        console.log(error)
-        return res.status(500).json(error.parse('recover-500', { sended: false, message: 'Falha ao enviar o email' }))
-      })
+      }
+
+      //if error
+    } catch (err) {
+      console.log(err)
+      await t.rollback()
+      const message = { sended: false, message: 'Falha ao enviar o email' }
+      return res.status(500).json(error.parse('recover-500', message))
+    }
   }
 
   api.recoverGet = async (req, res) => {
-    //Conferir se o token existe e recuperar usuário.
-    const includes = [{ model: models.User, required: false }]
+    //includes
+    const includeUser = { model: models.User, required: false }
+
+    //get passwordRecover
     let passwordRecover = await models.PasswordRecover.findOne({
-      include: includes,
+      include: [includeUser],
       where: { token: req.params.token }
     })
+
+    //if not passwordRecover, send response error
     if (passwordRecover === null) {
-      return res
-        .status(404)
-        .json(error.parse('recover-404', { finded: false, token: 'Token de recuperação não encontrado' }))
+      const message = { finded: false, token: 'Token de recuperação não encontrado' }
+      return res.status(404).json(error.parse('recover-404', message))
     }
 
+    //if ok, send response
     return res.json({ finded: true, login: passwordRecover.User.login })
   }
 
   //recover password change
   api.recoverChange = async (req, res) => {
-    //Conferir se tem o body valido
-    const validation = validateBodyChange(req.body)
-    if (validation.isValid === false) {
-      return res.status(400).json(error.parse('recover-400', { ...validation.errors }))
-    }
-
-    //Conferir se o token existe e recuperar usuário.
-    const includes = [{ model: models.User, required: false }]
-    let passwordRecover = await models.PasswordRecover.findOne({
-      include: includes,
-      where: { token: req.params.token }
-    })
-    if (passwordRecover === null) {
-      return res.status(404).json(error.parse('recover-404', { token: 'token de recuperação não encontrado' }))
-    }
-
-    //Se tudo ok alterar a senha, apagar tokens, enviar resutado.
+    const t = await models.sequelize.transaction()
     try {
-      const user = await models.User.findByPk(passwordRecover.User.id)
-      const updatedUser = await user.update(req.body, { fields: ['password'] })
-      await models.PasswordRecover.destroy({ where: { user_id: [updatedUser.id], individualHooks: true } })
+      //Conferir se tem o body valido
+      const validation = validateBodyChange(req.body)
+      if (validation.isValid === false) {
+        await t.rollback()
+        return res.status(400).json(error.parse('recover-400', { ...validation.errors }))
+      }
+
+      //includes
+      const includeUser = { model: models.User, required: false }
+
+      //Conferir se o token existe e recuperar usuário.
+      let passwordRecover = await models.PasswordRecover.findOne({
+        include: [includeUser],
+        where: { token: req.params.token }
+      })
+      if (passwordRecover === null) {
+        await t.rollback()
+        return res.status(404).json(error.parse('recover-404', { token: 'token de recuperação não encontrado' }))
+      }
+
+      //Se tudo, ok alterar a senha, apagar tokens
+      const user = passwordRecover.User
+      const updatedUser = await user.update(req.body, { fields: ['password'], transaction: t })
+      await models.PasswordRecover.destroy({
+        where: { user_id: [updatedUser.id] },
+        individualHooks: true,
+        transaction: t
+      })
+
+      //commit
+      await t.commit()
+
+      //enviar resposta.
       return res.json({ updated: true, message: `Senha de ${updatedUser.login} alterada com sucesso.` })
-    } catch (e) {
-      return res.status(500).json(error.parse('recover-500', { updated: false, message: 'Falha ao atualizar senha.' }))
+
+      //if error
+    } catch (err) {
+      console.log(err)
+      await t.rollback()
+      const message = { updated: false, message: 'Falha ao atualizar senha.' }
+      return res.status(500).json(error.parse('recover-500', message))
     }
   }
 
