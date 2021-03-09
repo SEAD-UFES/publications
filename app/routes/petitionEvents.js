@@ -3,11 +3,18 @@
 module.exports = app => {
   const api = app.api.petitionEvents
   const authApi = app.api.auth
+  const siteConf = require('../../config/site')
 
-  app.route(app.get('petitionEventApiRoute')).post(authApi.authenticationRequired, api.create).get(api.list)
+  //create base folder
+  const baseFolder = siteConf.backend_base_subfolder ? siteConf.backend_base_subfolder : ''
 
   app
-    .route(app.get('petitionEventApiRoute') + '/:id')
+    .route(baseFolder + app.get('petitionEventApiRoute'))
+    .post(authApi.authenticationRequired, api.create)
+    .get(api.list)
+
+  app
+    .route(baseFolder + app.get('petitionEventApiRoute') + '/:id')
     .put(authApi.authenticationRequired, api.update)
     .get(api.read)
     .delete(authApi.authenticationRequired, api.delete)
