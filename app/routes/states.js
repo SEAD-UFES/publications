@@ -1,10 +1,14 @@
+/** @format */
+
 module.exports = app => {
-  const api = app.api.states;
-  const authApi = app.api.auth;
+  const api = app.api.states
+  const authApi = app.api.auth
+  const siteConf = require('../../config/site')
 
-  app.route(app.get('stateApiRoute'))
-    .get(authApi.authenticationRequired, api.list);
+  //create base folder
+  const baseFolder = siteConf.backend_base_subfolder ? siteConf.backend_base_subfolder : ''
 
-  app.route(app.get('stateApiRoute')+"/:data")
-    .get(authApi.authenticationRequired, api.specific);
+  app.route(baseFolder + app.get('stateApiRoute')).get(authApi.authenticationRequired, api.list)
+
+  app.route(baseFolder + app.get('stateApiRoute') + '/:data').get(authApi.authenticationRequired, api.specific)
 }

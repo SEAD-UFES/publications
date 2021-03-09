@@ -3,14 +3,18 @@
 module.exports = app => {
   const api = app.api.assignments
   const authApi = app.api.auth
+  const siteConf = require('../../config/site')
+
+  //create base folder
+  const baseFolder = siteConf.backend_base_subfolder ? siteConf.backend_base_subfolder : ''
 
   app
-    .route(app.get('assignmentApiRoute'))
+    .route(baseFolder + app.get('assignmentApiRoute'))
     .post(authApi.authenticationRequired, authApi.adminRequired, api.create)
     .get(authApi.authenticationRequired, api.list)
 
   app
-    .route(app.get('assignmentApiRoute') + '/:id')
+    .route(baseFolder + app.get('assignmentApiRoute') + '/:id')
     .get(api.read)
     .put(authApi.authenticationRequired, authApi.adminRequired, api.update)
     .delete(authApi.authenticationRequired, authApi.adminRequired, api.delete)
