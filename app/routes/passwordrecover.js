@@ -8,11 +8,11 @@ module.exports = app => {
   const baseFolder = siteConf.backend_base_subfolder ? siteConf.backend_base_subfolder : ''
 
   //post login to recover pass. Send a token to user via email. Return status message
-  app.route(`${app.get('recoverApiRoute')}`).post(api.recoverRequire)
+  app.route(`${baseFolder}${app.get('recoverApiRoute')}`).post(api.recoverRequire)
 
   //post new password to the user. Return status message
   app
-    .route(`${app.get('recoverApiRoute')}/:token`)
+    .route(`${baseFolder}${app.get('recoverApiRoute')}/:token`)
     .get(api.recoverGet)
     .post(api.recoverChange)
 }
