@@ -7,5 +7,8 @@ module.exports = {
   auth: {
     user: '',
     pass: ''
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 }
